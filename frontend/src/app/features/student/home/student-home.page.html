@@ -1,0 +1,77 @@
+<main class="student-home-page">
+  <section class="dashboard-shell">
+    <header class="dashboard-header">
+      <div class="brand-block">
+        <img src="/assets/logoweb_UTA.png" alt="Logo Universidad de Tarapaca" />
+        <div>
+          <h1>Panel del Estudiante</h1>
+          <p>Universidad de Tarapaca - Alojamiento estudiantil</p>
+        </div>
+      </div>
+
+      <div class="session-block">
+        <strong>{{ currentUser?.fullName ?? 'Estudiante' }}</strong>
+        <span>RUT: {{ currentUser?.rut ?? 'Sin RUT' }}</span>
+        <button type="button" class="logout-btn" (click)="logout()">Cerrar sesion</button>
+      </div>
+    </header>
+
+    <section class="quick-summary">
+      <article>
+        <span class="label">Estado actual</span>
+        <strong class="value" [class.pending]="postulationStatusClass === 'pending'" [class.approved]="postulationStatusClass === 'approved'" [class.rejected]="postulationStatusClass === 'rejected'">
+          {{ postulationStatusLabel }}
+        </strong>
+      </article>
+      <article>
+        <span class="label">Periodo</span>
+        <strong class="value">2026 - Primer semestre</strong>
+      </article>
+      <article>
+        <span class="label">Ultima actualizacion</span>
+        <strong class="value">Hoy</strong>
+      </article>
+    </section>
+
+    <section class="menu-grid">
+      <button
+        type="button"
+        class="menu-card featured"
+        [class.locked]="isPostulationLocked"
+        [disabled]="isPostulationLocked"
+        (click)="goToPostulation()"
+      >
+        <h2>Postulacion</h2>
+        <p>
+          Ingresa y envia tus datos para solicitar alojamiento universitario.
+          @if (isPostulationLocked) {
+            Tu solicitud actual esta en revision.
+          }
+        </p>
+        <span>{{ isPostulationLocked ? 'Bloqueada hasta resolucion' : 'Ir a formulario' }}</span>
+      </button>
+
+      <button type="button" class="menu-card" (click)="goToStatus()">
+        <h2>Estado</h2>
+        <p>Revisa avances, observaciones y resultado final de tu solicitud.</p>
+        <span>Consultar estado</span>
+      </button>
+
+      <button type="button" class="menu-card" (click)="showSoon('Documentos')">
+        <h2>Documentos</h2>
+        <p>Sube y revisa documentos requeridos para validar tu postulacion.</p>
+        <span>Proximamente</span>
+      </button>
+
+      <button type="button" class="menu-card" (click)="showSoon('Notificaciones')">
+        <h2>Notificaciones</h2>
+        <p>Consulta avisos relevantes sobre fechas, resultados y actualizaciones.</p>
+        <span>Proximamente</span>
+      </button>
+    </section>
+
+    @if (infoMessage) {
+      <p class="info-message">{{ infoMessage }}</p>
+    }
+  </section>
+</main>

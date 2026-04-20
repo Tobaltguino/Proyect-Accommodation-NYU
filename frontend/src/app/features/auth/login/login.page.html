@@ -1,0 +1,47 @@
+<div class="login-page">
+  <section class="login-card">
+    <header class="login-header">
+      <div class="logo-wrap">
+        <img src="/assets/logoweb_UTA.png" alt="Logo Universidad de Tarapaca" />
+      </div>
+      <h1>Universidad de Tarapacá</h1>
+      <p>Acceso al sistema de alojamiento estudiantil</p>
+    </header>
+
+    <form [formGroup]="loginForm" (ngSubmit)="submit()" novalidate>
+      <div class="form-group">
+        <label for="rut">RUT</label>
+        <input
+          id="rut"
+          type="text"
+          formControlName="rut"
+          placeholder="12.345.678-5 o 12345678-5"
+        />
+        @if (loginForm.controls.rut.touched && loginForm.controls.rut.invalid) {
+          <small class="error">Ingresa un RUT valido.</small>
+        }
+      </div>
+
+      <div class="form-group">
+        <label for="password">Contrasena</label>
+        <input id="password" type="password" formControlName="password" placeholder="********" />
+        @if (loginForm.controls.password.touched && loginForm.controls.password.invalid) {
+          <small class="error">La contrasena es requerida.</small>
+        }
+      </div>
+
+      @if (errorMessage) {
+        <p class="submit-error">{{ errorMessage }}</p>
+      }
+
+      <button type="submit" [disabled]="isSubmitting">
+        {{ isSubmitting ? 'Ingresando...' : 'Ingresar' }}
+      </button>
+    </form>
+
+    <footer class="login-help">
+      <span>Admin demo: 12345678-5 / Admin123*</span>
+      <span>Student demo: 87654321-K / Student123*</span>
+    </footer>
+  </section>
+</div>
