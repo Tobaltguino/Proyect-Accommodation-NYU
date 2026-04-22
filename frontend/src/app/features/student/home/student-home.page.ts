@@ -18,6 +18,7 @@ export class StudentHomePageComponent {
   private readonly statusRequestTimeoutMs = 10000;
 
   readonly currentUser: SessionUser | null;
+  readonly periodLabel = '2026 - Primer semestre';
 
   postulationStatusLabel = 'Cargando estado...';
   postulationStatusClass: 'pending' | 'approved' | 'rejected' = 'pending';

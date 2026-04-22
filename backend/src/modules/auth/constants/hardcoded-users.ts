@@ -23,4 +23,12 @@ export const HARDCODED_USERS: AuthUserRecord[] = [
     fullName: 'Maria Fernanda Soto Rojas',
     role: Role.STUDENT,
   },
+  {
+  id: 4,
+  rut: '20567891-7',
+  password: 'Student789*',
+  fullName: 'Diego Alejandro Vargas Morales',
+  role: Role.STUDENT,
+},
+  
 ];
