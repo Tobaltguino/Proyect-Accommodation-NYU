@@ -3,10 +3,18 @@ body {
   margin: 0;
   padding: 0;
   min-height: 100%;
+  font-family: 'Inter', sans-serif;
 }
 
 body {
   background: #f7f5ff;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
 }
 
 app-root {

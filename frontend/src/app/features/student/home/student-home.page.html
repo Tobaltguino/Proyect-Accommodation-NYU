@@ -1,64 +1,67 @@
 <main class="student-home-page">
-  <header class="topbar">
-    <div class="topbar-left">
-      <div class="brand-block">
-        <img src="/assets/NYU-Logo.png" alt="Logo Universidad de New York" />
-        <div>
-          <strong>UNIVERSIDAD DE NEW YORK</strong>
-          <span>Portal de alojamiento estudiantil</span>
-        </div>
+  <aside class="dashboard-sidebar">
+    <section class="sidebar-brand">
+      <img src="/assets/NYU-Logo.png" alt="Logo Universidad de New York" />
+      <div>
+        <strong>Housing Portal</strong>
+        <span>Student Residence</span>
       </div>
-    </div>
+    </section>
 
-    <div class="topbar-actions">
-      <button type="button" class="icon-btn" (click)="showSoon('Ayuda')">?</button>
-      <button type="button" class="icon-btn" (click)="showSoon('Alertas')">!</button>
-    </div>
-
-    <div class="session-block">
+    <section class="sidebar-profile">
       <strong>{{ currentUser?.fullName ?? 'Estudiante' }}</strong>
+      <span>RUT {{ currentUser?.rut ?? 'Sin RUT' }}</span>
+      <small>{{ periodLabel }}</small>
+    </section>
+
+    <nav class="sidebar-nav" aria-label="Navegacion estudiante">
+      <button type="button" class="nav-item active">Inicio</button>
+      <button
+        type="button"
+        class="nav-item"
+        [class.disabled]="isPostulationLocked"
+        [disabled]="isPostulationLocked"
+        (click)="goToPostulation()"
+      >
+        Postulacion
+      </button>
+      <button type="button" class="nav-item" (click)="goToStatus()">Estado de solicitud</button>
+      <button type="button" class="nav-item" (click)="showSoon('Documentos')">Documentos</button>
+      <button type="button" class="nav-item" (click)="showSoon('Notificaciones')">Notificaciones</button>
+    </nav>
+
+    <div class="sidebar-footer">
       <button type="button" class="logout-btn" (click)="logout()">Cerrar sesion</button>
     </div>
-  </header>
+  </aside>
 
-  <section class="layout-shell">
-    <aside class="sidebar">
-      <section class="student-panel">
-        <h1>Intranet</h1>
-        <strong>{{ currentUser?.fullName ?? 'Estudiante' }}</strong>
-        <span>RUT {{ currentUser?.rut ?? 'Sin RUT' }}</span>
-        <small>Ultimo acceso {{ periodLabel }}</small>
-      </section>
+  <section class="dashboard-main">
+    <header class="main-header">
+      <div class="header-copy">
+        <h1>Inicio del Estudiante</h1>
+        <p>Gestiona tu postulacion de alojamiento y revisa su estado en un solo lugar.</p>
+      </div>
 
-      <nav class="main-nav" aria-label="Navegacion estudiante">
-        <p class="group-title">ESTUDIANTE</p>
+      <div class="header-tools">
+        <label class="search-box" aria-label="Buscar">
+          <span>Buscar</span>
+          <input type="search" placeholder="Buscar secciones..." (focus)="showSoon('Buscador')" />
+        </label>
+        <button type="button" class="icon-btn" (click)="showSoon('Ayuda')">?</button>
+        <button type="button" class="icon-btn" (click)="showSoon('Alertas')">!</button>
+      </div>
+    </header>
 
-        <button type="button" class="nav-item active">Inicio</button>
-        <button
-          type="button"
-          class="nav-item"
-          [class.disabled]="isPostulationLocked"
-          [disabled]="isPostulationLocked"
-          (click)="goToPostulation()"
-        >
-          Postulacion
-        </button>
-        <button type="button" class="nav-item" (click)="goToStatus()">Estado de solicitud</button>
-        <button type="button" class="nav-item" (click)="showSoon('Documentos')">Documentos secretaria</button>
-        <button type="button" class="nav-item" (click)="showSoon('Notificaciones')">Notificaciones</button>
-      </nav>
-    </aside>
+    <nav class="breadcrumbs" aria-label="Ruta">
+      <span>Estudiante</span>
+      <span>Home</span>
+      <span>2026 Semestre 1</span>
+    </nav>
 
-    <section class="content-area">
-      <nav class="breadcrumbs" aria-label="Ruta">
-        <span>Estudiante</span>
-        <span>Home</span>
-        <span>2026 Semestre 1</span>
-      </nav>
-
-      <section class="info-panel">
+    <section class="content-grid">
+      <article class="card info-panel">
         <header>
-          <h2>INFORMACION DE POSTULACION</h2>
+          <h2>Informacion de postulacion</h2>
         </header>
 
         <dl>
@@ -93,38 +96,48 @@
             <dd>{{ isPostulationLocked ? 'Bloqueada por revision' : 'Habilitada' }}</dd>
           </div>
         </dl>
-      </section>
+      </article>
 
-      <section class="modules">
-        <article class="module-box">
-          <h3>Gestion de postulacion</h3>
-          <p>Completa, revisa o actualiza tu formulario de alojamiento.</p>
-          <ul>
-            <li>Formulario personal y academico</li>
-            <li>Seleccion de habitacion</li>
-            <li>Declaracion obligatoria</li>
-          </ul>
-          <button type="button" class="module-btn" [disabled]="isPostulationLocked" (click)="goToPostulation()">
-            Ir a postulacion
-          </button>
-        </article>
-
-        <article class="module-box">
-          <h3>Seguimiento de solicitud</h3>
-          <p>Consulta cambios de estado y proximas acciones administrativas.</p>
-          <ul>
-            <li>Revision de antecedentes</li>
-            <li>Resultado final</li>
-            <li>Mensajes y observaciones</li>
-          </ul>
-          <button type="button" class="module-btn alt" (click)="goToStatus()">Ver estado</button>
-        </article>
-      </section>
-
-      @if (infoMessage) {
-        <p class="info-message">{{ infoMessage }}</p>
-      }
+      <article class="card status-panel">
+        <h2>Estado rapido</h2>
+        <p>Indicadores visuales de tu proceso actual.</p>
+        <div class="status-badges">
+          <span class="badge approved">Aprobada</span>
+          <span class="badge pending">Pendiente</span>
+          <span class="badge rejected">Rechazada</span>
+          <span class="badge neutral">En proceso</span>
+        </div>
+      </article>
     </section>
-  </section>
 
+    <section class="modules">
+      <article class="card module-box">
+        <h3>Gestion de postulacion</h3>
+        <p>Completa, revisa o actualiza tu formulario de alojamiento.</p>
+        <ul>
+          <li>Formulario personal y academico</li>
+          <li>Seleccion de habitacion</li>
+          <li>Declaracion obligatoria</li>
+        </ul>
+        <button type="button" class="module-btn" [disabled]="isPostulationLocked" (click)="goToPostulation()">
+          Ir a postulacion
+        </button>
+      </article>
+
+      <article class="card module-box">
+        <h3>Seguimiento de solicitud</h3>
+        <p>Consulta cambios de estado y proximas acciones administrativas.</p>
+        <ul>
+          <li>Revision de antecedentes</li>
+          <li>Resultado final</li>
+          <li>Mensajes y observaciones</li>
+        </ul>
+        <button type="button" class="module-btn alt" (click)="goToStatus()">Ver estado</button>
+      </article>
+    </section>
+
+    @if (infoMessage) {
+      <p class="info-message">{{ infoMessage }}</p>
+    }
+  </section>
 </main>
