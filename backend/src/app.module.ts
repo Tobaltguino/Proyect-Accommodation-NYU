@@ -12,27 +12,44 @@ import { ResidenciasModule } from './modules/residencias/residencias.module';
 import { SolicitudesModule } from './modules/solicitudes/solicitudes.module';
 import { UsersModule } from './modules/users/users.module';
 
+import { AppService } from './app.service';
+import { AppController } from './app.controller';
+
 @Module({
   imports: [
+
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
-      load: [envConfig],
     }),
+
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (configService: ConfigService) =>
-        getDatabaseConfig(configService),
+      useFactory: (configService: ConfigService) => ({
+        type: 'postgres',
+        host: configService.get<string>('DB_HOST'),
+        port: configService.get<number>('DB_PORT'),
+        username: configService.get<string>('DB_USER'),
+        password: configService.get<string>('DB_PASSWORD'),
+        database: configService.get<string>('DB_NAME'),
+
+        // ESTO ES VITAL PARA SUPABASE
+        ssl: {
+          rejectUnauthorized: false,
+        },
+
+        autoLoadEntities: true,
+        synchronize: true,
+      }),
     }),
-    AuthModule,
-    UsersModule,
-    SolicitudesModule,
-    ResidenciasModule,
-    AsignacionesModule,
-    CheckinModule,
-    IncidenciasModule,
-    HistorialModule,
+
+
+
+
+
   ],
+  controllers: [AppController],
+  providers: [AppService],
 })
-export class AppModule {}
+export class AppModule { }
