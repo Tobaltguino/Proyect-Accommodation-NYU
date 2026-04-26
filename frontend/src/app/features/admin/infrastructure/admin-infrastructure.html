@@ -1,1 +1,100 @@
-<p>admin-infrastructure works!</p>
+<div class="infrastructure-page">
+  <section class="infrastructure-shell">
+    <header class="page-header">
+      <div>
+        <h1>Gestión de Infraestructura</h1>
+        <p>Administra edificios, pisos y configura la capacidad de las habitaciones.</p>
+      </div>
+      <button type="button" class="primary" (click)="createNewBuilding()">
+        <i class="pi pi-plus"></i> Nuevo Edificio
+      </button>
+    </header>
+
+    <div class="layout-grid">
+      <section class="block">
+        <div class="block-title">
+          <h2>Edificios</h2>
+          <span>Selecciona un edificio</span>
+        </div>
+
+        <div class="building-list">
+          @for (building of buildings; track building.id) {
+            <article 
+              class="building-card" 
+              [class.active]="selectedBuilding?.id === building.id"
+              (click)="selectBuilding(building)"
+            >
+              <div class="building-info">
+                <strong>{{ building.name }}</strong>
+                <span class="status-badge" [class.maintenance]="building.status === 'MANTENIMIENTO'">
+                  {{ building.status }}
+                </span>
+              </div>
+              <small>{{ building.floors.length }} Pisos configurados</small>
+            </article>
+          }
+        </div>
+      </section>
+
+      <section class="block map-block">
+        @if (selectedBuilding) {
+          <div class="block-title header-action">
+            <div>
+              <h2>Distribución: {{ selectedBuilding.name }}</h2>
+              <span>Configura los pisos y habitaciones</span>
+            </div>
+            <button type="button" class="ghost small" (click)="createNewFloor()">
+              <i class="pi pi-plus"></i> Agregar Piso
+            </button>
+          </div>
+
+          @if (selectedBuilding.floors.length === 0) {
+            <div class="empty-state">
+              <i class="pi pi-building empty-icon"></i>
+              <p>Este edificio aún no tiene pisos registrados.</p>
+            </div>
+          }
+
+          <section class="building-map">
+            @for (floor of selectedBuilding.floors; track floor.level) {
+              <article class="floor-card">
+                <div class="floor-header">
+                  <h3>Piso {{ floor.level }}</h3>
+                  <button type="button" class="text-btn" (click)="createNewRoom(floor.level)">
+                    <i class="pi pi-plus"></i> Añadir Hab.
+                  </button>
+                </div>
+                
+                <div class="room-grid">
+                  @for (room of floor.rooms; track room.code) {
+                    <div class="room-chip config-mode" [class.locked]="room.code === '201'">
+                      <strong>Hab {{ room.code }}</strong>
+                      <small>{{ room.totalBeds }} Camas totales</small>
+                      
+                      <div class="room-actions">
+                        <button type="button" class="icon-action" title="Editar">
+                          <i class="pi pi-pencil"></i>
+                        </button>
+                        <button type="button" class="icon-action warning" title="Bloquear / Deshabilitar">
+                          <i class="pi" [ngClass]="room.code === '201' ? 'pi-lock' : 'pi-unlock'"></i>
+                        </button>
+                        <button type="button" class="icon-action danger" title="Eliminar">
+                          <i class="pi pi-trash"></i>
+                        </button>
+                      </div>
+                    </div>
+                  }
+                </div>
+              </article>
+            }
+          </section>
+        } @else {
+          <div class="empty-state">
+            <i class="pi pi-search empty-icon"></i>
+            <p>Selecciona un edificio para ver o editar su infraestructura.</p>
+          </div>
+        }
+      </section>
+    </div>
+  </section>
+</div>

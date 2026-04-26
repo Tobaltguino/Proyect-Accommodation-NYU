@@ -1,0 +1,373 @@
+/* =========================================
+   CONTENEDORES PRINCIPALES (ANTI-SCROLL)
+========================================= */
+.infrastructure-page {
+  /* Margen exterior y prevención de desborde */
+  padding: 2rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.infrastructure-shell {
+  /* Tarjeta principal centrada y con límite de ancho */
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  border-radius: 18px;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.05);
+  
+  padding: 2rem;
+  box-sizing: border-box; /* Previene desborde interno */
+}
+
+/* =========================================
+   CABECERA
+========================================= */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+
+  h1 {
+    margin: 0;
+    color: #1e3a8a;
+    font-size: 1.45rem;
+  }
+
+  p {
+    margin: 0.4rem 0 0;
+    color: #64748b;
+  }
+}
+
+/* =========================================
+   GRILLA PRINCIPAL (2 COLUMNAS)
+========================================= */
+.layout-grid {
+  display: grid;
+  grid-template-columns: 300px minmax(0, 1fr);
+  gap: 1.2rem;
+}
+
+/* =========================================
+   BLOQUES GENÉRICOS
+========================================= */
+.block {
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 1.2rem;
+  display: grid;
+  gap: 1rem;
+  background: #fcfdff;
+  align-content: start;
+  box-sizing: border-box; 
+}
+
+.block-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.7rem;
+
+  h2 {
+    margin: 0;
+    color: #1e3a8a;
+    font-size: 1.1rem;
+  }
+
+  span {
+    color: #64748b;
+    font-size: 0.88rem;
+  }
+
+  &.header-action {
+    align-items: center;
+  }
+}
+
+/* =========================================
+   LISTA DE EDIFICIOS (COLUMNA IZQUIERDA)
+========================================= */
+.building-list {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.building-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 0.8rem;
+  background: #ffffff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: #cbd5e1;
+    background: #f8fafc;
+  }
+
+  &.active {
+    border-color: #1d4ed8;
+    box-shadow: 0 0 0 2px rgba(29, 78, 216, 0.15);
+    background: #eff6ff;
+  }
+
+  .building-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.3rem;
+
+    strong {
+      color: #0f172a;
+      font-size: 0.95rem;
+    }
+  }
+
+  small {
+    color: #64748b;
+    font-size: 0.8rem;
+  }
+}
+
+.status-badge {
+  font-size: 0.7rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+  background: #dcfce7;
+  color: #166534;
+  font-weight: 700;
+
+  &.maintenance {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+}
+
+/* =========================================
+   MAPA DEL EDIFICIO (COLUMNA DERECHA)
+========================================= */
+.map-block {
+  background: #ffffff;
+}
+
+.building-map {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.floor-card {
+  border: 1px solid #dbeafe;
+  border-radius: 12px;
+  background: #ffffff;
+  padding: 1rem;
+}
+
+.floor-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.8rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #f1f5f9;
+
+  h3 {
+    margin: 0;
+    color: #1e3a8a;
+    font-size: 1.05rem;
+  }
+}
+
+.room-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 0.8rem;
+}
+
+/* Tarjeta de Habitación (Modo Edición) */
+.room-chip.config-mode {
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  background: #f8fafc;
+  padding: 0.7rem;
+  display: grid;
+  gap: 0.2rem;
+  position: relative;
+  transition: all 0.2s ease;
+
+  strong {
+    color: #0f172a;
+    font-size: 0.92rem;
+  }
+
+  small {
+    color: #475569;
+    font-size: 0.75rem;
+  }
+
+  .room-actions {
+    margin-top: 0.4rem;
+    display: flex;
+    gap: 0.4rem;
+    border-top: 1px solid #e2e8f0;
+    padding-top: 0.4rem;
+  }
+
+  /* Estado visual para habitación bloqueada */
+  &.locked {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+    opacity: 0.8;
+    
+    strong {
+      color: #64748b;
+      text-decoration: line-through; 
+    }
+    
+    .icon-action.warning {
+      color: #d97706; 
+    }
+  }
+}
+
+/* =========================================
+   ESTADOS VACÍOS
+========================================= */
+.empty-state {
+  padding: 3rem 1rem;
+  text-align: center;
+  color: #64748b;
+  background: #f8fafc;
+  border-radius: 10px;
+  border: 1px dashed #cbd5e1;
+  
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.empty-icon {
+  font-size: 2.5rem;
+  color: #cbd5e1;
+}
+
+/* =========================================
+   BOTONES Y UTILITARIOS (CON ICONOS)
+========================================= */
+button {
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.primary {
+  background: #1e3a8a;
+  color: #ffffff;
+  font-weight: 600;
+  padding: 0.7rem 1.1rem;
+  border-radius: 10px;
+  
+  /* Flex para iconos */
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.ghost {
+  background: #e2e8f0;
+  color: #0f172a;
+  font-weight: 600;
+  padding: 0.6rem 1rem;
+  border-radius: 8px;
+  
+  /* Flex para iconos */
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+
+  &.small {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.85rem;
+  }
+}
+
+.text-btn {
+  background: transparent;
+  color: #3b82f6;
+  font-weight: 600;
+  font-size: 0.85rem;
+  padding: 0;
+
+  /* Flex para iconos */
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+/* Botones pequeños de acción en las habitaciones */
+.icon-action {
+  background: transparent;
+  padding: 0.3rem;
+  border-radius: 4px;
+  color: #475569;
+  
+  /* Flex para centrar el icono perfectamente */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: #e2e8f0;
+    color: #0f172a;
+  }
+  
+  &.warning:hover {
+    background: #fef3c7;
+    color: #d97706; /* Naranja/Amarillo oscuro para bloquear */
+  }
+
+  &.danger:hover {
+    background: #fee2e2;
+    color: #dc2626; /* Rojo para eliminar */
+  }
+}
+
+/* =========================================
+   RESPONSIVE (MEDIA QUERIES)
+========================================= */
+@media (max-width: 980px) {
+  .layout-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 820px) {
+  .infrastructure-page {
+    padding: 1rem; /* En móviles reducimos el margen para ganar espacio de lectura */
+  }
+
+  .infrastructure-shell {
+    padding: 1.2rem;
+  }
+
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .page-header .primary {
+    width: 100%;
+    justify-content: center; /* Centramos el texto y el icono en el botón expandido */
+  }
+}
