@@ -1,14 +1,16 @@
 <div class="admin-home-page">
   <header class="main-header">
     <div class="header-copy">
-      <h1>Hola, {{ currentUser?.fullName ?? 'Administrador' }}</h1>
-      <p>Bienvenido al panel de control. Aquí tienes un resumen del estado actual de la residencia universitaria.</p>
+      <h1>Panel de control</h1>
+      <p>Aquí tienes un resumen del estado actual de la residencia universitaria.</p>
     </div>
   </header>
 
   <section class="stats-grid">
     <article class="card stat-card">
-      <div class="stat-icon requests">📝</div>
+      <div class="stat-icon requests">
+        <i class="pi pi-inbox"></i>
+      </div>
       <div class="stat-info">
         <h3>{{ stats.pendingRequests }}</h3>
         <p>Solicitudes Pendientes</p>
@@ -16,7 +18,9 @@
     </article>
 
     <article class="card stat-card">
-      <div class="stat-icon incidents">⚠️</div>
+      <div class="stat-icon incidents">
+        <i class="pi pi-exclamation-triangle"></i>
+      </div>
       <div class="stat-info">
         <h3>{{ stats.activeIncidents }}</h3>
         <p>Incidencias Activas</p>
@@ -24,7 +28,9 @@
     </article>
 
     <article class="card stat-card">
-      <div class="stat-icon students">👥</div>
+      <div class="stat-icon students">
+        <i class="pi pi-users"></i>
+      </div>
       <div class="stat-info">
         <h3>{{ stats.totalStudents }}</h3>
         <p>Estudiantes Residentes</p>
@@ -32,7 +38,9 @@
     </article>
 
     <article class="card stat-card">
-      <div class="stat-icon rooms">🔑</div>
+      <div class="stat-icon rooms">
+        <i class="pi pi-key"></i>
+      </div>
       <div class="stat-info">
         <h3>{{ stats.availableRooms }}</h3>
         <p>Habitaciones Disponibles</p>
@@ -49,7 +57,7 @@
         <li>Notificación automática al estudiante</li>
       </ul>
       <button type="button" class="module-btn" (click)="goTo('requests')">
-        Ir a Solicitudes
+        Ir a Solicitudes <i class="pi pi-arrow-right"></i>
       </button>
     </article>
 
@@ -61,7 +69,7 @@
         <li>Bloqueo por mantenimiento</li>
       </ul>
       <button type="button" class="module-btn alt" (click)="goTo('infrastructure')">
-        Ver Infraestructura
+        Ver Infraestructura <i class="pi pi-arrow-right"></i>
       </button>
     </article>
   </section>

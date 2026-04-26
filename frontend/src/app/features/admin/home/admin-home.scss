@@ -11,10 +11,12 @@
 }
 
 .admin-home-page {
-  padding: 1.1rem;
+  padding: 2rem; /* Margen un poco más amplio y elegante */
   display: grid;
-  gap: 1.2rem;
+  gap: 1.5rem;
   align-content: start;
+  box-sizing: border-box; /* Previene el desborde horizontal */
+  width: 100%;
 }
 
 /* Header Principal */
@@ -70,6 +72,7 @@
   }
 }
 
+/* Contenedor del Icono Prime */
 .stat-icon {
   display: flex;
   align-items: center;
@@ -77,7 +80,10 @@
   width: 50px;
   height: 50px;
   border-radius: 12px;
-  font-size: 1.5rem;
+  
+  i {
+    font-size: 1.5rem; /* Tamaño del PrimeIcon */
+  }
 
   &.requests { background: rgba(214, 158, 46, 0.15); color: var(--warning); }
   &.incidents { background: rgba(229, 62, 62, 0.15); color: var(--danger); }
@@ -146,6 +152,15 @@
   padding: 0.6rem 1.2rem;
   cursor: pointer;
   transition: opacity 0.2s ease;
+  
+  /* Flex para alinear el texto con la flecha */
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  i {
+    font-size: 0.9rem;
+  }
 
   &:hover {
     opacity: 0.9;
@@ -165,5 +180,11 @@
 @media (max-width: 600px) {
   .stats-grid {
     grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 820px) {
+  .admin-home-page {
+    padding: 1rem; /* Reducimos padding en móvil */
   }
 }
