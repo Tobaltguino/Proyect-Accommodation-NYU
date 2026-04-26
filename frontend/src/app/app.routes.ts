@@ -2,7 +2,16 @@ import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 import { roleGuard } from './core/guards/role.guard';
 import { LoginPageComponent } from './features/auth/login/login.page';
-import { AdminHomePageComponent } from './features/admin/home/admin-home.page';
+
+// Admin
+import { AdminLayoutComponent } from './features/admin/layout/admin-layout';
+import { AdminHomeComponent } from './features/admin/home/admin-home';
+import { AdminRequestsComponent } from './features/admin/requests/admin-requests';
+import { AdminAssignmentsComponent } from './features/admin/assignments/admin-assignments';
+import { AdminIncidentsComponent } from './features/admin/incidents/admin-incidents';
+import { AdminInfrastructureComponent } from './features/admin/infrastructure/admin-infrastructure';
+
+// Estudiante
 import { StudentHomePageComponent } from './features/student/home/student-home.page';
 import { StudentPostulationPageComponent } from './features/student/postulation/postulation.page';
 import { StudentStatusPageComponent } from './features/student/status/student-status.page';
@@ -17,14 +26,26 @@ export const routes: Routes = [
     path: 'login',
     component: LoginPageComponent,
   },
+  
+  // ADMIN
   {
-    path: 'admin/home',
-    component: AdminHomePageComponent,
+    path: 'admin',
+    component: AdminLayoutComponent, 
     canActivate: [authGuard, roleGuard],
     data: {
-      roles: ['ADMIN'],
+      roles: ['ADMIN'], 
     },
+    children: [
+      { path: '', redirectTo: 'home', pathMatch: 'full' },
+      { path: 'home', component: AdminHomeComponent },
+      { path: 'requests', component: AdminRequestsComponent },
+      { path: 'assignments', component: AdminAssignmentsComponent },
+      { path: 'incidents', component: AdminIncidentsComponent },
+      { path: 'infrastructure', component: AdminInfrastructureComponent },
+    ]
   },
+
+  // ESTUDIANTE
   {
     path: 'student/home',
     component: StudentHomePageComponent,
@@ -49,6 +70,8 @@ export const routes: Routes = [
       roles: ['STUDENT'],
     },
   },
+  
+  // ---
   {
     path: '**',
     redirectTo: 'login',

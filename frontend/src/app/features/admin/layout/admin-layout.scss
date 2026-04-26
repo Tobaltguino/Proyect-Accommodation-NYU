@@ -1,0 +1,141 @@
+:host {
+  --primary-deep: #322659;
+  --primary-royal: #553c9a;
+  --accent-soft: #e9d8fd;
+  --app-bg: #f9fafb;
+  --border: #e2e8f0;
+  --text-main: #1a202c;
+  --text-muted: #4a5568;
+}
+
+.admin-layout {
+  min-height: 100vh;
+  background: var(--app-bg);
+  color: var(--text-main);
+  display: grid;
+  grid-template-columns: 248px minmax(0, 1fr);
+}
+
+.dashboard-sidebar {
+  background: var(--primary-deep);
+  color: #ffffff;
+  padding: 1rem 0.85rem;
+  display: grid;
+  gap: 1rem;
+  align-content: start;
+}
+
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+
+  img {
+    width: 42px;
+    height: 42px;
+    object-fit: contain;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.12);
+    padding: 0.2rem;
+  }
+
+  div {
+    display: grid;
+    gap: 0.1rem;
+  }
+
+  strong {
+    font-size: 0.98rem;
+    letter-spacing: 0.01em;
+  }
+
+  span {
+    font-size: 0.76rem;
+    color: #ddd6f5;
+  }
+}
+
+.sidebar-profile {
+  border: 1px solid rgba(233, 216, 253, 0.25);
+  background: rgba(233, 216, 253, 0.08);
+  border-radius: 12px;
+  padding: 0.8rem;
+  display: grid;
+  gap: 0.25rem;
+
+  strong {
+    font-size: 0.94rem;
+  }
+
+  span,
+  small {
+    color: #e9d8fd;
+    font-size: 0.78rem;
+  }
+}
+
+.sidebar-nav {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.nav-item {
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: #f7fafc;
+  text-align: left;
+  font-weight: 600;
+  padding: 0.62rem 0.7rem;
+  cursor: pointer;
+  text-decoration: none; /* Añadido para enlaces <a> */
+  display: block; /* Añadido para enlaces <a> */
+  transition: background-color 0.2s ease;
+
+  &:hover {
+    background: rgba(233, 216, 253, 0.15);
+  }
+
+  &.active {
+    background: rgba(233, 216, 253, 0.24);
+    border-color: rgba(233, 216, 253, 0.35);
+  }
+}
+
+.sidebar-footer {
+  margin-top: auto;
+}
+
+.logout-btn {
+  width: 100%;
+  border: 1px solid rgba(233, 216, 253, 0.45);
+  border-radius: 8px;
+  padding: 0.55rem 0.7rem;
+  background: transparent;
+  color: #ffffff;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.dashboard-main-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow-y: auto; /* Permite hacer scroll en el contenido sin mover el sidebar */
+  background: var(--app-bg);
+}
+
+@media (max-width: 840px) {
+  .admin-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-sidebar {
+    gap: 0.7rem;
+    padding-bottom: 0.9rem;
+  }
+
+  .sidebar-footer {
+    margin-top: 0;
+  }
+}

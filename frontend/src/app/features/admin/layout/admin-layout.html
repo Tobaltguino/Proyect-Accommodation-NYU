@@ -1,0 +1,33 @@
+<main class="admin-layout">
+  <aside class="dashboard-sidebar">
+    <section class="sidebar-brand">
+      <img src="/assets/NYU-Logo.png" alt="Logo Universidad de New York" />
+      <div>
+        <strong>Housing Portal</strong>
+        <span>Admin Management</span>
+      </div>
+    </section>
+
+    <section class="sidebar-profile">
+      <strong>{{ currentUser?.fullName ?? 'Administrador' }}</strong>
+      <span>RUT {{ currentUser?.rut ?? 'Sin RUT' }}</span>
+      <small>Panel de Control</small>
+    </section>
+
+    <nav class="sidebar-nav" aria-label="Navegacion admin">
+      <a routerLink="/admin/home" routerLinkActive="active" class="nav-item">Inicio</a>
+      <a routerLink="/admin/requests" routerLinkActive="active" class="nav-item">Solicitudes</a>
+      <a routerLink="/admin/assignments" routerLinkActive="active" class="nav-item">Asignaciones</a>
+      <a routerLink="/admin/incidents" routerLinkActive="active" class="nav-item">Incidencias</a>
+      <a routerLink="/admin/infrastructure" routerLinkActive="active" class="nav-item">Infraestructura</a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <button type="button" class="logout-btn" (click)="logout()">Cerrar sesion</button>
+    </div>
+  </aside>
+
+  <section class="dashboard-main-container">
+    <router-outlet></router-outlet>
+  </section>
+</main>

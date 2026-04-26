@@ -1,0 +1,68 @@
+<div class="admin-home-page">
+  <header class="main-header">
+    <div class="header-copy">
+      <h1>Hola, {{ currentUser?.fullName ?? 'Administrador' }}</h1>
+      <p>Bienvenido al panel de control. Aquí tienes un resumen del estado actual de la residencia universitaria.</p>
+    </div>
+  </header>
+
+  <section class="stats-grid">
+    <article class="card stat-card">
+      <div class="stat-icon requests">📝</div>
+      <div class="stat-info">
+        <h3>{{ stats.pendingRequests }}</h3>
+        <p>Solicitudes Pendientes</p>
+      </div>
+    </article>
+
+    <article class="card stat-card">
+      <div class="stat-icon incidents">⚠️</div>
+      <div class="stat-info">
+        <h3>{{ stats.activeIncidents }}</h3>
+        <p>Incidencias Activas</p>
+      </div>
+    </article>
+
+    <article class="card stat-card">
+      <div class="stat-icon students">👥</div>
+      <div class="stat-info">
+        <h3>{{ stats.totalStudents }}</h3>
+        <p>Estudiantes Residentes</p>
+      </div>
+    </article>
+
+    <article class="card stat-card">
+      <div class="stat-icon rooms">🔑</div>
+      <div class="stat-info">
+        <h3>{{ stats.availableRooms }}</h3>
+        <p>Habitaciones Disponibles</p>
+      </div>
+    </article>
+  </section>
+
+  <section class="modules">
+    <article class="card module-box">
+      <h3>Gestión de Solicitudes</h3>
+      <p>Revisa, aprueba o rechaza las postulaciones de alojamiento más recientes.</p>
+      <ul>
+        <li>Requiere revisión de antecedentes</li>
+        <li>Notificación automática al estudiante</li>
+      </ul>
+      <button type="button" class="module-btn" (click)="goTo('requests')">
+        Ir a Solicitudes
+      </button>
+    </article>
+
+    <article class="card module-box">
+      <h3>Control de Infraestructura</h3>
+      <p>Administra edificios, habitaciones y revisa el reporte de incidencias técnicas.</p>
+      <ul>
+        <li>Asignación de camas</li>
+        <li>Bloqueo por mantenimiento</li>
+      </ul>
+      <button type="button" class="module-btn alt" (click)="goTo('infrastructure')">
+        Ver Infraestructura
+      </button>
+    </article>
+  </section>
+</div>
