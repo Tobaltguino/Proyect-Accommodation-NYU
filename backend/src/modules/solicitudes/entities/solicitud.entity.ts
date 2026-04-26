@@ -1,66 +1,26 @@
 import {
   Column,
-  CreateDateColumn,
   Entity,
-  Index,
   PrimaryGeneratedColumn,
-  UpdateDateColumn,
 } from 'typeorm';
-import {
-  BuildingId,
-  MealPlan,
-  SolicitudStatus,
-  StudentGender,
-} from '../enums/solicitud.enums';
 
-@Entity({ name: 'solicitudes' })
-@Index(['rut', 'semester'], { unique: true })
+@Entity({ name: 'solicitudes', schema: 'relacional_v1' })
 export class SolicitudEntity {
-  @PrimaryGeneratedColumn()
-  id!: number;
+  @PrimaryGeneratedColumn({ name: 'id_solicitud' })
+  idSolicitud!: number;
 
-  @Column({ type: 'varchar', length: 16 })
-  rut!: string;
+  @Column({ name: 'estado', type: 'varchar', length: 20 })
+  estado!: string;
 
-  @Column({ type: 'varchar', length: 140 })
-  fullName!: string;
+  @Column({ name: 'fecha_solicitud', type: 'date' })
+  fechaSolicitud!: string;
 
-  @Column({ type: 'varchar', length: 16 })
-  semester!: string;
+  @Column({ name: 'id_periodo', type: 'int' })
+  idPeriodo!: number;
 
-  @Column({ type: 'varchar', length: 120 })
-  career!: string;
+  @Column({ name: 'id_asignacion', type: 'int', nullable: true })
+  idAsignacion!: number | null;
 
-  @Column({ type: 'enum', enum: StudentGender })
-  gender!: StudentGender;
-
-  @Column({ type: 'varchar', length: 30 })
-  phone!: string;
-
-  @Column({ type: 'varchar', length: 80 })
-  city!: string;
-
-  @Column({ type: 'enum', enum: MealPlan })
-  mealPlan!: MealPlan;
-
-  @Column({ type: 'enum', enum: BuildingId })
-  buildingId!: BuildingId;
-
-  @Column({ type: 'varchar', length: 6 })
-  roomCode!: string;
-
-  @Column({ type: 'text' })
-  motivation!: string;
-
-  @Column({ type: 'enum', enum: SolicitudStatus, default: SolicitudStatus.EN_REVISION })
-  status!: SolicitudStatus;
-
-  @Column({ type: 'datetime', nullable: true })
-  reservationExpiresAt!: Date | null;
-
-  @CreateDateColumn()
-  createdAt!: Date;
-
-  @UpdateDateColumn()
-  updatedAt!: Date;
+  @Column({ name: 'id_usuario', type: 'int' })
+  idUsuario!: number;
 }

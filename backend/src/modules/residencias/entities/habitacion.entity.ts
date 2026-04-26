@@ -1,37 +1,23 @@
 import {
   Column,
-  CreateDateColumn,
   Entity,
-  Index,
   PrimaryGeneratedColumn,
-  UpdateDateColumn,
 } from 'typeorm';
-import { BuildingId, StudentGender } from '../../solicitudes/enums/solicitud.enums';
 
-@Entity({ name: 'habitaciones' })
-@Index(['buildingId', 'roomCode'], { unique: true })
+@Entity({ name: 'habitacion', schema: 'relacional_v1' })
 export class HabitacionEntity {
-  @PrimaryGeneratedColumn()
-  id!: number;
+  @PrimaryGeneratedColumn({ name: 'id_habitacion' })
+  idHabitacion!: number;
 
-  @Column({ type: 'enum', enum: BuildingId })
-  buildingId!: BuildingId;
+  @Column({ name: 'disponibilidad', type: 'boolean' })
+  disponibilidad!: boolean;
 
-  @Column({ type: 'enum', enum: StudentGender })
-  allowedGender!: StudentGender;
+  @Column({ name: 'capacidad_actual', type: 'int' })
+  capacidadActual!: number;
 
-  @Column({ type: 'int' })
-  floor!: number;
+  @Column({ name: 'nro_habitacion', type: 'int' })
+  nroHabitacion!: number;
 
-  @Column({ type: 'varchar', length: 6 })
-  roomCode!: string;
-
-  @Column({ type: 'int', default: 2 })
-  bedCapacity!: number;
-
-  @CreateDateColumn()
-  createdAt!: Date;
-
-  @UpdateDateColumn()
-  updatedAt!: Date;
+  @Column({ name: 'id_piso', type: 'int' })
+  idPiso!: number;
 }

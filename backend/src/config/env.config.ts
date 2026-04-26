@@ -5,10 +5,10 @@ export default () => ({
   jwtExpiresInSeconds: Number(process.env.JWT_EXPIRES_IN_SECONDS ?? 28800),
   database: {
     host: process.env.DB_HOST,
-    port: Number(process.env.DB_PORT ?? 3306),
+    port: Number(process.env.DB_PORT ?? 5432),
     username: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
     name: process.env.DB_NAME,
-    ssl: process.env.DB_SSL === 'true',
+    ssl: process.env.DB_SSL !== 'false',
   },
 });

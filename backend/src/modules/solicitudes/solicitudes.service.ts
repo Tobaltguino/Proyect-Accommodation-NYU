@@ -9,9 +9,15 @@ import { Repository } from 'typeorm';
 import { JwtPayload } from '../auth/types/auth.types';
 import { ResidenciasService } from '../residencias/residencias.service';
 import { CreateSolicitudDto } from './dto';
-import { SolicitudEntity } from './entities';
+import {
+  AsignacionEstanciaEntity,
+  PeriodoEntity,
+  PlanAlimenticioEntity,
+  SolicitudEntity,
+} from './entities';
 import {
   BuildingId,
+  MealPlan,
   SolicitudStatus,
   StudentGender,
 } from './enums/solicitud.enums';
@@ -21,6 +27,12 @@ export class SolicitudesService {
   constructor(
     @InjectRepository(SolicitudEntity)
     private readonly solicitudRepository: Repository<SolicitudEntity>,
+    @InjectRepository(PeriodoEntity)
+    private readonly periodoRepository: Repository<PeriodoEntity>,
+    @InjectRepository(AsignacionEstanciaEntity)
+    private readonly asignacionRepository: Repository<AsignacionEstanciaEntity>,
+    @InjectRepository(PlanAlimenticioEntity)
+    private readonly planAlimenticioRepository: Repository<PlanAlimenticioEntity>,
     private readonly residenciasService: ResidenciasService,
   ) {}
 
@@ -30,10 +42,12 @@ export class SolicitudesService {
 
   async createSolicitud(user: JwtPayload, body: CreateSolicitudDto) {
     const semester = body.semester ?? '2026-1';
+    const period = await this.resolvePeriod(semester);
+
     const existing = await this.solicitudRepository.findOne({
       where: {
-        rut: user.rut,
-        semester,
+        idUsuario: user.sub,
+        idPeriodo: period.idPeriodo,
       },
     });
 
@@ -53,7 +67,7 @@ export class SolicitudesService {
       throw new NotFoundException('La habitacion seleccionada no existe');
     }
 
-    if (room.buildingId !== expectedBuilding || room.allowedGender !== body.gender) {
+    if (room.allowedGender !== body.gender) {
       throw new BadRequestException('La habitacion no corresponde al genero seleccionado');
     }
 
@@ -66,9 +80,32 @@ export class SolicitudesService {
       throw new ConflictException('La habitacion ya no tiene cupos disponibles');
     }
 
-    const reservationExpiresAt = new Date(Date.now() + 48 * 60 * 60 * 1000);
+    const assignment = await this.asignacionRepository.save(
+      this.asignacionRepository.create({
+        fechaAsignacion: this.todayDate(),
+        fechaCheckIn: null,
+        fechaCheckOut: null,
+        estado: 'Activa',
+        idHabitacion: room.id,
+        idPeriodo: period.idPeriodo,
+        idUsuario: user.sub,
+      }),
+    );
 
-    const solicitud = this.solicitudRepository.create({
+    await this.upsertMealPlan(user.sub, period.idPeriodo, body.mealPlan);
+
+    const solicitud = await this.solicitudRepository.save(
+      this.solicitudRepository.create({
+        estado: this.toDbStatus(SolicitudStatus.EN_REVISION),
+        fechaSolicitud: this.todayDate(),
+        idPeriodo: period.idPeriodo,
+        idAsignacion: assignment.idAsignacion,
+        idUsuario: user.sub,
+      }),
+    );
+
+    return {
+      id: solicitud.idSolicitud,
       rut: user.rut,
       fullName: user.fullName,
       semester,
@@ -78,34 +115,28 @@ export class SolicitudesService {
       city: body.city,
       mealPlan: body.mealPlan,
       buildingId: room.buildingId,
-      roomCode: body.roomCode,
+      roomCode: room.roomCode,
       motivation: body.motivation,
       status: SolicitudStatus.EN_REVISION,
-      reservationExpiresAt,
-    });
-
-    const saved = await this.solicitudRepository.save(solicitud);
-
-    return {
-      id: saved.id,
-      rut: saved.rut,
-      fullName: saved.fullName,
-      semester: saved.semester,
-      status: saved.status,
-      buildingId: saved.buildingId,
-      roomCode: saved.roomCode,
-      mealPlan: saved.mealPlan,
-      reservationExpiresAt: saved.reservationExpiresAt,
-      updatedAt: saved.updatedAt,
+      reservationExpiresAt: null,
+      updatedAt: new Date().toISOString(),
     };
   }
 
   async getMySolicitud(user: JwtPayload, semester?: string) {
     const effectiveSemester = semester ?? '2026-1';
+    const period = await this.periodoRepository.findOne({
+      where: { nombre: effectiveSemester },
+    });
+
+    if (!period) {
+      return null;
+    }
+
     const solicitud = await this.solicitudRepository.findOne({
       where: {
-        rut: user.rut,
-        semester: effectiveSemester,
+        idUsuario: user.sub,
+        idPeriodo: period.idPeriodo,
       },
     });
 
@@ -113,22 +144,147 @@ export class SolicitudesService {
       return null;
     }
 
+    const assignment = solicitud.idAsignacion
+      ? await this.asignacionRepository.findOne({
+          where: { idAsignacion: solicitud.idAsignacion },
+        })
+      : null;
+
+    const roomInfo = assignment
+      ? await this.residenciasService.findRoomByAssignment(assignment.idAsignacion)
+      : null;
+
+    const mealPlan = await this.planAlimenticioRepository.findOne({
+      where: {
+        idUsuario: user.sub,
+        idPeriodo: period.idPeriodo,
+      },
+      order: { idPlan: 'DESC' },
+    });
+
     return {
-      id: solicitud.id,
-      rut: solicitud.rut,
-      fullName: solicitud.fullName,
-      semester: solicitud.semester,
-      career: solicitud.career,
-      gender: solicitud.gender,
-      phone: solicitud.phone,
-      city: solicitud.city,
-      mealPlan: solicitud.mealPlan,
-      buildingId: solicitud.buildingId,
-      roomCode: solicitud.roomCode,
-      motivation: solicitud.motivation,
-      status: solicitud.status,
-      reservationExpiresAt: solicitud.reservationExpiresAt,
-      updatedAt: solicitud.updatedAt,
+      id: solicitud.idSolicitud,
+      rut: user.rut,
+      fullName: user.fullName,
+      semester: effectiveSemester,
+      career: 'Sin informacion',
+      gender: roomInfo?.gender ?? StudentGender.MUJER,
+      phone: '-',
+      city: '-',
+      mealPlan: this.fromDbMealPlan(mealPlan?.tipoPlan),
+      buildingId: roomInfo?.buildingId ?? BuildingId.FEMENINO,
+      roomCode: roomInfo?.roomCode ?? '---',
+      motivation: 'Registro migrado a Beta2',
+      status: this.fromDbStatus(solicitud.estado),
+      reservationExpiresAt: null,
+      updatedAt: this.asIsoDate(solicitud.fechaSolicitud),
     };
+  }
+
+  private async resolvePeriod(semester: string): Promise<PeriodoEntity> {
+    const existing = await this.periodoRepository.findOne({
+      where: { nombre: semester },
+    });
+
+    if (existing) {
+      return existing;
+    }
+
+    return this.periodoRepository.save(
+      this.periodoRepository.create({
+        nombre: semester,
+        fechaInicio: '2026-03-01',
+        fechaTermino: '2026-07-31',
+      }),
+    );
+  }
+
+  private async upsertMealPlan(
+    userId: number,
+    periodId: number,
+    mealPlan: MealPlan,
+  ): Promise<void> {
+    const tipoPlan = this.toDbMealPlan(mealPlan);
+    const existing = await this.planAlimenticioRepository.findOne({
+      where: { idUsuario: userId, idPeriodo: periodId },
+    });
+
+    if (existing) {
+      existing.tipoPlan = tipoPlan;
+      await this.planAlimenticioRepository.save(existing);
+      return;
+    }
+
+    await this.planAlimenticioRepository.save(
+      this.planAlimenticioRepository.create({
+        tipoPlan,
+        idUsuario: userId,
+        idPeriodo: periodId,
+      }),
+    );
+  }
+
+  private toDbStatus(status: SolicitudStatus): string {
+    if (status === SolicitudStatus.EN_REVISION) {
+      return 'En Revision';
+    }
+
+    if (status === SolicitudStatus.APROBADA) {
+      return 'Aprobada';
+    }
+
+    if (status === SolicitudStatus.RECHAZADA) {
+      return 'Rechazada';
+    }
+
+    return 'Pendiente';
+  }
+
+  private fromDbStatus(status: string): SolicitudStatus {
+    if (status === 'Aprobada') {
+      return SolicitudStatus.APROBADA;
+    }
+
+    if (status === 'Rechazada') {
+      return SolicitudStatus.RECHAZADA;
+    }
+
+    if (status === 'Pendiente') {
+      return SolicitudStatus.EXPIRADA;
+    }
+
+    return SolicitudStatus.EN_REVISION;
+  }
+
+  private toDbMealPlan(mealPlan: MealPlan): string {
+    if (mealPlan === MealPlan.VEGANA) {
+      return 'Vegano';
+    }
+
+    if (mealPlan === MealPlan.VEGETARIANA) {
+      return 'Vegetariano';
+    }
+
+    return 'Sin preferencia';
+  }
+
+  private fromDbMealPlan(tipoPlan?: string): MealPlan {
+    if (tipoPlan === 'Vegano') {
+      return MealPlan.VEGANA;
+    }
+
+    if (tipoPlan === 'Vegetariano') {
+      return MealPlan.VEGETARIANA;
+    }
+
+    return MealPlan.OMNIVORA;
+  }
+
+  private todayDate(): string {
+    return new Date().toISOString().slice(0, 10);
+  }
+
+  private asIsoDate(date: string): string {
+    return new Date(`${date}T00:00:00.000Z`).toISOString();
   }
 }
