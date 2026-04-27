@@ -21,5 +21,5 @@ Asegúrate de tener instalado en tu entorno local:
 
 1. **Clonar el repositorio:**
    ```bash
-   git clone <URL_DEL_REPOSITORIO_AQUI>
-   cd <NOMBRE_DE_LA_CARPETA>
+   git clone https://github.com/Tobaltguino/Proyect-Accommodation-NYU.git
+   cd Proyect-Accommodation-NYU
