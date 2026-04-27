@@ -1,1 +1,216 @@
-<p>admin-requests works!</p>
+<div class="requests-page">
+  <section class="requests-shell">
+    <header class="page-header">
+      <div>
+        <h1>Gestión de Solicitudes</h1>
+        <p>Administra las postulaciones de alojamiento de los estudiantes.</p>
+      </div>
+    </header>
+
+    <section class="block filters-block">
+      <div class="block-title">
+        <h2>Filtros de Búsqueda</h2>
+        <button type="button" class="text-btn" (click)="limpiarFiltros()">Limpiar filtros</button>
+      </div>
+      
+      <div class="filters-grid">
+        <div class="form-group">
+          <label for="periodo">Periodo Académico</label>
+          <select id="periodo" [(ngModel)]="filtroPeriodo" (change)="aplicarFiltros()">
+            <option value="">Todos los periodos</option>
+            @for (p of periodos; track p) {
+              <option [value]="p">{{ p }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="estado">Estado de Solicitud</label>
+          <select id="estado" [(ngModel)]="filtroEstado" (change)="aplicarFiltros()">
+            <option value="">Todos los estados</option>
+            <option value="Pendiente">Pendiente</option>
+            <option value="En Revision">En Revisión</option>
+            <option value="Aprobada">Aprobada</option>
+            <option value="Rechazada">Rechazada</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <div class="table-container">
+      @if (solicitudesFiltradas.length === 0) {
+        <div class="empty-state">
+          <i class="pi pi-inbox empty-icon"></i>
+          <p>No hay solicitudes que coincidan con los filtros seleccionados.</p>
+        </div>
+      } @else {
+        <table class="requests-table">
+          <thead>
+            <tr>
+              <th>Periodo</th>
+              <th>Fecha Solicitud</th>
+              <th>Estudiante</th>
+              <th>Estado</th>
+              <th class="actions-col">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (solicitud of solicitudesFiltradas; track solicitud.id_solicitud) {
+              <tr>
+                <td><strong>{{ solicitud.nombre_periodo }}</strong></td>
+                <td class="date-cell">{{ solicitud.fecha_solicitud }}</td>
+                <td>
+                  <div class="user-meta">
+                    <span class="user-name">{{ solicitud.nombre_usuario }}</span>
+                    <span class="rut">RUT: {{ solicitud.rut_usuario }}</span>
+                  </div>
+                </td>
+                <td>
+                  <span class="badge status" [ngClass]="getClassForEstado(solicitud.estado)">
+                    {{ solicitud.estado }}
+                  </span>
+                </td>
+                <td>
+                  <div class="btn-group">
+                    <button 
+                      type="button" 
+                      class="ghost small icon-only primary-btn" 
+                      title="Revisar Solicitud"
+                      (click)="abrirModal(solicitud)">
+                      <i class="pi pi-search"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    </div>
+  </section>
+</div>
+
+@if (isModalOpen && solicitudSeleccionada) {
+  <div class="modal-overlay" (click)="cerrarModal()">
+    <div class="modal-box modal-large" (click)="$event.stopPropagation()">
+      
+      <header class="modal-header">
+        <h2>Revisión de Solicitud y Asignación</h2>
+        <button type="button" class="close-btn" (click)="cerrarModal()">
+          <i class="pi pi-times"></i>
+        </button>
+      </header>
+
+      <div class="modal-body custom-scrollbar">
+        
+        <div class="student-info">
+          <h3>{{ solicitudSeleccionada.nombre_usuario }}</h3>
+          <p>
+            <strong>RUT:</strong> {{ solicitudSeleccionada.rut_usuario }} | 
+            <strong>Género:</strong> {{ solicitudSeleccionada.genero_usuario }} | 
+            <strong>Periodo:</strong> {{ solicitudSeleccionada.nombre_periodo }}
+          </p>
+        </div>
+
+        <div class="incidencias-section">
+          <h4>Historial de Incidencias</h4>
+          @if (incidenciasEstudiante.length === 0) {
+            <p class="no-data">El estudiante no registra incidencias previas.</p>
+          } @else {
+            <ul class="incidencias-list">
+              @for (inc of incidenciasEstudiante; track inc.id_incidencia) {
+                <li>
+                  <span class="inc-date">{{ inc.fecha }}</span>
+                  <span class="inc-desc">{{ inc.descripcion }}</span>
+                  <span class="badge" 
+                    [ngClass]="{'bg-red': inc.gravedad === 'Alta', 'bg-yellow': inc.gravedad === 'Media', 'bg-green': inc.gravedad === 'Baja'}">
+                    {{ inc.gravedad }}
+                  </span>
+                </li>
+              }
+            </ul>
+          }
+        </div>
+
+        <div class="decision-section form-group">
+          <label class="checkbox-label">
+            <input type="checkbox" [(ngModel)]="matriculaActiva">
+            El estudiante cuenta con matrícula activa validada.
+          </label>
+        </div>
+
+        <div class="building-selection-block">
+          <div class="block-header">
+            <h4>Selección de Habitación</h4>
+            
+            @if (edificiosFiltrados.length > 1) {
+              <div class="building-selector">
+                <label for="edificioMapa">Edificio:</label>
+                <select id="edificioMapa" class="form-control" 
+                        [ngModel]="edificioSeleccionadoMapa?.id_edificio" 
+                        (ngModelChange)="cambiarEdificioMapa($event)">
+                  @for (edif of edificiosFiltrados; track edif.id_edificio) {
+                    <option [value]="edif.id_edificio">{{ edif.nombre }} ({{ edif.genero }})</option>
+                  }
+                </select>
+              </div>
+            } @else {
+              <span>{{ edificioSeleccionadoMapa?.nombre ?? 'Sin edificio compatible' }}</span>
+            }
+          </div>
+
+          @if (edificioSeleccionadoMapa) {
+            <div class="map-legend">
+              <span class="legend available">Disponible</span>
+              <span class="legend partial">Parcial</span>
+              <span class="legend full">Completa</span>
+            </div>
+
+            <section class="building-map">
+              @for (piso of edificioSeleccionadoMapa.pisos; track piso.id_piso) {
+                <article class="floor-card">
+                  <h5>Piso {{ piso.nro_piso }}</h5>
+                  <div class="room-grid">
+                    @for (room of piso.habitaciones; track room.id_habitacion) {
+                      <button
+                        type="button"
+                        class="room-chip"
+                        [class.selected]="esHabitacionSeleccionada(room.id_habitacion)"
+                        [class.full]="room.capacidad_actual === room.capacidad_total"
+                        [class.partial]="room.capacidad_actual > 0 && room.capacidad_actual < room.capacidad_total"
+                        [class.available]="room.capacidad_actual === 0"
+                        [disabled]="room.capacidad_actual === room.capacidad_total || !room.disponibilidad"
+                        (click)="seleccionarHabitacion(room)"
+                      >
+                        <strong>Hab {{ room.nro_habitacion }}</strong>
+                        <small>{{ room.capacidad_actual }}/{{ room.capacidad_total }} camas</small>
+                      </button>
+                    }
+                  </div>
+                </article>
+              }
+            </section>
+
+            @if (habitacionSeleccionadaId === null) {
+              <small class="error-text"><i class="pi pi-exclamation-circle"></i> Selecciona una habitación en el mapa para aprobar.</small>
+            }
+          } @else {
+            <p class="no-data">No hay edificios registrados que coincidan con el género del estudiante.</p>
+          }
+        </div>
+      </div>
+
+      <footer class="modal-footer">
+        <button type="button" class="ghost danger-text" (click)="procesarSolicitud('Rechazar')">
+          <i class="pi pi-times"></i> Rechazar Solicitud
+        </button>
+        <button type="button" class="primary success-bg" 
+                [disabled]="!matriculaActiva || !habitacionSeleccionadaId"
+                (click)="procesarSolicitud('Aprobar')">
+          <i class="pi pi-check"></i> Aprobar y Asignar
+        </button>
+      </footer>
+
+    </div>
+  </div>
+}

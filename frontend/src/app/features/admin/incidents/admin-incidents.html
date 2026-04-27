@@ -1,1 +1,199 @@
-<p>admin-incidents works!</p>
+<div class="incidents-page">
+  <section class="incidents-shell">
+    <header class="page-header">
+      <div>
+        <h1>Reporte de Incidencias</h1>
+        <p>Gestiona los reportes de mantenimiento y problemas en las habitaciones.</p>
+      </div>
+    </header>
+
+    <section class="block filters-block">
+      <div class="block-title">
+        <h2>Filtros de Búsqueda</h2>
+        <button type="button" class="text-btn" (click)="limpiarFiltros()">Limpiar filtros</button>
+      </div>
+      
+      <div class="filters-grid">
+        <div class="form-group">
+          <label for="rut">Buscar por RUT</label>
+          <input 
+            type="text" 
+            id="rut" 
+            placeholder="Ej: 12.345.678-9" 
+            [(ngModel)]="filtroRut" 
+            (input)="aplicarFiltros()"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="periodo">Periodo</label>
+          <select id="periodo" [(ngModel)]="filtroPeriodo" (change)="aplicarFiltros()">
+            <option value="">Todos los periodos</option>
+            @for (p of periodos; track p) {
+              <option [value]="p">{{ p }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="estado">Estado</label>
+          <select id="estado" [(ngModel)]="filtroEstado" (change)="aplicarFiltros()">
+            <option value="">Todos los estados</option>
+            <option value="Pendiente">Pendiente</option>
+            <option value="En Proceso">En Proceso</option>
+            <option value="Resuelta">Resuelta</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="gravedad">Gravedad</label>
+          <select id="gravedad" [(ngModel)]="filtroGravedad" (change)="aplicarFiltros()">
+            <option value="">Cualquier gravedad</option>
+            <option value="Leve">Leve</option>
+            <option value="Moderado">Moderado</option>
+            <option value="Grave">Grave</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <div class="table-container">
+      @if (incidenciasFiltradas.length === 0) {
+        <div class="empty-state">
+          <i class="pi pi-check-circle empty-icon"></i>
+          <p>No hay incidencias que coincidan con los filtros seleccionados.</p>
+        </div>
+      } @else {
+        <table class="incidents-table">
+          <thead>
+            <tr>
+              <th>Ubicación</th>
+              <th>Reportado por</th>
+              <th>Gravedad</th>
+              <th>Estado</th>
+              <th class="center-col">Detalle</th>
+              <th class="actions-col">Acciones Rápidas</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (incidencia of incidenciasFiltradas; track incidencia.id_incidencia) {
+              <tr>
+                <td>
+                  <div class="location-meta">
+                    <span class="building-name">{{ incidencia.nombre_edificio }}</span>
+                    <span class="room-number">Hab. {{ incidencia.nro_habitacion }}</span>
+                  </div>
+                </td>
+                
+                <td>
+                  <div class="user-meta">
+                    <span class="user-name">{{ incidencia.nombre_usuario }}</span>
+                    <span class="rut">{{ incidencia.rut_usuario }}</span>
+                    <span class="date">{{ incidencia.fecha }}</span>
+                  </div>
+                </td>
+
+                <td>
+                  <span class="badge severity" [ngClass]="incidencia.gravedad | lowercase">
+                    {{ incidencia.gravedad }}
+                  </span>
+                </td>
+
+                <td>
+                  <span class="badge status" [ngClass]="incidencia.estado | lowercase | slice:0:3">
+                    {{ incidencia.estado }}
+                  </span>
+                </td>
+
+                <td class="center-col">
+                  <button 
+                    type="button" 
+                    class="ghost small icon-only" 
+                    title="Ver descripción detallada"
+                    (click)="openModal(incidencia)">
+                    <i class="pi pi-eye"></i>
+                  </button>
+                </td>
+
+                <td>
+                  <div class="btn-group">
+                    <button 
+                      type="button" 
+                      class="ghost small icon-only" 
+                      [disabled]="incidencia.estado === 'Pendiente'"
+                      title="Marcar Pendiente"
+                      (click)="cambiarEstado(incidencia, 'Pendiente')">
+                      <i class="pi pi-clock"></i>
+                    </button>
+                    <button 
+                      type="button" 
+                      class="ghost small icon-only" 
+                      [disabled]="incidencia.estado === 'En Proceso'"
+                      title="Marcar En Proceso"
+                      (click)="cambiarEstado(incidencia, 'En Proceso')">
+                      <i class="pi pi-spinner"></i>
+                    </button>
+                    <button 
+                      type="button" 
+                      class="primary small" 
+                      [disabled]="incidencia.estado === 'Resuelta'"
+                      (click)="cambiarEstado(incidencia, 'Resuelta')">
+                      <i class="pi pi-check"></i> Resolver
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    </div>
+  </section>
+</div>
+
+@if (isModalOpen && selectedIncident) {
+  <div class="modal-backdrop" (click)="closeModal()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <header class="modal-header">
+        <h2>Detalles de Incidencia #{{ selectedIncident.id_incidencia }}</h2>
+        <button type="button" class="close-btn" (click)="closeModal()">
+          <i class="pi pi-times"></i>
+        </button>
+      </header>
+      
+      <div class="modal-body">
+        <div class="modal-info-grid">
+          <div>
+            <small>Ubicación</small>
+            <strong>{{ selectedIncident.nombre_edificio }}</strong>
+            <span class="modal-subtitle">Hab. {{ selectedIncident.nro_habitacion }}</span>
+          </div>
+          <div>
+            <small>Reportado por</small>
+            <strong>{{ selectedIncident.nombre_usuario }}</strong>
+            <span class="modal-subtitle">RUT: {{ selectedIncident.rut_usuario }}</span>
+          </div>
+          <div>
+            <small>Fecha</small>
+            <strong>{{ selectedIncident.fecha }}</strong>
+          </div>
+          <div>
+            <small>Estado</small>
+            <span class="badge status inline-badge" [ngClass]="selectedIncident.estado | lowercase | slice:0:3">
+              {{ selectedIncident.estado }}
+            </span>
+          </div>
+        </div>
+
+        <div class="modal-desc-box">
+          <h3>Descripción del problema</h3>
+          <p>{{ selectedIncident.descripcion }}</p>
+        </div>
+      </div>
+      
+      <footer class="modal-footer">
+        <button type="button" class="ghost" (click)="closeModal()">Cerrar</button>
+      </footer>
+    </div>
+  </div>
+}

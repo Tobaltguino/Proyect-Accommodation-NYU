@@ -1,79 +1,235 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 
-interface Room {
-  code: string;
-  totalBeds: number;
+export type GeneroEdificio = 'Masculino' | 'Femenino' | 'Mixto';
+
+export interface Habitacion {
+  id_habitacion: number;
+  nro_habitacion: number;
+  capacidad_actual: number; // Camas ocupadas
+  capacidad_total: number;  // Total de camas en la habitación
+  disponibilidad: boolean;  
+  id_piso: number;
 }
 
-interface Floor {
-  level: number;
-  rooms: Room[];
+export interface Piso {
+  id_piso: number;
+  nro_piso: number;
+  nombre: string;
+  id_edificio: number;
+  habitaciones: Habitacion[];
 }
 
-interface Building {
-  id: string;
-  name: string;
-  status: 'ACTIVO' | 'MANTENIMIENTO';
-  floors: Floor[];
+export interface Edificio {
+  id_edificio: number;
+  nombre: string;
+  ubicacion: string;
+  genero: GeneroEdificio;
+  pisos: Piso[];
 }
+
+type ModalType = 'EDIFICIO' | 'PISO' | 'HABITACION' | 'DELETE' | null;
+type ModalMode = 'CREATE' | 'EDIT';
 
 @Component({
   selector: 'app-admin-infrastructure',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './admin-infrastructure.html',
   styleUrl: './admin-infrastructure.scss'
 })
 export class AdminInfrastructureComponent {
-  // Datos simulados iniciales
-  buildings: Building[] = [
+  edificios: Edificio[] = [
     {
-      id: 'B1',
-      name: 'Residencia Norte',
-      status: 'ACTIVO',
-      floors: [
+      id_edificio: 1,
+      nombre: 'Residencia Norte',
+      ubicacion: 'Campus Central - Ala Norte',
+      genero: 'Mixto',
+      pisos: [
         {
-          level: 1,
-          rooms: [
-            { code: '101', totalBeds: 2 },
-            { code: '102', totalBeds: 4 },
-            { code: '103', totalBeds: 2 }
+          id_piso: 10,
+          nro_piso: 1,
+          nombre: 'Planta Baja',
+          id_edificio: 1,
+          habitaciones: [
+            { id_habitacion: 100, nro_habitacion: 101, capacidad_actual: 2, capacidad_total: 2, disponibilidad: true, id_piso: 10 },
+            { id_habitacion: 101, nro_habitacion: 102, capacidad_actual: 1, capacidad_total: 4, disponibilidad: true, id_piso: 10 }
           ]
         },
         {
-          level: 2,
-          rooms: [
-            { code: '201', totalBeds: 2 },
-            { code: '202', totalBeds: 4 }
+          id_piso: 11,
+          nro_piso: 2,
+          nombre: 'Primer Piso',
+          id_edificio: 1,
+          habitaciones: [
+            { id_habitacion: 102, nro_habitacion: 201, capacidad_actual: 0, capacidad_total: 2, disponibilidad: false, id_piso: 11 }
           ]
         }
       ]
     },
     {
-      id: 'B2',
-      name: 'Pabellón Sur',
-      status: 'MANTENIMIENTO',
-      floors: []
+      id_edificio: 2,
+      nombre: 'Pabellón Sur',
+      ubicacion: 'Campus Central - Ala Sur',
+      genero: 'Femenino',
+      pisos: []
     }
   ];
 
-  selectedBuilding: Building | null = this.buildings[0];
+  edificioSeleccionado: Edificio | null = this.edificios[0];
 
-  selectBuilding(building: Building): void {
-    this.selectedBuilding = building;
+  activeModal: ModalType = null;
+  modalMode: ModalMode = 'CREATE';
+  
+  targetIdPiso: number | null = null;
+  targetIdHabitacion: number | null = null;
+  itemToDelete: { type: 'EDIFICIO' | 'PISO' | 'HABITACION', data: any, parentData?: any } | null = null;
+
+  edificioForm = { id_edificio: 0, nombre: '', ubicacion: '', genero: 'Mixto' as GeneroEdificio };
+  pisoForm = { id_piso: 0, nro_piso: 1, nombre: '' };
+  habitacionForm = { id_habitacion: 0, nro_habitacion: 1, capacidad_actual: 0, capacidad_total: 1 };
+
+  seleccionarEdificio(edificio: Edificio): void {
+    this.edificioSeleccionado = edificio;
   }
 
-  // Métodos placeholder para tus futuras implementaciones de modales o formularios
-  createNewBuilding(): void {
-    console.log('Abrir modal para crear edificio');
+  cerrarModal(): void {
+    this.activeModal = null;
   }
 
-  createNewFloor(): void {
-    console.log('Agregar piso al edificio:', this.selectedBuilding?.name);
+  // --- LÓGICA DE EDIFICIOS ---
+  abrirModalEdificio(mode: ModalMode, edificio?: Edificio): void {
+    this.modalMode = mode;
+    this.activeModal = 'EDIFICIO';
+    if (mode === 'EDIT' && edificio) {
+      this.edificioForm = { ...edificio };
+    } else {
+      this.edificioForm = { id_edificio: Date.now(), nombre: '', ubicacion: '', genero: 'Mixto' };
+    }
   }
 
-  createNewRoom(floorLevel: number): void {
-    console.log('Agregar habitación al piso:', floorLevel);
+  guardarEdificio(): void {
+    if (this.modalMode === 'CREATE') {
+      this.edificios.push({ ...this.edificioForm, pisos: [] });
+      this.edificioSeleccionado = this.edificios[this.edificios.length - 1];
+    } else {
+      const idx = this.edificios.findIndex(e => e.id_edificio === this.edificioForm.id_edificio);
+      if (idx !== -1) {
+        this.edificios[idx].nombre = this.edificioForm.nombre;
+        this.edificios[idx].ubicacion = this.edificioForm.ubicacion;
+        this.edificios[idx].genero = this.edificioForm.genero;
+      }
+    }
+    this.cerrarModal();
+  }
+
+  // --- LÓGICA DE PISOS ---
+  abrirModalPiso(mode: ModalMode, piso?: Piso): void {
+    this.modalMode = mode;
+    this.activeModal = 'PISO';
+    if (mode === 'EDIT' && piso) {
+      this.pisoForm = { id_piso: piso.id_piso, nro_piso: piso.nro_piso, nombre: piso.nombre };
+      this.targetIdPiso = piso.id_piso;
+    } else {
+      const nextNro = this.edificioSeleccionado?.pisos.length ? Math.max(...this.edificioSeleccionado.pisos.map(p => p.nro_piso)) + 1 : 1;
+      this.pisoForm = { id_piso: Date.now(), nro_piso: nextNro, nombre: `Piso ${nextNro}` };
+    }
+  }
+
+  guardarPiso(): void {
+    if (!this.edificioSeleccionado) return;
+
+    if (this.modalMode === 'CREATE') {
+      this.edificioSeleccionado.pisos.push({
+        id_piso: this.pisoForm.id_piso,
+        nro_piso: this.pisoForm.nro_piso,
+        nombre: this.pisoForm.nombre,
+        id_edificio: this.edificioSeleccionado.id_edificio,
+        habitaciones: []
+      });
+      this.edificioSeleccionado.pisos.sort((a, b) => a.nro_piso - b.nro_piso);
+    } else {
+      const piso = this.edificioSeleccionado.pisos.find(p => p.id_piso === this.targetIdPiso);
+      if (piso) {
+        piso.nro_piso = this.pisoForm.nro_piso;
+        piso.nombre = this.pisoForm.nombre;
+      }
+    }
+    this.cerrarModal();
+  }
+
+  // --- LÓGICA DE HABITACIONES ---
+  abrirModalHabitacion(mode: ModalMode, piso: Piso, habitacion?: Habitacion): void {
+    this.modalMode = mode;
+    this.activeModal = 'HABITACION';
+    this.targetIdPiso = piso.id_piso;
+
+    if (mode === 'EDIT' && habitacion) {
+      this.habitacionForm = { 
+        id_habitacion: habitacion.id_habitacion, 
+        nro_habitacion: habitacion.nro_habitacion, 
+        capacidad_actual: habitacion.capacidad_actual,
+        capacidad_total: habitacion.capacidad_total
+      };
+      this.targetIdHabitacion = habitacion.id_habitacion;
+    } else {
+      // Inicia con capacidad_actual en 0 al crear
+      this.habitacionForm = { id_habitacion: Date.now(), nro_habitacion: 0, capacidad_actual: 0, capacidad_total: 2 };
+    }
+  }
+
+  guardarHabitacion(): void {
+    if (!this.edificioSeleccionado || this.targetIdPiso === null) return;
+    const piso = this.edificioSeleccionado.pisos.find(p => p.id_piso === this.targetIdPiso);
+    if (!piso) return;
+
+    if (this.modalMode === 'CREATE') {
+      piso.habitaciones.push({
+        id_habitacion: this.habitacionForm.id_habitacion,
+        nro_habitacion: this.habitacionForm.nro_habitacion,
+        capacidad_actual: 0, // Forzamos 0 al crear
+        capacidad_total: this.habitacionForm.capacidad_total,
+        disponibilidad: true,
+        id_piso: piso.id_piso
+      });
+    } else {
+      const hab = piso.habitaciones.find(h => h.id_habitacion === this.targetIdHabitacion);
+      if (hab) {
+        hab.nro_habitacion = this.habitacionForm.nro_habitacion;
+        hab.capacidad_actual = this.habitacionForm.capacidad_actual;
+        hab.capacidad_total = this.habitacionForm.capacidad_total;
+      }
+    }
+    this.cerrarModal();
+  }
+
+  toggleDisponibilidad(habitacion: Habitacion): void {
+    habitacion.disponibilidad = !habitacion.disponibilidad;
+  }
+
+  confirmarEliminacion(type: 'EDIFICIO' | 'PISO' | 'HABITACION', data: any, parentData?: any): void {
+    this.itemToDelete = { type, data, parentData };
+    this.activeModal = 'DELETE';
+  }
+
+  ejecutarEliminacion(): void {
+    if (!this.itemToDelete) return;
+    const { type, data, parentData } = this.itemToDelete;
+
+    if (type === 'EDIFICIO') {
+      this.edificios = this.edificios.filter(e => e.id_edificio !== data.id_edificio);
+      if (this.edificioSeleccionado?.id_edificio === data.id_edificio) {
+        this.edificioSeleccionado = this.edificios.length > 0 ? this.edificios[0] : null;
+      }
+    } else if (type === 'PISO') {
+      if (this.edificioSeleccionado) {
+        this.edificioSeleccionado.pisos = this.edificioSeleccionado.pisos.filter(p => p.id_piso !== data.id_piso);
+      }
+    } else if (type === 'HABITACION') {
+      const piso = parentData as Piso;
+      piso.habitaciones = piso.habitaciones.filter(h => h.id_habitacion !== data.id_habitacion);
+    }
+    this.cerrarModal();
   }
 }

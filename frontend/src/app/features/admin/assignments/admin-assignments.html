@@ -1,1 +1,161 @@
-<p>admin-assignments works!</p>
+<div class="assignments-page">
+  <section class="assignments-shell">
+    <header class="page-header">
+      <div>
+        <h1>Gestión de Asignaciones</h1>
+        <p>Controla las estancias activas, finalizadas y renuncias de los residentes.</p>
+      </div>
+    </header>
+
+    <section class="block filters-block">
+      <div class="block-title">
+        <h2>Filtros y Búsqueda</h2>
+        <button type="button" class="text-btn" (click)="limpiarFiltros()">Limpiar filtros</button>
+      </div>
+      
+      <div class="filters-grid">
+        <div class="form-group search-group">
+          <label for="search">Buscar</label>
+          <div class="input-with-icon">
+            <i class="pi pi-search"></i>
+            <input id="search" type="text" [(ngModel)]="filtroBusqueda" (keyup)="aplicarFiltros()" placeholder="Nombre, RUT o Habitación...">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="periodo">Periodo</label>
+          <select id="periodo" [(ngModel)]="filtroPeriodo" (change)="aplicarFiltros()">
+            <option value="">Todos</option>
+            @for (p of periodos; track p) {
+              <option [value]="p">{{ p }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="estado">Estado</label>
+          <select id="estado" [(ngModel)]="filtroEstado" (change)="aplicarFiltros()">
+            <option value="">Todos los estados</option>
+            <option value="Activa">Activa</option>
+            <option value="Finalizada">Finalizada</option>
+            <option value="Renunciada">Renunciada</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <div class="table-container">
+      @if (asignacionesFiltradas.length === 0) {
+        <div class="empty-state">
+          <i class="pi pi-folder-open empty-icon"></i>
+          <p>No hay asignaciones que coincidan con tu búsqueda.</p>
+        </div>
+      } @else {
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Residente</th>
+              <th>Ubicación</th>
+              <th>Periodo</th>
+              <th>Fechas (In - Out)</th>
+              <th>Estado</th>
+              <th class="actions-col">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (asig of asignacionesFiltradas; track asig.id_asignacion) {
+              <tr>
+                <td>
+                  <div class="user-meta">
+                    <span class="user-name">{{ asig.nombre_estudiante }}</span>
+                    <span class="user-sub">RUT: {{ asig.rut_estudiante }}</span>
+                  </div>
+                </td>
+                
+                <td>
+                  <div class="location-meta">
+                    <span class="room">Hab {{ asig.numero_habitacion }}</span>
+                    <span class="building">{{ asig.nombre_edificio }}</span>
+                  </div>
+                </td>
+
+                <td><strong>{{ asig.nombre_periodo }}</strong></td>
+
+                <td>
+                  <div class="dates-meta">
+                    <span [class.missing]="!asig.fecha_check_in">
+                      <i class="pi pi-sign-in"></i> {{ asig.fecha_check_in || 'Pendiente' }}
+                    </span>
+                    <span [class.missing]="!asig.fecha_check_out && asig.estado !== 'Activa'">
+                      <i class="pi pi-sign-out"></i> {{ asig.fecha_check_out || '--/--/----' }}
+                    </span>
+                  </div>
+                </td>
+
+                <td>
+                  <span class="badge" [ngClass]="getClassForEstado(asig.estado)">
+                    {{ asig.estado }}
+                  </span>
+                </td>
+
+                <td>
+                  <div class="btn-group">
+                    @if (asig.estado === 'Activa' && !asig.fecha_check_in) {
+                      <button type="button" class="ghost small icon-only success-text" title="Marcar Check-In" (click)="marcarCheckIn(asig)">
+                        <i class="pi pi-sign-in"></i>
+                      </button>
+                    }
+
+                    @if (asig.estado === 'Activa' && asig.fecha_check_in) {
+                      <button type="button" class="ghost small icon-only primary-text" title="Finalizar Estancia (Check-out)" (click)="prepararAccion('CHECKOUT', asig)">
+                        <i class="pi pi-sign-out"></i>
+                      </button>
+                    }
+
+                    @if (asig.estado === 'Activa') {
+                      <button type="button" class="ghost small icon-only danger-text" title="Registrar Renuncia" (click)="prepararAccion('RENUNCIA', asig)">
+                        <i class="pi pi-ban"></i>
+                      </button>
+                    }
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    </div>
+  </section>
+</div>
+
+@if (isConfirmModalOpen && accionPendiente) {
+  <div class="modal-overlay" (click)="cerrarModal()">
+    <div class="modal-box" (click)="$event.stopPropagation()">
+      <header class="modal-header" [ngClass]="{'danger-header': accionPendiente.tipo === 'RENUNCIA'}">
+        <h2>
+          {{ accionPendiente.tipo === 'CHECKOUT' ? 'Finalizar Estancia' : 'Registrar Renuncia' }}
+        </h2>
+        <button type="button" class="close-btn" (click)="cerrarModal()"><i class="pi pi-times"></i></button>
+      </header>
+      
+      <div class="modal-body">
+        <p>
+          Estás a punto de 
+          <strong>{{ accionPendiente.tipo === 'CHECKOUT' ? 'finalizar la estancia' : 'registrar la renuncia' }}</strong> 
+          del estudiante <strong class="text-highlight">{{ accionPendiente.asignacion.nombre_estudiante }}</strong> 
+          en la habitación {{ accionPendiente.asignacion.numero_habitacion }}.
+        </p>
+        <p class="warning-text">
+          <i class="pi pi-info-circle"></i> Esta acción actualizará el estado de la asignación y registrará la fecha actual como salida.
+        </p>
+      </div>
+
+      <footer class="modal-footer">
+        <button type="button" class="ghost" (click)="cerrarModal()">Cancelar</button>
+        <button type="button" class="primary" [ngClass]="{'danger-bg': accionPendiente.tipo === 'RENUNCIA'}" (click)="ejecutarAccionPendiente()">
+          Confirmar Acción
+        </button>
+      </footer>
+    </div>
+  </div>
+}
