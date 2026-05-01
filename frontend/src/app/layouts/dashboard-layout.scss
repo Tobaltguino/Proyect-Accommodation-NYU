@@ -8,26 +8,9 @@
   --text-muted: #4a5568;
 }
 
-.admin-layout {
-  min-height: 100vh;
-  width: 100%; /* Aseguramos que no pase del ancho de la ventana */
-  max-width: 100vw;
-  background: var(--app-bg);
-  color: var(--text-main);
-  display: grid;
-  
-  /* Fijamos 248px para el menú y calculamos exactamente el resto para el contenido */
-  grid-template-columns: 248px calc(100% - 248px); 
-  box-sizing: border-box; /* ESTO EVITA EL DESBORDE */
-}
-
 .dashboard-sidebar {
   background: var(--primary-deep);
   color: #ffffff;
-  padding: 1rem 0.85rem;
-  display: grid;
-  gap: 1rem;
-  align-content: start;
 }
 
 .sidebar-brand {
@@ -56,7 +39,7 @@
 
   span {
     font-size: 0.76rem;
-    color: #ddd6f5;
+    color: #ddd6f5; 
   }
 }
 
@@ -72,9 +55,10 @@
     font-size: 0.94rem;
   }
 
+  /* ¡Aquí regresan tus textos y RUT en morado! */
   span,
   small {
-    color: #e9d8fd;
+    color: var(--accent-soft);
     font-size: 0.78rem;
   }
 }
@@ -93,22 +77,20 @@
   font-weight: 600;
   padding: 0.62rem 0.7rem;
   cursor: pointer;
-  text-decoration: none;
-  
-  /* --- Flexbox para alinear icono y texto --- */
   display: flex;
   align-items: center;
   gap: 0.6rem;
-  
   transition: background-color 0.2s ease;
 
   &:hover {
     background: rgba(233, 216, 253, 0.15);
+    color: #ffffff;
   }
 
   &.active {
     background: rgba(233, 216, 253, 0.24);
     border-color: rgba(233, 216, 253, 0.35);
+    color: #ffffff;
   }
 
   i {
@@ -129,12 +111,15 @@
   color: #ffffff;
   font-weight: 600;
   cursor: pointer;
-  
-  /* --- Flexbox para alinear icono y texto --- */
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background: rgba(233, 216, 253, 0.15);
+  }
 
   i {
     font-size: 1.1rem;
@@ -142,27 +127,5 @@
 }
 
 .dashboard-main-container {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  width: 100%; /* Ajustado al grid */
-  overflow-y: auto; 
-  overflow-x: hidden; /* MATA EL SCROLL HORIZONTAL */
   background: var(--app-bg);
-  box-sizing: border-box; /* ESTO EVITA EL DESBORDE INTERNO */
-}
-
-@media (max-width: 840px) {
-  .admin-layout {
-    grid-template-columns: 1fr;
-  }
-
-  .dashboard-sidebar {
-    gap: 0.7rem;
-    padding-bottom: 0.9rem;
-  }
-
-  .sidebar-footer {
-    margin-top: 0;
-  }
 }

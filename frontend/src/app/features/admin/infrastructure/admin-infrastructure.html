@@ -1,225 +1,248 @@
-<div class="infrastructure-page">
-  <section class="infrastructure-shell">
-    <header class="page-header">
+<div class="container-fluid p-3 p-lg-4">
+  <section class="infrastructure-shell mx-auto">
+    
+    <!-- HEADER -->
+    <header class="d-flex flex-column flex-md-row justify-content-between align-items-md-start gap-3 mb-4">
       <div>
-        <h1>Gestión de Infraestructura</h1>
-        <p>Administra edificios, pisos y configura la capacidad de las habitaciones.</p>
+        <h1 class="page-title m-0">Gestión de Infraestructura</h1>
+        <p class="page-subtitle mt-1 mb-0">Administra edificios, pisos y configura la capacidad de las habitaciones.</p>
       </div>
-      <button type="button" class="primary" (click)="abrirModalEdificio('CREATE')">
+      <button type="button" class="primary border-0" (click)="abrirModalEdificio('CREATE')">
         <i class="pi pi-plus"></i> Nuevo Edificio
       </button>
     </header>
 
-    <div class="layout-grid">
-      <section class="block">
-        <div class="block-title">
-          <h2>Edificios</h2>
-          <span>Selecciona un edificio</span>
-        </div>
-
-        <div class="building-list">
-          @for (edificio of edificios; track edificio.id_edificio) {
-            <article 
-              class="building-card" 
-              [class.active]="edificioSeleccionado?.id_edificio === edificio.id_edificio"
-              (click)="seleccionarEdificio(edificio)"
-            >
-              <div class="building-info">
-                <strong>{{ edificio.nombre }}</strong>
-                <span class="status-badge" 
-                      [ngClass]="{'femenino': edificio.genero === 'Femenino', 'masculino': edificio.genero === 'Masculino', 'mixto': edificio.genero === 'Mixto'}">
-                  {{ edificio.genero }}
-                </span>
-              </div>
-              <small>{{ edificio.ubicacion }}</small>
-            </article>
-          }
-        </div>
-      </section>
-
-      <section class="block map-block">
-        @if (edificioSeleccionado) {
-          <div class="block-title header-action">
-            <div>
-              <div class="flex-title">
-                <h2>{{ edificioSeleccionado.nombre }}</h2>
-                <button type="button" class="icon-only small-ghost" title="Editar Edificio" (click)="abrirModalEdificio('EDIT', edificioSeleccionado)">
-                  <i class="pi pi-pencil"></i>
-                </button>
-                <button type="button" class="icon-only small-ghost danger-text" title="Eliminar Edificio" (click)="confirmarEliminacion('EDIFICIO', edificioSeleccionado)">
-                  <i class="pi pi-trash"></i>
-                </button>
-              </div>
-              <span>{{ edificioSeleccionado.ubicacion }}</span>
-            </div>
-            <button type="button" class="ghost small" (click)="abrirModalPiso('CREATE')">
-              <i class="pi pi-plus"></i> Agregar Piso
-            </button>
+    <!-- LAYOUT GRID (Bootstrap Row) -->
+    <div class="row g-4">
+      
+      <!-- COLUMNA IZQUIERDA (Lista de Edificios) -->
+      <div class="col-12 col-lg-4 col-xl-3">
+        <section class="border rounded-4 p-3 bg-light h-100 d-flex flex-column gap-3 custom-block">
+          <div class="d-flex justify-content-between align-items-baseline gap-2">
+            <h2 class="m-0 fs-6 fw-bold block-title">Edificios</h2>
+            <span class="text-secondary" style="font-size: 0.88rem;">Selecciona un edificio</span>
           </div>
 
-          @if (edificioSeleccionado.pisos.length === 0) {
-            <div class="empty-state">
-              <i class="pi pi-building empty-icon"></i>
-              <p>Este edificio aún no tiene pisos registrados.</p>
-            </div>
-          }
-
-          <section class="building-map">
-            @for (piso of edificioSeleccionado.pisos; track piso.id_piso) {
-              <article class="floor-card">
-                <div class="floor-header">
-                  <div class="flex-title">
-                    <h3>Piso {{ piso.nro_piso }} - {{ piso.nombre }}</h3>
-                    <button type="button" class="icon-only small-ghost" title="Editar Piso" (click)="abrirModalPiso('EDIT', piso)">
-                      <i class="pi pi-pencil"></i>
-                    </button>
-                    <button type="button" class="icon-only small-ghost danger-text" title="Eliminar Piso" (click)="confirmarEliminacion('PISO', piso)">
-                      <i class="pi pi-trash"></i>
-                    </button>
-                  </div>
-                  <button type="button" class="text-btn" (click)="abrirModalHabitacion('CREATE', piso)">
-                    <i class="pi pi-plus"></i> Añadir Hab.
-                  </button>
+          <div class="d-flex flex-column gap-2">
+            @for (edificio of edificios; track edificio.id_edificio) {
+              <article 
+                class="building-card border rounded-3 p-3 bg-white" 
+                [class.active]="edificioSeleccionado?.id_edificio === edificio.id_edificio"
+                (click)="seleccionarEdificio(edificio)"
+              >
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <strong class="text-dark" style="font-size: 0.95rem;">{{ edificio.nombre }}</strong>
+                  <span class="status-badge" 
+                        [ngClass]="{'femenino': edificio.genero === 'Femenino', 'masculino': edificio.genero === 'Masculino', 'mixto': edificio.genero === 'Mixto'}">
+                    {{ edificio.genero }}
+                  </span>
                 </div>
-                
-                <div class="room-grid">
-                  @for (habitacion of piso.habitaciones; track habitacion.id_habitacion) {
-                    <div class="room-chip config-mode" [class.locked]="!habitacion.disponibilidad">
-                      
-                      <div class="chip-header">
-                        <strong>Hab {{ habitacion.nro_habitacion }}</strong>
-                        <span class="room-status" 
-                              [class.ocupado]="habitacion.capacidad_actual >= habitacion.capacidad_total" 
-                              [class.libre]="habitacion.capacidad_actual < habitacion.capacidad_total">
-                          {{ habitacion.capacidad_actual >= habitacion.capacidad_total ? 'Ocupado' : 'Libre' }}
-                        </span>
-                      </div>
-
-                      <small class="beds-info">
-                        <i class="pi pi-users"></i> {{ habitacion.capacidad_actual }}/{{ habitacion.capacidad_total }} Camas
-                      </small>
-                      
-                      <div class="room-actions">
-                        <button type="button" class="icon-action" title="Editar Habitación" (click)="abrirModalHabitacion('EDIT', piso, habitacion)">
-                          <i class="pi pi-pencil"></i>
-                        </button>
-                        <button type="button" class="icon-action warning" 
-                                [title]="habitacion.disponibilidad ? 'Deshabilitar Habitación' : 'Habilitar Habitación'" 
-                                (click)="toggleDisponibilidad(habitacion)">
-                          <i class="pi" [ngClass]="!habitacion.disponibilidad ? 'pi-lock' : 'pi-unlock'"></i>
-                        </button>
-                        <button type="button" class="icon-action danger" title="Eliminar Habitación" (click)="confirmarEliminacion('HABITACION', habitacion, piso)">
-                          <i class="pi pi-trash"></i>
-                        </button>
-                      </div>
-
-                    </div>
-                  }
-                </div>
+                <small class="text-secondary" style="font-size: 0.8rem;">{{ edificio.ubicacion }}</small>
               </article>
             }
-          </section>
-        } @else {
-          <div class="empty-state">
-            <i class="pi pi-search empty-icon"></i>
-            <p>Selecciona un edificio para ver o editar su infraestructura.</p>
           </div>
-        }
-      </section>
+        </section>
+      </div>
+
+      <!-- COLUMNA DERECHA (Mapa del Edificio) -->
+      <div class="col-12 col-lg-8 col-xl-9">
+        <section class="border rounded-4 p-3 p-md-4 bg-white h-100 custom-block">
+          @if (edificioSeleccionado) {
+            
+            <!-- Header del Edificio Seleccionado -->
+            <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 mb-4">
+              <div>
+                <div class="d-flex align-items-center gap-2 mb-1">
+                  <h2 class="m-0 fs-5 fw-bold block-title">{{ edificioSeleccionado.nombre }}</h2>
+                  <button type="button" class="icon-only small-ghost border-0" title="Editar Edificio" (click)="abrirModalEdificio('EDIT', edificioSeleccionado)">
+                    <i class="pi pi-pencil"></i>
+                  </button>
+                  <button type="button" class="icon-only small-ghost danger-text border-0" title="Eliminar Edificio" (click)="confirmarEliminacion('EDIFICIO', edificioSeleccionado)">
+                    <i class="pi pi-trash"></i>
+                  </button>
+                </div>
+                <span class="text-secondary" style="font-size: 0.88rem;">{{ edificioSeleccionado.ubicacion }}</span>
+              </div>
+              
+              <button type="button" class="ghost small border-0" (click)="abrirModalPiso('CREATE')">
+                <i class="pi pi-plus"></i> Agregar Piso
+              </button>
+            </div>
+
+            <!-- Estado Vacío (Sin pisos) -->
+            @if (edificioSeleccionado.pisos.length === 0) {
+              <div class="empty-state d-flex flex-column align-items-center justify-content-center">
+                <i class="pi pi-building empty-icon mb-2"></i>
+                <p class="m-0">Este edificio aún no tiene pisos registrados.</p>
+              </div>
+            }
+
+            <!-- Mapa de Pisos y Habitaciones -->
+            <section class="d-flex flex-column gap-3">
+              @for (piso of edificioSeleccionado.pisos; track piso.id_piso) {
+                <article class="floor-card">
+                  
+                  <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                    <div class="d-flex align-items-center gap-2">
+                      <h3 class="m-0 fs-6 fw-bold block-title">Piso {{ piso.nro_piso }} - {{ piso.nombre }}</h3>
+                      <button type="button" class="icon-only small-ghost border-0" title="Editar Piso" (click)="abrirModalPiso('EDIT', piso)">
+                        <i class="pi pi-pencil"></i>
+                      </button>
+                      <button type="button" class="icon-only small-ghost danger-text border-0" title="Eliminar Piso" (click)="confirmarEliminacion('PISO', piso)">
+                        <i class="pi pi-trash"></i>
+                      </button>
+                    </div>
+                    <button type="button" class="text-btn border-0" (click)="abrirModalHabitacion('CREATE', piso)">
+                      <i class="pi pi-plus"></i> Añadir Hab.
+                    </button>
+                  </div>
+                  
+                  <div class="room-grid">
+                    @for (habitacion of piso.habitaciones; track habitacion.id_habitacion) {
+                      <div class="room-chip config-mode" [class.locked]="!habitacion.disponibilidad">
+                        
+                        <div class="d-flex justify-content-between align-items-center">
+                          <strong class="text-dark" style="font-size: 0.92rem;">Hab {{ habitacion.nro_habitacion }}</strong>
+                          <span class="room-status" 
+                                [class.ocupado]="habitacion.capacidad_actual >= habitacion.capacidad_total" 
+                                [class.libre]="habitacion.capacidad_actual < habitacion.capacidad_total">
+                            {{ habitacion.capacidad_actual >= habitacion.capacidad_total ? 'Ocupado' : 'Libre' }}
+                          </span>
+                        </div>
+
+                        <small class="beds-info">
+                          <i class="pi pi-users"></i> {{ habitacion.capacidad_actual }}/{{ habitacion.capacidad_total }} Camas
+                        </small>
+                        
+                        <div class="room-actions">
+                          <button type="button" class="icon-action border-0" title="Editar Habitación" (click)="abrirModalHabitacion('EDIT', piso, habitacion)">
+                            <i class="pi pi-pencil"></i>
+                          </button>
+                          <button type="button" class="icon-action warning border-0" 
+                                  [title]="habitacion.disponibilidad ? 'Deshabilitar Habitación' : 'Habilitar Habitación'" 
+                                  (click)="toggleDisponibilidad(habitacion)">
+                            <i class="pi" [ngClass]="!habitacion.disponibilidad ? 'pi-lock' : 'pi-unlock'"></i>
+                          </button>
+                          <button type="button" class="icon-action danger border-0" title="Eliminar Habitación" (click)="confirmarEliminacion('HABITACION', habitacion, piso)">
+                            <i class="pi pi-trash"></i>
+                          </button>
+                        </div>
+
+                      </div>
+                    }
+                  </div>
+                </article>
+              }
+            </section>
+            
+          } @else {
+            <div class="empty-state h-100 d-flex flex-column align-items-center justify-content-center border-0">
+              <i class="pi pi-search empty-icon mb-2"></i>
+              <p class="m-0">Selecciona un edificio para ver o editar su infraestructura.</p>
+            </div>
+          }
+        </section>
+      </div>
+
     </div>
   </section>
 </div>
 
+<!-- MODALES -->
 @if (activeModal !== null) {
-  <div class="modal-overlay" (click)="cerrarModal()">
-    <div class="modal-box" (click)="$event.stopPropagation()">
+  <div class="modal-overlay position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center z-3 p-3" (click)="cerrarModal()">
+    <div class="modal-box bg-white d-flex flex-column" (click)="$event.stopPropagation()">
       
+      <!-- MODAL EDIFICIO -->
       @if (activeModal === 'EDIFICIO') {
-        <header class="modal-header">
-          <h2>{{ modalMode === 'CREATE' ? 'Nuevo Edificio' : 'Editar Edificio' }}</h2>
-          <button type="button" class="close-btn" (click)="cerrarModal()"><i class="pi pi-times"></i></button>
+        <header class="modal-header d-flex justify-content-between align-items-center">
+          <h2 class="m-0">{{ modalMode === 'CREATE' ? 'Nuevo Edificio' : 'Editar Edificio' }}</h2>
+          <button type="button" class="close-btn border-0" (click)="cerrarModal()"><i class="pi pi-times"></i></button>
         </header>
-        <div class="modal-body">
-          <div class="form-group">
-            <label>Nombre del Edificio</label>
-            <input type="text" class="form-control" [(ngModel)]="edificioForm.nombre" placeholder="Ej: Residencia Norte">
+        <div class="modal-body p-4 d-flex flex-column gap-3">
+          <div>
+            <label class="form-label mb-1 fw-bold text-dark" style="font-size: 0.85rem;">Nombre del Edificio</label>
+            <input type="text" class="form-control custom-control" [(ngModel)]="edificioForm.nombre" placeholder="Ej: Residencia Norte">
           </div>
-          <div class="form-group">
-            <label>Ubicación</label>
-            <input type="text" class="form-control" [(ngModel)]="edificioForm.ubicacion" placeholder="Ej: Campus Central">
+          <div>
+            <label class="form-label mb-1 fw-bold text-dark" style="font-size: 0.85rem;">Ubicación</label>
+            <input type="text" class="form-control custom-control" [(ngModel)]="edificioForm.ubicacion" placeholder="Ej: Campus Central">
           </div>
-          <div class="form-group">
-            <label>Género del Edificio</label>
-            <select class="form-control" [(ngModel)]="edificioForm.genero">
+          <div>
+            <label class="form-label mb-1 fw-bold text-dark" style="font-size: 0.85rem;">Género del Edificio</label>
+            <select class="form-select custom-control" [(ngModel)]="edificioForm.genero">
               <option value="Mixto">Mixto</option>
               <option value="Femenino">Femenino</option>
               <option value="Masculino">Masculino</option>
             </select>
           </div>
         </div>
-        <footer class="modal-footer">
-          <button type="button" class="ghost" (click)="cerrarModal()">Cancelar</button>
-          <button type="button" class="primary" [disabled]="!edificioForm.nombre || !edificioForm.ubicacion" (click)="guardarEdificio()">Guardar</button>
+        <footer class="modal-footer d-flex justify-content-end p-3 bg-light border-top rounded-bottom-4 gap-2">
+          <button type="button" class="ghost border-0" (click)="cerrarModal()">Cancelar</button>
+          <button type="button" class="primary border-0" [disabled]="!edificioForm.nombre || !edificioForm.ubicacion" (click)="guardarEdificio()">Guardar</button>
         </footer>
       }
 
+      <!-- MODAL PISO -->
       @if (activeModal === 'PISO') {
-        <header class="modal-header">
-          <h2>{{ modalMode === 'CREATE' ? 'Agregar Piso' : 'Editar Piso' }}</h2>
-          <button type="button" class="close-btn" (click)="cerrarModal()"><i class="pi pi-times"></i></button>
+        <header class="modal-header d-flex justify-content-between align-items-center">
+          <h2 class="m-0">{{ modalMode === 'CREATE' ? 'Agregar Piso' : 'Editar Piso' }}</h2>
+          <button type="button" class="close-btn border-0" (click)="cerrarModal()"><i class="pi pi-times"></i></button>
         </header>
-        <div class="modal-body form-grid">
-          <div class="form-group">
-            <label>Número de Piso</label>
-            <input type="number" class="form-control" [(ngModel)]="pisoForm.nro_piso" placeholder="Ej: 1">
+        <div class="modal-body p-4 row g-3">
+          <div class="col-12 col-sm-6">
+            <label class="form-label mb-1 fw-bold text-dark" style="font-size: 0.85rem;">Número de Piso</label>
+            <input type="number" class="form-control custom-control" [(ngModel)]="pisoForm.nro_piso" placeholder="Ej: 1">
           </div>
-          <div class="form-group">
-            <label>Nombre Identificador</label>
-            <input type="text" class="form-control" [(ngModel)]="pisoForm.nombre" placeholder="Ej: Planta Baja">
+          <div class="col-12 col-sm-6">
+            <label class="form-label mb-1 fw-bold text-dark" style="font-size: 0.85rem;">Nombre Identificador</label>
+            <input type="text" class="form-control custom-control" [(ngModel)]="pisoForm.nombre" placeholder="Ej: Planta Baja">
           </div>
         </div>
-        <footer class="modal-footer">
-          <button type="button" class="ghost" (click)="cerrarModal()">Cancelar</button>
-          <button type="button" class="primary" [disabled]="!pisoForm.nombre" (click)="guardarPiso()">Guardar Piso</button>
+        <footer class="modal-footer d-flex justify-content-end p-3 bg-light border-top rounded-bottom-4 gap-2">
+          <button type="button" class="ghost border-0" (click)="cerrarModal()">Cancelar</button>
+          <button type="button" class="primary border-0" [disabled]="!pisoForm.nombre" (click)="guardarPiso()">Guardar Piso</button>
         </footer>
       }
 
+      <!-- MODAL HABITACIÓN -->
       @if (activeModal === 'HABITACION') {
-        <header class="modal-header">
-          <h2>{{ modalMode === 'CREATE' ? 'Añadir Habitación' : 'Editar Habitación' }}</h2>
-          <button type="button" class="close-btn" (click)="cerrarModal()"><i class="pi pi-times"></i></button>
+        <header class="modal-header d-flex justify-content-between align-items-center">
+          <h2 class="m-0">{{ modalMode === 'CREATE' ? 'Añadir Habitación' : 'Editar Habitación' }}</h2>
+          <button type="button" class="close-btn border-0" (click)="cerrarModal()"><i class="pi pi-times"></i></button>
         </header>
-        <div class="modal-body form-grid">
-          <div class="form-group" style="grid-column: span 2;">
-            <label>Número de Habitación</label>
-            <input type="number" class="form-control" [(ngModel)]="habitacionForm.nro_habitacion" placeholder="Ej: 101">
+        <div class="modal-body p-4 row g-3">
+          <div class="col-12">
+            <label class="form-label mb-1 fw-bold text-dark" style="font-size: 0.85rem;">Número de Habitación</label>
+            <input type="number" class="form-control custom-control" [(ngModel)]="habitacionForm.nro_habitacion" placeholder="Ej: 101">
           </div>
-          <div class="form-group">
-            <label>Capacidad Actual (Camas Ocupadas)</label>
-            <input type="number" class="form-control" [(ngModel)]="habitacionForm.capacidad_actual" min="0" [disabled]="modalMode === 'CREATE'" [title]="modalMode === 'CREATE' ? 'Las habitaciones nuevas inician con 0 camas ocupadas' : ''">
+          <div class="col-12 col-sm-6">
+            <label class="form-label mb-1 fw-bold text-dark" style="font-size: 0.85rem;">Camas Ocupadas</label>
+            <input type="number" class="form-control custom-control" [(ngModel)]="habitacionForm.capacidad_actual" min="0" [disabled]="modalMode === 'CREATE'" [title]="modalMode === 'CREATE' ? 'Las habitaciones nuevas inician con 0 camas ocupadas' : ''">
           </div>
-          <div class="form-group">
-            <label>Capacidad Total (Máx. Camas)</label>
-            <input type="number" class="form-control" [(ngModel)]="habitacionForm.capacidad_total" min="1">
+          <div class="col-12 col-sm-6">
+            <label class="form-label mb-1 fw-bold text-dark" style="font-size: 0.85rem;">Máx. Camas</label>
+            <input type="number" class="form-control custom-control" [(ngModel)]="habitacionForm.capacidad_total" min="1">
           </div>
         </div>
-        <footer class="modal-footer">
-          <button type="button" class="ghost" (click)="cerrarModal()">Cancelar</button>
-          <button type="button" class="primary" [disabled]="!habitacionForm.nro_habitacion" (click)="guardarHabitacion()">Guardar Habitación</button>
+        <footer class="modal-footer d-flex justify-content-end p-3 bg-light border-top rounded-bottom-4 gap-2">
+          <button type="button" class="ghost border-0" (click)="cerrarModal()">Cancelar</button>
+          <button type="button" class="primary border-0" [disabled]="!habitacionForm.nro_habitacion" (click)="guardarHabitacion()">Guardar Habitación</button>
         </footer>
       }
 
+      <!-- MODAL ELIMINAR -->
       @if (activeModal === 'DELETE') {
-        <header class="modal-header danger-header">
-          <h2>Confirmar Eliminación</h2>
-          <button type="button" class="close-btn" (click)="cerrarModal()"><i class="pi pi-times"></i></button>
+        <header class="modal-header danger-header d-flex justify-content-between align-items-center">
+          <h2 class="m-0">Confirmar Eliminación</h2>
+          <button type="button" class="close-btn border-0" (click)="cerrarModal()"><i class="pi pi-times"></i></button>
         </header>
-        <div class="modal-body">
-          <p>¿Estás seguro de que deseas eliminar este elemento? Esta acción no se puede deshacer y borrará los datos asociados.</p>
+        <div class="modal-body p-4">
+          <p class="m-0 text-secondary" style="line-height: 1.5;">¿Estás seguro de que deseas eliminar este elemento? Esta acción no se puede deshacer y borrará los datos asociados.</p>
         </div>
-        <footer class="modal-footer">
-          <button type="button" class="ghost" (click)="cerrarModal()">Cancelar</button>
-          <button type="button" class="primary danger-bg" (click)="ejecutarEliminacion()">Sí, Eliminar</button>
+        <footer class="modal-footer d-flex justify-content-end p-3 bg-light border-top rounded-bottom-4 gap-2">
+          <button type="button" class="ghost border-0" (click)="cerrarModal()">Cancelar</button>
+          <button type="button" class="primary danger-bg border-0" (click)="ejecutarEliminacion()">Sí, Eliminar</button>
         </footer>
       }
 

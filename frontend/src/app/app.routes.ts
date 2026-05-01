@@ -3,15 +3,18 @@ import { authGuard } from './core/guards/auth.guard';
 import { roleGuard } from './core/guards/role.guard';
 import { LoginPageComponent } from './features/auth/login/login.page';
 
+// 1. Importamos el nuevo Layout Global (Reemplaza al antiguo AdminLayout)
+// Asegúrate de que la ruta coincida con donde guardaste el archivo
+import { DashboardLayoutComponent } from './layouts/dashboard-layout';
+
 // Admin
-import { AdminLayoutComponent } from './features/admin/layout/admin-layout';
 import { AdminHomeComponent } from './features/admin/home/admin-home';
 import { AdminRequestsComponent } from './features/admin/requests/admin-requests';
 import { AdminAssignmentsComponent } from './features/admin/assignments/admin-assignments';
 import { AdminIncidentsComponent } from './features/admin/incidents/admin-incidents';
 import { AdminInfrastructureComponent } from './features/admin/infrastructure/admin-infrastructure';
 
-// Estudiante
+// Estudiante (Sin modificar)
 import { StudentHomePageComponent } from './features/student/home/student-home.page';
 import { StudentPostulationPageComponent } from './features/student/postulation/postulation.page';
 import { StudentStatusPageComponent } from './features/student/status/student-status.page';
@@ -27,10 +30,10 @@ export const routes: Routes = [
     component: LoginPageComponent,
   },
   
-  // ADMIN
+  // ADMIN (Modificado para usar el nuevo DashboardLayoutComponent)
   {
     path: 'admin',
-    component: AdminLayoutComponent, 
+    component: DashboardLayoutComponent, // <- AQUÍ ESTÁ EL CAMBIO
     canActivate: [authGuard, roleGuard],
     data: {
       roles: ['ADMIN'], 
@@ -45,7 +48,7 @@ export const routes: Routes = [
     ]
   },
 
-  // ESTUDIANTE
+  // ESTUDIANTE (Se mantiene intacto)
   {
     path: 'student/home',
     component: StudentHomePageComponent,
