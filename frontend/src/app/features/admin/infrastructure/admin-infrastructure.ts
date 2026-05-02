@@ -2,32 +2,7 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
-export type GeneroEdificio = 'Masculino' | 'Femenino' | 'Mixto';
-
-export interface Habitacion {
-  id_habitacion: number;
-  nro_habitacion: number;
-  capacidad_actual: number; // Camas ocupadas
-  capacidad_total: number;  // Total de camas en la habitación
-  disponibilidad: boolean;  
-  id_piso: number;
-}
-
-export interface Piso {
-  id_piso: number;
-  nro_piso: number;
-  nombre: string;
-  id_edificio: number;
-  habitaciones: Habitacion[];
-}
-
-export interface Edificio {
-  id_edificio: number;
-  nombre: string;
-  ubicacion: string;
-  genero: GeneroEdificio;
-  pisos: Piso[];
-}
+import { EdificioDTO, PisoDTO, HabitacionDTO, Genero} from '../../../shared/models';
 
 type ModalType = 'EDIFICIO' | 'PISO' | 'HABITACION' | 'DELETE' | null;
 type ModalMode = 'CREATE' | 'EDIT';
@@ -40,12 +15,12 @@ type ModalMode = 'CREATE' | 'EDIT';
   styleUrl: './admin-infrastructure.scss'
 })
 export class AdminInfrastructureComponent {
-  edificios: Edificio[] = [
+  edificios: EdificioDTO[] = [
     {
       id_edificio: 1,
       nombre: 'Residencia Norte',
       ubicacion: 'Campus Central - Ala Norte',
-      genero: 'Mixto',
+      genero: Genero.MIXTO,
       pisos: [
         {
           id_piso: 10,
@@ -72,12 +47,12 @@ export class AdminInfrastructureComponent {
       id_edificio: 2,
       nombre: 'Pabellón Sur',
       ubicacion: 'Campus Central - Ala Sur',
-      genero: 'Femenino',
+      genero: Genero.FEMENINO,
       pisos: []
     }
   ];
 
-  edificioSeleccionado: Edificio | null = this.edificios[0];
+  edificioSeleccionado: EdificioDTO | null = this.edificios[0];
 
   activeModal: ModalType = null;
   modalMode: ModalMode = 'CREATE';
@@ -86,11 +61,11 @@ export class AdminInfrastructureComponent {
   targetIdHabitacion: number | null = null;
   itemToDelete: { type: 'EDIFICIO' | 'PISO' | 'HABITACION', data: any, parentData?: any } | null = null;
 
-  edificioForm = { id_edificio: 0, nombre: '', ubicacion: '', genero: 'Mixto' as GeneroEdificio };
+  edificioForm = { id_edificio: 0, nombre: '', ubicacion: '', genero: Genero.MIXTO };
   pisoForm = { id_piso: 0, nro_piso: 1, nombre: '' };
   habitacionForm = { id_habitacion: 0, nro_habitacion: 1, capacidad_actual: 0, capacidad_total: 1 };
 
-  seleccionarEdificio(edificio: Edificio): void {
+  seleccionarEdificio(edificio: EdificioDTO): void {
     this.edificioSeleccionado = edificio;
   }
 
@@ -99,13 +74,13 @@ export class AdminInfrastructureComponent {
   }
 
   // --- LÓGICA DE EDIFICIOS ---
-  abrirModalEdificio(mode: ModalMode, edificio?: Edificio): void {
+  abrirModalEdificio(mode: ModalMode, edificio?: EdificioDTO): void {
     this.modalMode = mode;
     this.activeModal = 'EDIFICIO';
     if (mode === 'EDIT' && edificio) {
       this.edificioForm = { ...edificio };
     } else {
-      this.edificioForm = { id_edificio: Date.now(), nombre: '', ubicacion: '', genero: 'Mixto' };
+      this.edificioForm = { id_edificio: Date.now(), nombre: '', ubicacion: '', genero: Genero.MIXTO };
     }
   }
 
@@ -125,7 +100,7 @@ export class AdminInfrastructureComponent {
   }
 
   // --- LÓGICA DE PISOS ---
-  abrirModalPiso(mode: ModalMode, piso?: Piso): void {
+  abrirModalPiso(mode: ModalMode, piso?: PisoDTO): void {
     this.modalMode = mode;
     this.activeModal = 'PISO';
     if (mode === 'EDIT' && piso) {
@@ -160,7 +135,7 @@ export class AdminInfrastructureComponent {
   }
 
   // --- LÓGICA DE HABITACIONES ---
-  abrirModalHabitacion(mode: ModalMode, piso: Piso, habitacion?: Habitacion): void {
+  abrirModalHabitacion(mode: ModalMode, piso: PisoDTO, habitacion?: HabitacionDTO): void {
     this.modalMode = mode;
     this.activeModal = 'HABITACION';
     this.targetIdPiso = piso.id_piso;
@@ -174,7 +149,6 @@ export class AdminInfrastructureComponent {
       };
       this.targetIdHabitacion = habitacion.id_habitacion;
     } else {
-      // Inicia con capacidad_actual en 0 al crear
       this.habitacionForm = { id_habitacion: Date.now(), nro_habitacion: 0, capacidad_actual: 0, capacidad_total: 2 };
     }
   }
@@ -188,7 +162,7 @@ export class AdminInfrastructureComponent {
       piso.habitaciones.push({
         id_habitacion: this.habitacionForm.id_habitacion,
         nro_habitacion: this.habitacionForm.nro_habitacion,
-        capacidad_actual: 0, // Forzamos 0 al crear
+        capacidad_actual: 0, 
         capacidad_total: this.habitacionForm.capacidad_total,
         disponibilidad: true,
         id_piso: piso.id_piso
@@ -204,7 +178,7 @@ export class AdminInfrastructureComponent {
     this.cerrarModal();
   }
 
-  toggleDisponibilidad(habitacion: Habitacion): void {
+  toggleDisponibilidad(habitacion: HabitacionDTO): void {
     habitacion.disponibilidad = !habitacion.disponibilidad;
   }
 
@@ -227,7 +201,7 @@ export class AdminInfrastructureComponent {
         this.edificioSeleccionado.pisos = this.edificioSeleccionado.pisos.filter(p => p.id_piso !== data.id_piso);
       }
     } else if (type === 'HABITACION') {
-      const piso = parentData as Piso;
+      const piso = parentData as PisoDTO;
       piso.habitaciones = piso.habitaciones.filter(h => h.id_habitacion !== data.id_habitacion);
     }
     this.cerrarModal();

@@ -2,21 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
-export type EstadoIncidencia = 'Pendiente' | 'En Proceso' | 'Resuelta' | '';
-export type GravedadIncidencia = 'Leve' | 'Moderado' | 'Grave' | '';
-
-export interface Incidencia {
-  id_incidencia: number;
-  descripcion: string;
-  estado: EstadoIncidencia;
-  fecha: string;
-  gravedad: GravedadIncidencia;
-  nro_habitacion: number;
-  nombre_edificio: string;
-  rut_usuario: string;
-  nombre_usuario: string;
-  periodo: string;
-}
+import { IncidenciaDTO, EstadoIncidencia, GravedadIncidencia} from '../../../shared/models';
 
 @Component({
   selector: 'app-admin-incidents',
@@ -26,13 +12,13 @@ export interface Incidencia {
   styleUrl: './admin-incidents.scss'
 })
 export class AdminIncidentsComponent implements OnInit {
-  incidencias: Incidencia[] = [
+  incidencias: IncidenciaDTO[] = [
     {
       id_incidencia: 1,
       descripcion: 'Fuga de agua importante en el lavamanos del baño, el piso se está inundando rápidamente y necesitamos que venga alguien pronto a cortar el paso de agua.',
-      estado: 'Pendiente',
+      estado: EstadoIncidencia.PENDIENTE,
       fecha: '2026-04-20',
-      gravedad: 'Moderado',
+      gravedad: GravedadIncidencia.MODERADO,
       nro_habitacion: 101,
       nombre_edificio: 'Residencia Masculina',
       rut_usuario: '21.345.678-9',
@@ -42,9 +28,9 @@ export class AdminIncidentsComponent implements OnInit {
     {
       id_incidencia: 2,
       descripcion: 'Ampolleta quemada en el escritorio.',
-      estado: 'Resuelta',
+      estado: EstadoIncidencia.RESUELTA,
       fecha: '2026-04-15',
-      gravedad: 'Leve',
+      gravedad: GravedadIncidencia.LEVE,
       nro_habitacion: 205,
       nombre_edificio: 'Residencia Femenina',
       rut_usuario: '20.123.456-7',
@@ -54,9 +40,9 @@ export class AdminIncidentsComponent implements OnInit {
     {
       id_incidencia: 3,
       descripcion: 'Cortocircuito en el enchufe principal, salió humo y ahora no hay electricidad en toda la mitad de la habitación.',
-      estado: 'En Proceso',
+      estado: EstadoIncidencia.EN_PROCESO,
       fecha: '2026-04-26',
-      gravedad: 'Grave',
+      gravedad: GravedadIncidencia.GRAVE,
       nro_habitacion: 310,
       nombre_edificio: 'Residencia Masculina',
       rut_usuario: '19.876.543-2',
@@ -65,17 +51,17 @@ export class AdminIncidentsComponent implements OnInit {
     }
   ];
 
-  incidenciasFiltradas: Incidencia[] = [];
+  incidenciasFiltradas: IncidenciaDTO[] = [];
 
   filtroPeriodo: string = '';
-  filtroEstado: EstadoIncidencia = '';
-  filtroGravedad: GravedadIncidencia = '';
-  filtroRut: string = ''; // <-- Nueva variable para el RUT
+  filtroEstado: EstadoIncidencia | '' = '';
+  filtroGravedad: GravedadIncidencia | '' = '';
+  filtroRut: string = '';
 
   periodos: string[] = ['2026-1', '2025-2', '2025-1'];
 
   isModalOpen = false;
-  selectedIncident: Incidencia | null = null;
+  selectedIncident: IncidenciaDTO | null = null;
 
   ngOnInit(): void {
     this.incidenciasFiltradas = [...this.incidencias];
@@ -100,16 +86,16 @@ export class AdminIncidentsComponent implements OnInit {
     this.filtroPeriodo = '';
     this.filtroEstado = '';
     this.filtroGravedad = '';
-    this.filtroRut = ''; // <-- Limpiamos también el RUT
+    this.filtroRut = '';
     this.aplicarFiltros();
   }
 
-  cambiarEstado(incidencia: Incidencia, nuevoEstado: EstadoIncidencia): void {
+  cambiarEstado(incidencia: IncidenciaDTO, nuevoEstado: EstadoIncidencia): void {
     incidencia.estado = nuevoEstado;
     this.aplicarFiltros(); 
   }
 
-  openModal(incidencia: Incidencia): void {
+  openModal(incidencia: IncidenciaDTO): void {
     this.selectedIncident = incidencia;
     this.isModalOpen = true;
     document.body.style.overflow = 'hidden'; 
