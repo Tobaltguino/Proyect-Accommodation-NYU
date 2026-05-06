@@ -1,8 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-
-import { IncidenciaDTO, EstadoIncidencia, GravedadIncidencia} from '../../../shared/models';
+import { 
+  IncidenciaDTO, 
+  EstadoIncidencia, 
+  GravedadIncidencia 
+} from '../../../shared/models';
 
 @Component({
   selector: 'app-admin-incidents',
@@ -12,13 +15,17 @@ import { IncidenciaDTO, EstadoIncidencia, GravedadIncidencia} from '../../../sha
   styleUrl: './admin-incidents.scss'
 })
 export class AdminIncidentsComponent implements OnInit {
+  // 👇 Exponemos los Enums a la vista HTML
+  public EstadoEnum = EstadoIncidencia;
+  public GravedadEnum = GravedadIncidencia;
+
   incidencias: IncidenciaDTO[] = [
     {
       id_incidencia: 1,
       descripcion: 'Fuga de agua importante en el lavamanos del baño, el piso se está inundando rápidamente y necesitamos que venga alguien pronto a cortar el paso de agua.',
-      estado: EstadoIncidencia.PENDIENTE,
+      estado: EstadoIncidencia.PENDIENTE, 
       fecha: '2026-04-20',
-      gravedad: GravedadIncidencia.MODERADO,
+      gravedad: GravedadIncidencia.MODERADO, 
       nro_habitacion: 101,
       nombre_edificio: 'Residencia Masculina',
       rut_usuario: '21.345.678-9',
@@ -39,7 +46,7 @@ export class AdminIncidentsComponent implements OnInit {
     },
     {
       id_incidencia: 3,
-      descripcion: 'Cortocircuito en el enchufe principal, salió humo y ahora no hay electricidad en toda la mitad de la habitación.',
+      descripcion: 'Cortocircuito en el enchufe principal.',
       estado: EstadoIncidencia.EN_PROCESO,
       fecha: '2026-04-26',
       gravedad: GravedadIncidencia.GRAVE,
@@ -61,7 +68,7 @@ export class AdminIncidentsComponent implements OnInit {
   periodos: string[] = ['2026-1', '2025-2', '2025-1'];
 
   isModalOpen = false;
-  selectedIncident: IncidenciaDTO | null = null;
+  selectedIncident: IncidenciaDTO | null = null; 
 
   ngOnInit(): void {
     this.incidenciasFiltradas = [...this.incidencias];

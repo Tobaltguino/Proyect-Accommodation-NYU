@@ -2,9 +2,6 @@ import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 import { roleGuard } from './core/guards/role.guard';
 import { LoginPageComponent } from './features/auth/login/login.page';
-
-// 1. Importamos el nuevo Layout Global (Reemplaza al antiguo AdminLayout)
-// Asegúrate de que la ruta coincida con donde guardaste el archivo
 import { DashboardLayoutComponent } from './layouts/dashboard-layout';
 
 // Admin
@@ -14,10 +11,13 @@ import { AdminAssignmentsComponent } from './features/admin/assignments/admin-as
 import { AdminIncidentsComponent } from './features/admin/incidents/admin-incidents';
 import { AdminInfrastructureComponent } from './features/admin/infrastructure/admin-infrastructure';
 
-// Estudiante (Sin modificar)
+// Estudiante 
 import { StudentHomePageComponent } from './features/student/home/student-home.page';
 import { StudentPostulationPageComponent } from './features/student/postulation/postulation.page';
-import { StudentStatusPageComponent } from './features/student/status/student-status.page';
+import { StudentStatusPageComponent } from './features/student/status/student-status.page'; 
+import { StudentAvailabilityComponent } from './features/student/availability/student-availability';
+import { StudentStayHistoryComponent } from './features/student/stay-history/student-stay-history';
+import { StudentIncidentsComponent } from './features/student/incidents/student-incidents';
 
 export const routes: Routes = [
   {
@@ -30,10 +30,10 @@ export const routes: Routes = [
     component: LoginPageComponent,
   },
   
-  // ADMIN (Modificado para usar el nuevo DashboardLayoutComponent)
+  // ADMIN
   {
     path: 'admin',
-    component: DashboardLayoutComponent, // <- AQUÍ ESTÁ EL CAMBIO
+    component: DashboardLayoutComponent, 
     canActivate: [authGuard, roleGuard],
     data: {
       roles: ['ADMIN'], 
@@ -48,33 +48,25 @@ export const routes: Routes = [
     ]
   },
 
-  // ESTUDIANTE (Se mantiene intacto)
+  // ESTUDIANTE
   {
-    path: 'student/home',
-    component: StudentHomePageComponent,
+    path: 'student',
+    component: DashboardLayoutComponent, 
     canActivate: [authGuard, roleGuard],
     data: {
       roles: ['STUDENT'],
     },
-  },
-  {
-    path: 'student/postulation',
-    component: StudentPostulationPageComponent,
-    canActivate: [authGuard, roleGuard],
-    data: {
-      roles: ['STUDENT'],
-    },
-  },
-  {
-    path: 'student/status',
-    component: StudentStatusPageComponent,
-    canActivate: [authGuard, roleGuard],
-    data: {
-      roles: ['STUDENT'],
-    },
+    children: [
+      { path: '', redirectTo: 'home', pathMatch: 'full' }, 
+      { path: 'home', component: StudentHomePageComponent },
+      { path: 'postulation', component: StudentPostulationPageComponent },
+      { path: 'status', component: StudentStatusPageComponent },
+      { path: 'availability', component: StudentAvailabilityComponent },
+      { path: 'stay-history', component: StudentStayHistoryComponent },
+      { path: 'incidents', component: StudentIncidentsComponent },
+    ]
   },
   
-  // ---
   {
     path: '**',
     redirectTo: 'login',

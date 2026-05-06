@@ -10,14 +10,16 @@ export interface AsignacionDTO {
   fecha_check_in: string | null;
   fecha_check_out: string | null;
   estado: EstadoAsignacion;
+  
   id_habitacion: number;
   id_periodo: number;
   id_usuario: number;
-  
-  // Datos cruzados para la UI
-  nombre_estudiante: string;
-  rut_estudiante: string;
-  nombre_periodo: string;
-  numero_habitacion: string;
-  nombre_edificio: string;
+
+  // Son los datos "unidos" (JOINs) que necesitamos para mostrar en las tablas
+  numero_habitacion?: string; 
+  id_edificio?: number;
+  nombre_edificio?: string;
+  nombre_periodo?: string;
+  rut_estudiante?: string;
+  nombre_estudiante?: string;
 }

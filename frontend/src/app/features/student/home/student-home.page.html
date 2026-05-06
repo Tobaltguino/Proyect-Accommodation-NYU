@@ -1,143 +1,89 @@
-<main class="student-home-page">
-  <aside class="dashboard-sidebar">
-    <section class="sidebar-brand">
-      <img src="/assets/NYU-Logo.png" alt="Logo Universidad de New York" />
-      <div>
-        <strong>Housing Portal</strong>
-        <span>Student Residence</span>
-      </div>
-    </section>
-
-    <section class="sidebar-profile">
-      <strong>{{ currentUser?.fullName ?? 'Estudiante' }}</strong>
-      <span>RUT {{ currentUser?.rut ?? 'Sin RUT' }}</span>
-      <small>{{ periodLabel }}</small>
-    </section>
-
-    <nav class="sidebar-nav" aria-label="Navegacion estudiante">
-      <button type="button" class="nav-item active">Inicio</button>
-      <button
-        type="button"
-        class="nav-item"
-        [class.disabled]="isPostulationLocked"
-        [disabled]="isPostulationLocked"
-        (click)="goToPostulation()"
-      >
-        Postulacion
-      </button>
-      <button type="button" class="nav-item" (click)="goToStatus()">Estado de solicitud</button>
-      <button type="button" class="nav-item" (click)="showSoon('Documentos')">Documentos</button>
-      <button type="button" class="nav-item" (click)="showSoon('Notificaciones')">Notificaciones</button>
-    </nav>
-
-    <div class="sidebar-footer">
-      <button type="button" class="logout-btn" (click)="logout()">Cerrar sesion</button>
+<div class="admin-home-page"> 
+  
+  <!-- HEADER PRINCIPAL -->
+  <header class="main-header mb-4 d-flex justify-content-between align-items-center">
+    <div class="header-copy">
+      <h1>¡Hola, {{ currentUser?.fullName || 'Estudiante' }}!</h1>
+      <p>Bienvenido a tu portal de alojamiento estudiantil.</p>
     </div>
-  </aside>
+  </header>
 
-  <section class="dashboard-main">
-    <header class="main-header">
-      <div class="header-copy">
-        <h1>Inicio del Estudiante</h1>
-        <p>Gestiona tu postulacion de alojamiento y revisa su estado en un solo lugar.</p>
+  <!-- CONTENIDO CONDICIONAL -->
+  @if (tieneAsignacion) {
+    
+    <!-- TIENE HABITACIÓN ASIGNADA -->
+    <div class="row g-4">
+      <div class="col-12 col-lg-8">
+        <section class="card module-box p-4 h-100 assignment-card">
+          <div class="d-flex align-items-center gap-3 mb-4">
+            <div class="stat-icon rooms">
+              <i class="pi pi-key"></i>
+            </div>
+            <div>
+              <h2 class="m-0 fs-5" style="color: #1e3a8a; font-weight: 700;">Tu Asignación Actual</h2>
+              <p class="m-0 text-muted" style="font-size: 0.9rem;">Periodo 2026-1</p>
+            </div>
+          </div>
+
+          <div class="info-grid">
+            <div class="info-item">
+              <span class="label">Edificio</span>
+              <strong class="value">{{ miAsignacion.edificio }}</strong>
+            </div>
+            <div class="info-item">
+              <span class="label">Piso</span>
+              <strong class="value">{{ miAsignacion.piso }}</strong>
+            </div>
+            <div class="info-item">
+              <span class="label">Habitación</span>
+              <strong class="value highlight">Nº {{ miAsignacion.habitacion }}</strong>
+            </div>
+            <div class="info-item">
+              <span class="label">Plan de Dieta</span>
+              <strong class="value">{{ miPlanDieta.tipo_plan }}</strong>
+            </div>
+          </div>
+
+          <div class="mt-4 pt-3 border-top d-flex gap-3">
+            <button class="module-btn" routerLink="/student/incidents">
+              <i class="pi pi-wrench"></i> Reportar Problema
+            </button>
+            <button class="module-btn alt" routerLink="/student/stay-history">
+              <i class="pi pi-history"></i> Ver Historial
+            </button>
+          </div>
+        </section>
       </div>
 
-      <div class="header-tools">
-        <label class="search-box" aria-label="Buscar">
-          <span>Buscar</span>
-          <input type="search" placeholder="Buscar secciones..." (focus)="showSoon('Buscador')" />
-        </label>
-        <button type="button" class="icon-btn" (click)="showSoon('Ayuda')">?</button>
-        <button type="button" class="icon-btn" (click)="showSoon('Alertas')">!</button>
+      <div class="col-12 col-lg-4">
+        <section class="card module-box p-4 h-100">
+          <h3>Reglamento y Horarios</h3>
+          <p class="mb-3">Recuerda cumplir con la normativa de convivencia de la residencia.</p>
+          <ul class="mb-0">
+            <li>Horario de silencio: 23:00 hrs.</li>
+            <li>Visitas permitidas hasta las 20:00 hrs.</li>
+            <li>Prohibido el uso de cocinillas eléctricas.</li>
+          </ul>
+        </section>
       </div>
-    </header>
+    </div>
 
-    <nav class="breadcrumbs" aria-label="Ruta">
-      <span>Estudiante</span>
-      <span>Home</span>
-      <span>2026 Semestre 1</span>
-    </nav>
+  } @else {
+    
+    <!-- NO TIENE HABITACIÓN -->
+    <div class="card module-box empty-state-card text-center p-5">
+      <div class="empty-icon mx-auto mb-3">
+        <i class="pi pi-home"></i>
+      </div>
+      <h2 style="color: #0f172a; font-weight: 700; margin-bottom: 0.5rem;">No tienes alojamiento asignado</h2>
+      <p class="text-muted mx-auto mb-4" style="max-width: 500px;">
+        Actualmente no cuentas con una habitación para el periodo en curso. Si cumples con los requisitos, puedes iniciar tu proceso de solicitud ahora mismo.
+      </p>
+      
+      <button class="module-btn mx-auto" routerLink="/student/postulation" style="padding: 0.8rem 1.5rem; font-size: 1.05rem;">
+        <i class="pi pi-file-edit"></i> Postular a Residencia
+      </button>
+    </div>
 
-    <section class="content-grid">
-      <article class="card info-panel">
-        <header>
-          <h2>Informacion de postulacion</h2>
-        </header>
-
-        <dl>
-          <div>
-            <dt>Estado actual</dt>
-            <dd
-              [class.pending]="postulationStatusClass === 'pending'"
-              [class.approved]="postulationStatusClass === 'approved'"
-              [class.rejected]="postulationStatusClass === 'rejected'"
-            >
-              {{ postulationStatusLabel }}
-            </dd>
-          </div>
-          <div>
-            <dt>Periodo</dt>
-            <dd>{{ periodLabel }}</dd>
-          </div>
-          <div>
-            <dt>Tipo de solicitud</dt>
-            <dd>Residencia universitaria</dd>
-          </div>
-          <div>
-            <dt>Ultima actualizacion</dt>
-            <dd>Hoy</dd>
-          </div>
-          <div>
-            <dt>Requisito</dt>
-            <dd>Datos academicos y declaracion completa</dd>
-          </div>
-          <div>
-            <dt>Estado de ingreso</dt>
-            <dd>{{ isPostulationLocked ? 'Bloqueada por revision' : 'Habilitada' }}</dd>
-          </div>
-        </dl>
-      </article>
-
-      <article class="card status-panel">
-        <h2>Estado rapido</h2>
-        <p>Indicadores visuales de tu proceso actual.</p>
-        <div class="status-badges">
-          <span class="badge approved">Aprobada</span>
-          <span class="badge pending">Pendiente</span>
-          <span class="badge rejected">Rechazada</span>
-          <span class="badge neutral">En proceso</span>
-        </div>
-      </article>
-    </section>
-
-    <section class="modules">
-      <article class="card module-box">
-        <h3>Gestion de postulacion</h3>
-        <p>Completa, revisa o actualiza tu formulario de alojamiento.</p>
-        <ul>
-          <li>Formulario personal y academico</li>
-          <li>Seleccion de habitacion</li>
-          <li>Declaracion obligatoria</li>
-        </ul>
-        <button type="button" class="module-btn" [disabled]="isPostulationLocked" (click)="goToPostulation()">
-          Ir a postulacion
-        </button>
-      </article>
-
-      <article class="card module-box">
-        <h3>Seguimiento de solicitud</h3>
-        <p>Consulta cambios de estado y proximas acciones administrativas.</p>
-        <ul>
-          <li>Revision de antecedentes</li>
-          <li>Resultado final</li>
-          <li>Mensajes y observaciones</li>
-        </ul>
-        <button type="button" class="module-btn alt" (click)="goToStatus()">Ver estado</button>
-      </article>
-    </section>
-
-    @if (infoMessage) {
-      <p class="info-message">{{ infoMessage }}</p>
-    }
-  </section>
-</main>
+  }
+</div>

@@ -1,15 +1,18 @@
 <div class="container-fluid p-3 p-lg-4">
   <section class="incidents-shell mx-auto">
     
-    <!-- HEADER -->
+    <!-- HEADER CON BOTÓN DE NUEVO REPORTE -->
     <header class="d-flex flex-column flex-md-row justify-content-between align-items-md-start gap-3 mb-4">
       <div>
-        <h1 class="page-title m-0">Reporte de Incidencias</h1>
-        <p class="page-subtitle mt-1 mb-0">Gestiona los reportes de mantenimiento y problemas en las habitaciones.</p>
+        <h1 class="page-title m-0">Mis Incidencias</h1>
+        <p class="page-subtitle mt-1 mb-0">Reporta problemas de mantenimiento en tu habitación.</p>
       </div>
+      <button type="button" class="primary" (click)="openCreateModal()">
+        <i class="pi pi-plus"></i> Nuevo Reporte
+      </button>
     </header>
 
-    <!-- BLOQUE DE FILTROS -->
+    <!-- BLOQUE DE FILTROS (Sin buscar por RUT) -->
     <section class="filters-block border rounded-4 p-3 p-md-4 mb-4">
       <div class="d-flex justify-content-between align-items-center mb-3">
         <h2 class="m-0 fs-6 fw-bold block-title">Filtros de Búsqueda</h2>
@@ -17,19 +20,7 @@
       </div>
       
       <div class="row g-3">
-        <div class="col-12 col-md-6 col-lg-3">
-          <label for="rut" class="form-label mb-1">Buscar por RUT</label>
-          <input 
-            type="text" 
-            id="rut" 
-            class="form-control custom-control" 
-            placeholder="Ej: 12.345.678-9" 
-            [(ngModel)]="filtroRut" 
-            (input)="aplicarFiltros()"
-          />
-        </div>
-
-        <div class="col-12 col-md-6 col-lg-3">
+        <div class="col-12 col-md-4">
           <label for="periodo" class="form-label mb-1">Periodo</label>
           <select id="periodo" class="form-select custom-control" [(ngModel)]="filtroPeriodo" (change)="aplicarFiltros()">
             <option value="">Todos los periodos</option>
@@ -39,22 +30,20 @@
           </select>
         </div>
 
-        <div class="col-12 col-md-6 col-lg-3">
+        <div class="col-12 col-md-4">
           <label for="estado" class="form-label mb-1">Estado</label>
           <select id="estado" class="form-select custom-control" [(ngModel)]="filtroEstado" (change)="aplicarFiltros()">
             <option value="">Todos los estados</option>
-            <!-- 👇 CORRECCIÓN: Usamos [value]="EstadoEnum..." -->
             <option [value]="EstadoEnum.PENDIENTE">Pendiente</option>
             <option [value]="EstadoEnum.EN_PROCESO">En Proceso</option>
             <option [value]="EstadoEnum.RESUELTA">Resuelta</option>
           </select>
         </div>
 
-        <div class="col-12 col-md-6 col-lg-3">
+        <div class="col-12 col-md-4">
           <label for="gravedad" class="form-label mb-1">Gravedad</label>
           <select id="gravedad" class="form-select custom-control" [(ngModel)]="filtroGravedad" (change)="aplicarFiltros()">
             <option value="">Cualquier gravedad</option>
-            <!-- 👇 CORRECCIÓN: Usamos [value]="GravedadEnum..." -->
             <option [value]="GravedadEnum.LEVE">Leve</option>
             <option [value]="GravedadEnum.MODERADO">Moderado</option>
             <option [value]="GravedadEnum.GRAVE">Grave</option>
@@ -68,35 +57,28 @@
       @if (incidenciasFiltradas.length === 0) {
         <div class="empty-state d-flex flex-column align-items-center justify-content-center">
           <i class="pi pi-check-circle empty-icon mb-2"></i>
-          <p class="m-0">No hay incidencias que coincidan con los filtros seleccionados.</p>
+          <p class="m-0">No tienes incidencias reportadas en este periodo.</p>
         </div>
       } @else {
         <table class="table custom-table align-middle mb-0">
           <thead>
             <tr>
+              <th>Fecha</th>
               <th>Ubicación</th>
-              <th>Reportado por</th>
               <th>Gravedad</th>
               <th>Estado</th>
-              <th class="text-center">Detalle</th>
-              <th class="actions-col">Acciones Rápidas</th>
+              <th class="text-center">Detalles</th>
             </tr>
           </thead>
           <tbody>
             @for (incidencia of incidenciasFiltradas; track incidencia.id_incidencia) {
               <tr>
+                <td><span class="date">{{ incidencia.fecha }}</span></td>
+                
                 <td>
                   <div class="d-flex flex-column">
                     <span class="building-name">{{ incidencia.nombre_edificio }}</span>
                     <span class="room-number">Hab. {{ incidencia.nro_habitacion }}</span>
-                  </div>
-                </td>
-                
-                <td>
-                  <div class="d-flex flex-column">
-                    <span class="user-name">{{ incidencia.nombre_usuario }}</span>
-                    <span class="rut">{{ incidencia.rut_usuario }}</span>
-                    <span class="date">{{ incidencia.fecha }}</span>
                   </div>
                 </td>
 
@@ -117,38 +99,9 @@
                     type="button" 
                     class="ghost small icon-only mx-auto" 
                     title="Ver descripción detallada"
-                    (click)="openModal(incidencia)">
+                    (click)="openViewModal(incidencia)">
                     <i class="pi pi-eye"></i>
                   </button>
-                </td>
-
-                <td>
-                  <div class="d-flex gap-2 align-items-center">
-                    <!-- 👇 CORRECCIÓN: Comparamos y enviamos con EstadoEnum -->
-                    <button 
-                      type="button" 
-                      class="ghost small icon-only" 
-                      [disabled]="incidencia.estado === EstadoEnum.PENDIENTE"
-                      title="Marcar Pendiente"
-                      (click)="cambiarEstado(incidencia, EstadoEnum.PENDIENTE)">
-                      <i class="pi pi-clock"></i>
-                    </button>
-                    <button 
-                      type="button" 
-                      class="ghost small icon-only" 
-                      [disabled]="incidencia.estado === EstadoEnum.EN_PROCESO"
-                      title="Marcar En Proceso"
-                      (click)="cambiarEstado(incidencia, EstadoEnum.EN_PROCESO)">
-                      <i class="pi pi-spinner"></i>
-                    </button>
-                    <button 
-                      type="button" 
-                      class="primary small" 
-                      [disabled]="incidencia.estado === EstadoEnum.RESUELTA"
-                      (click)="cambiarEstado(incidencia, EstadoEnum.RESUELTA)">
-                      <i class="pi pi-check"></i> Resolver
-                    </button>
-                  </div>
                 </td>
               </tr>
             }
@@ -159,14 +112,16 @@
   </section>
 </div>
 
-<!-- MODAL DE DESCRIPCIÓN -->
-@if (isModalOpen && selectedIncident) {
-  <div class="modal-backdrop position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center z-3 p-3" (click)="closeModal()">
+<!-- ============================================== -->
+<!-- MODAL DE DESCRIPCIÓN (Solo Lectura) -->
+<!-- ============================================== -->
+@if (isViewModalOpen && selectedIncident) {
+  <div class="modal-backdrop position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center z-3 p-3" (click)="closeViewModal()">
     <div class="modal-card bg-white d-flex flex-column" (click)="$event.stopPropagation()">
       
       <header class="modal-header d-flex justify-content-between align-items-center">
         <h2 class="m-0">Detalles de Incidencia #{{ selectedIncident.id_incidencia }}</h2>
-        <button type="button" class="close-btn border-0" (click)="closeModal()">
+        <button type="button" class="close-btn border-0" (click)="closeViewModal()">
           <i class="pi pi-times"></i>
         </button>
       </header>
@@ -177,11 +132,6 @@
             <small class="text-muted text-uppercase" style="font-size: 0.8rem; letter-spacing: 0.02em;">Ubicación</small>
             <strong class="text-dark">{{ selectedIncident.nombre_edificio }}</strong>
             <span class="modal-subtitle">Hab. {{ selectedIncident.nro_habitacion }}</span>
-          </div>
-          <div class="col-12 col-sm-6 d-flex flex-column">
-            <small class="text-muted text-uppercase" style="font-size: 0.8rem; letter-spacing: 0.02em;">Reportado por</small>
-            <strong class="text-dark">{{ selectedIncident.nombre_usuario }}</strong>
-            <span class="modal-subtitle">RUT: {{ selectedIncident.rut_usuario }}</span>
           </div>
           <div class="col-12 col-sm-6 d-flex flex-column">
             <small class="text-muted text-uppercase" style="font-size: 0.8rem; letter-spacing: 0.02em;">Fecha</small>
@@ -202,7 +152,56 @@
       </div>
       
       <footer class="modal-footer d-flex justify-content-end p-3 bg-light border-top rounded-bottom-4">
-        <button type="button" class="ghost border-0" (click)="closeModal()">Cerrar</button>
+        <button type="button" class="ghost border-0" (click)="closeViewModal()">Cerrar</button>
+      </footer>
+    </div>
+  </div>
+}
+
+<!-- ============================================== -->
+<!-- MODAL DE CREACIÓN (Nuevo Reporte) -->
+<!-- ============================================== -->
+@if (isCreateModalOpen) {
+  <div class="modal-backdrop position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center z-3 p-3" (click)="closeCreateModal()">
+    <div class="modal-card bg-white d-flex flex-column" (click)="$event.stopPropagation()">
+      
+      <header class="modal-header d-flex justify-content-between align-items-center">
+        <h2 class="m-0">Generar Nuevo Reporte</h2>
+        <button type="button" class="close-btn border-0" (click)="closeCreateModal()">
+          <i class="pi pi-times"></i>
+        </button>
+      </header>
+      
+      <div class="modal-body p-4">
+        <p class="text-muted mb-4" style="font-size: 0.95rem;">
+          Detalla el problema que estás presentando en tu habitación actual. El administrador asignará la prioridad y gestionará la reparación.
+        </p>
+
+        <div class="form-group mb-4">
+          <label class="form-label fw-bold">Gravedad del Problema</label>
+          <select class="form-select custom-control" [(ngModel)]="nuevaIncidencia.gravedad">
+            <option [value]="GravedadEnum.LEVE">Leve (Ej: Ampolleta quemada, bisagra suelta)</option>
+            <option [value]="GravedadEnum.MODERADO">Moderado (Ej: Filtración leve, toma corriente no funciona)</option>
+            <option [value]="GravedadEnum.GRAVE">Grave (Ej: Fuga de agua, cortocircuito, ventana rota)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label fw-bold">Descripción detallada</label>
+          <textarea 
+            class="form-control custom-control" 
+            rows="5" 
+            placeholder="Describe exactamente qué ocurrió y en qué sector de la habitación..."
+            [(ngModel)]="nuevaIncidencia.descripcion">
+          </textarea>
+        </div>
+      </div>
+      
+      <footer class="modal-footer d-flex justify-content-end p-3 bg-light border-top rounded-bottom-4 gap-2">
+        <button type="button" class="ghost border-0 danger-text" (click)="closeCreateModal()">Cancelar</button>
+        <button type="button" class="primary border-0" (click)="enviarReporte()">
+          <i class="pi pi-send"></i> Enviar Reporte
+        </button>
       </footer>
     </div>
   </div>

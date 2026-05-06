@@ -30,7 +30,7 @@ export class LoginPageComponent {
     private readonly router: Router,
   ) {
     const currentUser = this.authService.getCurrentUser();
-
+    
     if (currentUser?.role === 'ADMIN') {
       void this.router.navigate(['/admin/home']);
       return;

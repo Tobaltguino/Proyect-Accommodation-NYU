@@ -37,7 +37,10 @@ export class DashboardLayoutComponent implements OnInit {
     // --- RUTAS DEL ESTUDIANTE ---
     { label: 'Inicio', icon: 'pi pi-home', route: '/student/home', roles: ['STUDENT'] },
     { label: 'Postulación', icon: 'pi pi-file-edit', route: '/student/postulation', roles: ['STUDENT'] },
-    { label: 'Estado', icon: 'pi pi-info-circle', route: '/student/status', roles: ['STUDENT'] }
+    { label: 'Estado Solicitud', icon: 'pi pi-info-circle', route: '/student/status', roles: ['STUDENT'] },
+    { label: 'Disponibilidad', icon: 'pi pi-calendar-plus', route: '/student/availability', roles: ['STUDENT'] },
+    { label: 'Mi Historial', icon: 'pi pi-history', route: '/student/stay-history', roles: ['STUDENT'] },
+    { label: 'Mis Incidencias', icon: 'pi pi-exclamation-triangle', route: '/student/incidents', roles: ['STUDENT'] }
   ];
 
   constructor(

@@ -31,10 +31,11 @@
           <label for="estado" class="form-label mb-1 fw-bold text-dark" style="font-size: 0.9rem;">Estado de Solicitud</label>
           <select id="estado" class="form-select custom-control" [(ngModel)]="filtroEstado" (change)="aplicarFiltros()">
             <option value="">Todos los estados</option>
-            <option value="Pendiente">Pendiente</option>
-            <option value="En Revision">En Revisión</option>
-            <option value="Aprobada">Aprobada</option>
-            <option value="Rechazada">Rechazada</option>
+            <!-- 👇 Usamos la variable exportada -->
+            <option [value]="EstadoEnum.PENDIENTE">Pendiente</option>
+            <option [value]="EstadoEnum.EN_REVISION">En Revisión</option>
+            <option [value]="EstadoEnum.APROBADA">Aprobada</option>
+            <option [value]="EstadoEnum.RECHAZADA">Rechazada</option>
           </select>
         </div>
       </div>
@@ -131,8 +132,9 @@
                 <li class="d-flex align-items-center gap-3 bg-white border rounded-3 p-2 px-3">
                   <span class="inc-date text-muted" style="font-size: 0.8rem; min-width: 80px;">{{ inc.fecha }}</span>
                   <span class="inc-desc text-dark flex-grow-1" style="font-size: 0.9rem;">{{ inc.descripcion }}</span>
+                  <!-- 👇 CORRECCIÓN APLICADA AQUÍ -->
                   <span class="badge rounded-pill" 
-                    [ngClass]="{'bg-red': inc.gravedad === 'Alta', 'bg-yellow': inc.gravedad === 'Media', 'bg-green': inc.gravedad === 'Baja'}">
+                    [ngClass]="{'bg-red': inc.gravedad === GravedadEnum.GRAVE, 'bg-yellow': inc.gravedad === GravedadEnum.MODERADO, 'bg-green': inc.gravedad === GravedadEnum.LEVE}">
                     {{ inc.gravedad }}
                   </span>
                 </li>

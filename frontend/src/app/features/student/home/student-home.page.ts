@@ -1,107 +1,48 @@
-import { Component } from '@angular/core';
-import { Router } from '@angular/router';
-import { timeout } from 'rxjs';
+import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
 import { AuthService } from '../../../core/auth/auth.service';
 import { SessionUser } from '../../../core/auth/auth.models';
-import {
-  SolicitudResponse,
-  StudentPostulationService,
-} from '../postulation/student-postulation.service';
+// 👇 Importamos tus nuevos modelos desde el patrón barril
+import { DietaDTO, TipoDieta } from '../../../shared/models'; 
 
 @Component({
-  selector: 'app-student-home-page',
+  selector: 'app-student-home',
+  standalone: true,
+  imports: [CommonModule, RouterModule],
   templateUrl: './student-home.page.html',
-  styleUrl: './student-home.page.scss',
+  styleUrl: './student-home.page.scss'
 })
-export class StudentHomePageComponent {
-  private readonly activeSemester = '2026-1';
-  private readonly statusRequestTimeoutMs = 10000;
+export class StudentHomePageComponent implements OnInit {
+  currentUser: SessionUser | null = null;
+  
+  tieneAsignacion: boolean = true; //Para ver si mostramos habitacion o decir que postule
 
-  readonly currentUser: SessionUser | null;
-  readonly periodLabel = '2026 - Primer semestre';
+  miPlanDieta: DietaDTO = {
+    id_plan: 1,
+    tipo_plan: TipoDieta.VEGANO,
+    id_periodo: 1,
+    id_usuario: 0
+  };
 
-  postulationStatusLabel = 'Cargando estado...';
-  postulationStatusClass: 'pending' | 'approved' | 'rejected' = 'pending';
-  isPostulationLocked = false;
+  miAsignacion = {
+    edificio: 'Residencia Norte',
+    piso: 2,
+    habitacion: 204,
+    fechaIngreso: '2026-03-01'
+  };
 
-  infoMessage = '';
-
-  constructor(
-    private readonly authService: AuthService,
-    private readonly router: Router,
-    private readonly postulationService: StudentPostulationService,
-  ) {
+  constructor(private authService: AuthService) {
     this.currentUser = this.authService.getCurrentUser();
-    this.loadCurrentPostulationStatus();
-  }
-
-  goToPostulation(): void {
-    if (this.isPostulationLocked) {
-      this.infoMessage =
-        'Ya tienes una postulacion en revision. Espera su resolucion para volver a postular.';
-      return;
+    
+    // Si hay un usuario logueado, le asignamos su ID al plan de dieta
+    if (this.currentUser) {
+      this.miPlanDieta.id_usuario = this.currentUser.id;
     }
-
-    void this.router.navigate(['/student/postulation']);
   }
 
-  showSoon(section: string): void {
-    this.infoMessage = `${section} estara disponible pronto.`;
-  }
-
-  goToStatus(): void {
-    void this.router.navigate(['/student/status']);
-  }
-
-  logout(): void {
-    this.authService.logout();
-    void this.router.navigate(['/login']);
-  }
-
-  private loadCurrentPostulationStatus(): void {
-    this.postulationService
-      .getMySolicitud(this.activeSemester)
-      .pipe(timeout({ first: this.statusRequestTimeoutMs }))
-      .subscribe({
-        next: (solicitud) => {
-          if (!solicitud) {
-            this.postulationStatusLabel = 'Sin postulacion enviada';
-            this.postulationStatusClass = 'pending';
-            this.isPostulationLocked = false;
-            return;
-          }
-
-          this.applyStatusPresentation(solicitud.status);
-          this.isPostulationLocked = solicitud.status === 'EN_REVISION';
-        },
-        error: () => {
-          this.postulationStatusLabel = 'No disponible';
-          this.postulationStatusClass = 'pending';
-          this.isPostulationLocked = false;
-        },
-      });
-  }
-
-  private applyStatusPresentation(status: SolicitudResponse['status']): void {
-    if (status === 'EN_REVISION') {
-      this.postulationStatusLabel = 'Pendiente';
-      this.postulationStatusClass = 'pending';
-      return;
-    }
-
-    if (status === 'APROBADA') {
-      this.postulationStatusLabel = 'Aprobada';
-      this.postulationStatusClass = 'approved';
-      return;
-    }
-
-    if (status === 'RECHAZADA') {
-      this.postulationStatusLabel = 'Rechazada';
-      this.postulationStatusClass = 'rejected';
-      return;
-    }
-
-    this.postulationStatusLabel = 'Expirada';
-    this.postulationStatusClass = 'rejected';
+  ngOnInit(): void {
+    // Aquí en el futuro llamaremos al backend:
+    // this.estudianteService.getAsignacion(this.currentUser.id).subscribe(...)
   }
 }

@@ -1,0 +1,128 @@
+<div class="container-fluid p-3 p-lg-4">
+  <section class="infrastructure-shell mx-auto">
+    
+    <!-- HEADER -->
+    <header class="d-flex flex-column flex-md-row justify-content-between align-items-md-start gap-3 mb-4">
+      <div>
+        <h1 class="page-title m-0">Disponibilidad de Habitaciones</h1>
+        <p class="page-subtitle mt-1 mb-0">Explora los edificios y verifica los cupos actuales antes de postular.</p>
+      </div>
+    </header>
+
+    <!-- LAYOUT GRID (Bootstrap Row) -->
+    <div class="row g-4">
+      
+      <!-- COLUMNA IZQUIERDA (Lista de Edificios) -->
+      <div class="col-12 col-lg-4 col-xl-3">
+        <section class="border rounded-4 p-3 bg-light h-100 d-flex flex-column gap-3 custom-block">
+          <div class="d-flex justify-content-between align-items-baseline gap-2">
+            <h2 class="m-0 fs-6 fw-bold block-title">Edificios</h2>
+            <span class="text-secondary" style="font-size: 0.88rem;">Selecciona uno</span>
+          </div>
+
+          <div class="d-flex flex-column gap-2 custom-scrollbar" style="max-height: 600px; overflow-y: auto;">
+            @for (edificio of edificiosDisponibles; track edificio.id_edificio) {
+              <article 
+                class="building-card border rounded-3 p-3 bg-white" 
+                [class.active]="edificioSeleccionado?.id_edificio === edificio.id_edificio"
+                (click)="seleccionarEdificio(edificio)"
+              >
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <strong class="text-dark" style="font-size: 0.95rem;">{{ edificio.nombre }}</strong>
+                  <span class="status-badge" 
+                        [ngClass]="{'femenino': edificio.genero === 'Femenino', 'masculino': edificio.genero === 'Masculino', 'mixto': edificio.genero === 'Mixto'}">
+                    {{ edificio.genero }}
+                  </span>
+                </div>
+                <small class="text-secondary" style="font-size: 0.8rem;">{{ edificio.ubicacion }}</small>
+              </article>
+            }
+          </div>
+        </section>
+      </div>
+
+      <!-- COLUMNA DERECHA (Mapa del Edificio) -->
+      <div class="col-12 col-lg-8 col-xl-9">
+        <section class="border rounded-4 p-3 p-md-4 bg-white h-100 custom-block">
+          @if (edificioSeleccionado) {
+            
+            <!-- Header del Edificio Seleccionado -->
+            <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 mb-4 border-bottom pb-3">
+              <div>
+                <h2 class="m-0 fs-5 fw-bold block-title mb-1">{{ edificioSeleccionado.nombre }}</h2>
+                <span class="text-secondary" style="font-size: 0.88rem;"><i class="pi pi-map-marker me-1"></i>{{ edificioSeleccionado.ubicacion }}</span>
+              </div>
+            </div>
+
+            <!-- Estado Vacío (Sin pisos) -->
+            @if (edificioSeleccionado.pisos.length === 0) {
+              <div class="empty-state d-flex flex-column align-items-center justify-content-center">
+                <i class="pi pi-building empty-icon mb-2"></i>
+                <p class="m-0">Este edificio aún no tiene habitaciones registradas.</p>
+              </div>
+            }
+
+            <!-- Mapa de Pisos y Habitaciones -->
+            <section class="d-flex flex-column gap-3">
+              @for (piso of edificioSeleccionado.pisos; track piso.id_piso) {
+                <article class="floor-card">
+                  
+                  <div class="mb-3 pb-2 border-bottom">
+                    <h3 class="m-0 fs-6 fw-bold block-title">Piso {{ piso.nro_piso }} - {{ piso.nombre }}</h3>
+                  </div>
+                  
+                  <div class="room-grid">
+                    @for (habitacion of piso.habitaciones; track habitacion.id_habitacion) {
+                      
+                      <!-- Lógica visual: Si no está disponible O si está llena, la mostramos 'locked' -->
+                      <div class="room-chip config-mode" 
+                           [class.locked]="!habitacion.disponibilidad || habitacion.capacidad_actual >= habitacion.capacidad_total">
+                        
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                          <strong class="text-dark" style="font-size: 0.92rem;">Hab {{ habitacion.nro_habitacion }}</strong>
+                          
+                          @if (!habitacion.disponibilidad) {
+                            <span class="room-status ocupado" style="background: #e2e8f0; color: #475569;">Mantenimiento</span>
+                          } @else {
+                            <span class="room-status" 
+                                  [class.ocupado]="habitacion.capacidad_actual >= habitacion.capacidad_total" 
+                                  [class.libre]="habitacion.capacidad_actual < habitacion.capacidad_total">
+                              {{ habitacion.capacidad_actual >= habitacion.capacidad_total ? 'Lleno' : 'Disponible' }}
+                            </span>
+                          }
+                        </div>
+
+                        <small class="beds-info mt-auto">
+                          <i class="pi pi-users"></i> {{ habitacion.capacidad_actual }}/{{ habitacion.capacidad_total }} Camas ocupadas
+                        </small>
+                        
+                        <!-- Mini barra de progreso si está disponible -->
+                        @if (habitacion.disponibilidad) {
+                          <div class="progress mt-2 rounded-pill" style="height: 5px; background-color: #e2e8f0;">
+                            <div class="progress-bar rounded-pill" 
+                                 role="progressbar" 
+                                 [style.width.%]="(habitacion.capacidad_actual / habitacion.capacidad_total) * 100"
+                                 [ngClass]="{'bg-success': habitacion.capacidad_actual === 0, 'bg-warning': habitacion.capacidad_actual > 0 && habitacion.capacidad_actual < habitacion.capacidad_total, 'bg-danger': habitacion.capacidad_actual >= habitacion.capacidad_total}">
+                            </div>
+                          </div>
+                        }
+
+                      </div>
+                    }
+                  </div>
+                </article>
+              }
+            </section>
+            
+          } @else {
+            <div class="empty-state h-100 d-flex flex-column align-items-center justify-content-center border-0">
+              <i class="pi pi-search empty-icon mb-2"></i>
+              <p class="m-0">Selecciona un edificio para ver su disponibilidad.</p>
+            </div>
+          }
+        </section>
+      </div>
+
+    </div>
+  </section>
+</div>

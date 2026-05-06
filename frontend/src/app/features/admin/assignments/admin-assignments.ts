@@ -12,13 +12,15 @@ import { AsignacionDTO, EstadoAsignacion } from '../../../shared/models';
   styleUrl: './admin-assignments.scss'
 })
 export class AdminAssignmentsComponent implements OnInit {
+  public EstadoAsignacionEnum = EstadoAsignacion;
+
   asignaciones: AsignacionDTO[] = [
     {
       id_asignacion: 1,
       fecha_asignacion: '2026-03-15',
       fecha_check_in: null, 
       fecha_check_out: null,
-      estado: EstadoAsignacion.ACTIVA, // Usamos el Enum estricto
+      estado: EstadoAsignacion.ACTIVA,
       id_habitacion: 10, id_periodo: 1, id_usuario: 50,
       nombre_estudiante: 'Valentina Soto', rut_estudiante: '21.345.678-9',
       nombre_periodo: '2026-1', numero_habitacion: '101', nombre_edificio: 'Residencia Norte'
@@ -62,7 +64,6 @@ export class AdminAssignmentsComponent implements OnInit {
   filtroBusqueda: string = '';
   periodos: string[] = ['2026-1', '2025-2', '2025-1'];
 
-  // Modal
   isConfirmModalOpen = false;
   accionPendiente: { tipo: 'CHECKOUT' | 'RENUNCIA', asignacion: AsignacionDTO } | null = null;
 
@@ -78,10 +79,11 @@ export class AdminAssignmentsComponent implements OnInit {
     this.asignacionesFiltradas = this.asignaciones.filter(asig => {
       const matchPeriodo = this.filtroPeriodo ? asig.nombre_periodo === this.filtroPeriodo : true;
       const matchEstado = this.filtroEstado ? asig.estado === this.filtroEstado : true;
+      
       const matchBusqueda = busqueda ? 
-        (asig.nombre_estudiante.toLowerCase().includes(busqueda) || 
-         asig.rut_estudiante.toLowerCase().includes(busqueda) ||
-         asig.numero_habitacion.toLowerCase().includes(busqueda)) : true;
+        ((asig.nombre_estudiante || '').toLowerCase().includes(busqueda) || 
+         (asig.rut_estudiante || '').toLowerCase().includes(busqueda) ||
+         (asig.numero_habitacion || '').toString().includes(busqueda)) : true;
       
       return matchPeriodo && matchEstado && matchBusqueda;
     });
@@ -97,7 +99,8 @@ export class AdminAssignmentsComponent implements OnInit {
   marcarCheckIn(asignacion: AsignacionDTO): void {
     const hoy = new Date().toISOString().split('T')[0];
     asignacion.fecha_check_in = hoy;
-    console.log(`Check-In registrado para ${asignacion.nombre_estudiante} el ${hoy}`);
+    // 👇 Protegemos el console.log también
+    console.log(`Check-In registrado para ${asignacion.nombre_estudiante || 'el estudiante'} el ${hoy}`);
   }
 
   prepararAccion(tipo: 'CHECKOUT' | 'RENUNCIA', asignacion: AsignacionDTO): void {
@@ -114,13 +117,13 @@ export class AdminAssignmentsComponent implements OnInit {
     if (tipo === 'CHECKOUT') {
       asignacion.estado = EstadoAsignacion.FINALIZADA;
       asignacion.fecha_check_out = hoy;
-      console.log(`Check-Out (Finalización) registrado para ${asignacion.nombre_estudiante}`);
+      console.log(`Check-Out (Finalización) registrado para ${asignacion.nombre_estudiante || 'el estudiante'}`);
     } else if (tipo === 'RENUNCIA') {
       asignacion.estado = EstadoAsignacion.RENUNCIADA;
       if (!asignacion.fecha_check_out) {
         asignacion.fecha_check_out = hoy; 
       }
-      console.log(`Renuncia registrada para ${asignacion.nombre_estudiante}`);
+      console.log(`Renuncia registrada para ${asignacion.nombre_estudiante || 'el estudiante'}`);
     }
 
     this.cerrarModal();

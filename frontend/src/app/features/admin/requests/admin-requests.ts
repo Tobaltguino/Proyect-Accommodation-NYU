@@ -1,8 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-
-import { SolicitudDTO, 
+import { 
+  SolicitudDTO, 
   EstadoSolicitud, 
   Genero, 
   EdificioDTO, 
@@ -20,28 +20,18 @@ import { SolicitudDTO,
   styleUrl: './admin-requests.scss'
 })
 export class AdminRequestsComponent implements OnInit {
+  // 👇 Exponemos los Enums para que el HTML los pueda leer
+  public GravedadEnum = GravedadIncidencia;
+  public EstadoEnum = EstadoSolicitud;
+
   solicitudes: SolicitudDTO[] = [
     {
-      id_solicitud: 101, 
-      estado: EstadoSolicitud.PENDIENTE, 
-      fecha_solicitud: '2026-04-25',
-      id_periodo: 1, 
-      nombre_periodo: '2026-1', 
-      id_usuario: 50, 
-      rut_usuario: '21.345.678-9', 
-      nombre_usuario: 'Valentina Soto', 
-      genero_usuario: Genero.FEMENINO
+      id_solicitud: 101, estado: EstadoSolicitud.PENDIENTE, fecha_solicitud: '2026-04-25',
+      id_periodo: 1, nombre_periodo: '2026-1', id_usuario: 50, rut_usuario: '21.345.678-9', nombre_usuario: 'Valentina Soto', genero_usuario: Genero.FEMENINO
     },
     {
-      id_solicitud: 102, 
-      estado: EstadoSolicitud.EN_REVISION, 
-      fecha_solicitud: '2026-04-22',
-      id_periodo: 1, 
-      nombre_periodo: '2026-1', 
-      id_usuario: 51, 
-      rut_usuario: '20.123.456-7', 
-      nombre_usuario: 'Matías Fernández', 
-      genero_usuario: Genero.MASCULINO
+      id_solicitud: 102, estado: EstadoSolicitud.EN_REVISION, fecha_solicitud: '2026-04-22',
+      id_periodo: 1, nombre_periodo: '2026-1', id_usuario: 51, rut_usuario: '20.123.456-7', nombre_usuario: 'Matías Fernández', genero_usuario: Genero.MASCULINO
     }
   ];
 
@@ -90,10 +80,8 @@ export class AdminRequestsComponent implements OnInit {
     }
   ];
 
-  // Lógica de filtrado de edificios
   edificiosFiltrados: EdificioDTO[] = [];
   edificioSeleccionadoMapa: EdificioDTO | null = null;
-  
   matriculaActiva: boolean = false;
   habitacionSeleccionadaId: number | null = null;
 
@@ -126,27 +114,18 @@ export class AdminRequestsComponent implements OnInit {
 
     this.incidenciasEstudiante = [
       { 
-        id_incidencia: 1, 
-        fecha: '2025-10-12', 
-        descripcion: 'Ruido excesivo en horario de descanso', 
-        gravedad: GravedadIncidencia.MODERADO,
-        estado: EstadoIncidencia.RESUELTA,
-        nro_habitacion: 101,
-        nombre_edificio: 'Residencia Norte',
-        rut_usuario: solicitud.rut_usuario,
-        nombre_usuario: solicitud.nombre_usuario,
-        periodo: '2025-2'
+        id_incidencia: 1, fecha: '2025-10-12', descripcion: 'Ruido excesivo en horario de descanso', 
+        gravedad: GravedadIncidencia.MODERADO, estado: EstadoIncidencia.RESUELTA,
+        nro_habitacion: 101, nombre_edificio: 'Residencia Norte',
+        rut_usuario: solicitud.rut_usuario, nombre_usuario: solicitud.nombre_usuario, periodo: '2025-2'
       }
     ];
 
-    // 1. Filtrar TODOS los edificios aptos para el género del estudiante
     this.edificiosFiltrados = this.edificiosDisponibles.filter(
       e => e.genero === Genero.MIXTO || e.genero === solicitud.genero_usuario
     );
 
-    // 2. Preseleccionar el primer edificio de la lista
     this.edificioSeleccionadoMapa = this.edificiosFiltrados.length > 0 ? this.edificiosFiltrados[0] : null;
-
     this.matriculaActiva = false;
     this.habitacionSeleccionadaId = null;
     this.isModalOpen = true;
