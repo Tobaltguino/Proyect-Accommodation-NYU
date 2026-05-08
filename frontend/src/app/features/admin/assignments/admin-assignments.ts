@@ -65,7 +65,8 @@ export class AdminAssignmentsComponent implements OnInit {
   periodos: string[] = ['2026-1', '2025-2', '2025-1'];
 
   isConfirmModalOpen = false;
-  accionPendiente: { tipo: 'CHECKOUT' | 'RENUNCIA', asignacion: AsignacionDTO } | null = null;
+  // Solo dejamos la acción de RENUNCIA en este panel general
+  accionPendiente: { tipo: 'RENUNCIA', asignacion: AsignacionDTO } | null = null;
 
   ngOnInit(): void {
     this.asignacionesFiltradas = [...this.asignaciones];
@@ -96,14 +97,7 @@ export class AdminAssignmentsComponent implements OnInit {
     this.aplicarFiltros();
   }
 
-  marcarCheckIn(asignacion: AsignacionDTO): void {
-    const hoy = new Date().toISOString().split('T')[0];
-    asignacion.fecha_check_in = hoy;
-    // 👇 Protegemos el console.log también
-    console.log(`Check-In registrado para ${asignacion.nombre_estudiante || 'el estudiante'} el ${hoy}`);
-  }
-
-  prepararAccion(tipo: 'CHECKOUT' | 'RENUNCIA', asignacion: AsignacionDTO): void {
+  prepararAccion(tipo: 'RENUNCIA', asignacion: AsignacionDTO): void {
     this.accionPendiente = { tipo, asignacion };
     this.isConfirmModalOpen = true;
   }
@@ -114,11 +108,7 @@ export class AdminAssignmentsComponent implements OnInit {
     const { tipo, asignacion } = this.accionPendiente;
     const hoy = new Date().toISOString().split('T')[0];
 
-    if (tipo === 'CHECKOUT') {
-      asignacion.estado = EstadoAsignacion.FINALIZADA;
-      asignacion.fecha_check_out = hoy;
-      console.log(`Check-Out (Finalización) registrado para ${asignacion.nombre_estudiante || 'el estudiante'}`);
-    } else if (tipo === 'RENUNCIA') {
+    if (tipo === 'RENUNCIA') {
       asignacion.estado = EstadoAsignacion.RENUNCIADA;
       if (!asignacion.fecha_check_out) {
         asignacion.fecha_check_out = hoy; 

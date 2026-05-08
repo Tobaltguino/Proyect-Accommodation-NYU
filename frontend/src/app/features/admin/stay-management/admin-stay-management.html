@@ -1,0 +1,154 @@
+<div class="container-fluid p-3 p-lg-4">
+  <section class="stay-management-shell mx-auto">
+    
+    <header class="d-flex flex-column flex-md-row justify-content-between align-items-md-start gap-3 mb-4">
+      <div>
+        <h1 class="page-title m-0">Control de Estancias (Check-In / Out)</h1>
+        <p class="page-subtitle mt-1 mb-0">Ingresa el RUT del residente para registrar su llegada física o salida definitiva.</p>
+      </div>
+    </header>
+
+    <section class="filters-block border rounded-4 p-3 p-md-4 mb-4">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="m-0 fs-6 fw-bold block-title">Búsqueda de Residente</h2>
+      </div>
+      
+      <div class="row g-3 align-items-center">
+        <div class="col-12 col-md-8 col-lg-6">
+          <div class="position-relative d-flex align-items-center">
+            <i class="pi pi-id-card position-absolute ms-3 text-muted" style="font-size: 1.1rem;"></i>
+            <input 
+              type="text" 
+              class="form-control custom-control w-100 search-input" 
+              placeholder="Ej: 21.345.678-9" 
+              [(ngModel)]="rutBusqueda" 
+              (keyup.enter)="buscarEstudiante()">
+          </div>
+        </div>
+        <div class="col-12 col-md-4 col-lg-3">
+          <button type="button" class="primary border-0 w-100" style="padding: 0.75rem 1rem;" (click)="buscarEstudiante()" [disabled]="!rutBusqueda">
+            <i class="pi pi-search me-2"></i> Buscar
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <div class="results-container bg-white border rounded-4 p-4 p-md-5" style="min-height: 400px;">
+      
+      @if (resultadoBusqueda) {
+        <div class="result-card mx-auto bg-white border rounded-4 p-4 shadow-sm" style="max-width: 650px;">
+          
+          <div class="d-flex justify-content-between align-items-start mb-4 border-bottom pb-3">
+            <div class="d-flex align-items-center gap-3">
+              <div class="avatar-circle bg-primary-light text-primary-custom">
+                <i class="pi pi-user"></i>
+              </div>
+              <div>
+                <h2 class="m-0 fs-5 text-dark fw-bold">{{ resultadoBusqueda.nombre_estudiante }}</h2>
+                <span class="text-muted" style="font-family: monospace;">RUT: {{ resultadoBusqueda.rut_estudiante }}</span>
+              </div>
+            </div>
+            <button type="button" class="text-btn text-muted border-0" (click)="limpiarBusqueda()">
+              <i class="pi pi-times"></i> Limpiar
+            </button>
+          </div>
+
+          <div class="info-grid bg-light p-3 p-md-4 rounded-3 border mb-4">
+            <div class="row g-4">
+              <div class="col-6">
+                <span class="d-block text-secondary small fw-semibold text-uppercase mb-1">Edificio</span>
+                <strong class="text-dark" style="font-size: 1.05rem;">{{ resultadoBusqueda.nombre_edificio }}</strong>
+              </div>
+              <div class="col-6">
+                <span class="d-block text-secondary small fw-semibold text-uppercase mb-1">Habitación</span>
+                <strong class="text-primary-custom" style="font-size: 1.15rem; font-weight: 800;">Nº {{ resultadoBusqueda.numero_habitacion }}</strong>
+              </div>
+              <div class="col-6">
+                <span class="d-block text-secondary small fw-semibold text-uppercase mb-1">Periodo</span>
+                <strong class="text-dark" style="font-size: 1.05rem;">{{ resultadoBusqueda.nombre_periodo }}</strong>
+              </div>
+              <div class="col-6">
+                <span class="d-block text-secondary small fw-semibold text-uppercase mb-1">Estado Actual</span>
+                @if (resultadoBusqueda.fecha_check_in) {
+                  <span class="badge bg-success" style="font-size: 0.85rem; padding: 0.5rem 0.8rem;">Habitando</span>
+                } @else {
+                  <span class="badge text-dark" style="background-color: #fde047; font-size: 0.85rem; padding: 0.5rem 0.8rem;">Pendiente Llegada</span>
+                }
+              </div>
+            </div>
+          </div>
+
+          <div class="action-buttons d-flex flex-column flex-sm-row gap-3 justify-content-center">
+            
+            @if (!resultadoBusqueda.fecha_check_in) {
+              <button type="button" class="primary success-bg border-0 flex-grow-1" style="padding: 0.8rem;" (click)="marcarCheckIn(resultadoBusqueda)">
+                <i class="pi pi-sign-in me-2" style="font-size: 1.1rem;"></i> Registrar Check-In
+              </button>
+            }
+
+            @if (resultadoBusqueda.fecha_check_in) {
+              <button type="button" class="primary border-0 flex-grow-1" style="padding: 0.8rem;" (click)="prepararAccion('CHECKOUT', resultadoBusqueda)">
+                <i class="pi pi-sign-out me-2" style="font-size: 1.1rem;"></i> Procesar Check-Out
+              </button>
+            }
+
+            <button type="button" class="ghost danger-text border-0 px-4" style="padding: 0.8rem;" (click)="prepararAccion('RENUNCIA', resultadoBusqueda)" title="Registrar Renuncia">
+              <i class="pi pi-ban me-2 d-sm-none"></i> <span class="d-sm-none">Renunciar</span>
+              <i class="pi pi-ban d-none d-sm-block"></i>
+            </button>
+          </div>
+        </div>
+
+      } @else if (busquedaRealizada) {
+        <div class="empty-state mx-auto text-center border-0 d-flex flex-column justify-content-center align-items-center h-100" style="max-width: 500px; padding-top: 4rem;">
+          <i class="pi pi-exclamation-circle empty-icon mb-3 text-warning"></i>
+          <h3 class="fs-5 text-dark fw-bold">No se encontraron resultados</h3>
+          <p class="text-muted m-0">No existe una asignación activa para el RUT ingresado. Verifica el número e inténtalo nuevamente.</p>
+        </div>
+      } @else {
+        <div class="empty-state mx-auto text-center border-0 d-flex flex-column justify-content-center align-items-center h-100" style="max-width: 500px; padding-top: 4rem;">
+          <i class="pi pi-id-card empty-icon mb-3" style="color: #cbd5e1; font-size: 4rem;"></i>
+          <h3 class="fs-5 text-dark fw-bold">Esperando Búsqueda</h3>
+          <p class="text-muted m-0">Ingresa un RUT en la barra superior para gestionar la entrada o salida del estudiante.</p>
+        </div>
+      }
+    </div>
+  </section>
+</div>
+
+@if (isConfirmModalOpen && accionPendiente) {
+  <div class="modal-overlay position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center z-3 p-3" (click)="cerrarModal()">
+    <div class="modal-box bg-white d-flex flex-column" (click)="$event.stopPropagation()">
+      <header class="modal-header d-flex justify-content-between align-items-center" [ngClass]="{'danger-header': accionPendiente.tipo === 'RENUNCIA'}">
+        <h2 class="m-0">{{ accionPendiente.tipo === 'CHECKOUT' ? 'Procesar Check-Out' : 'Registrar Renuncia' }}</h2>
+        <button type="button" class="close-btn border-0" (click)="cerrarModal()"><i class="pi pi-times"></i></button>
+      </header>
+      
+      <div class="modal-body p-4 d-flex flex-column gap-3">
+        <p class="m-0 text-dark">Estás a punto de registrar la <strong>{{ accionPendiente.tipo === 'CHECKOUT' ? 'salida definitiva' : 'renuncia' }}</strong> del residente <strong class="text-primary-custom">{{ accionPendiente.asignacion.nombre_estudiante }}</strong>.</p>
+        
+        <div class="bg-light p-3 rounded-3 border">
+          <div class="d-flex justify-content-between border-bottom pb-2 mb-2">
+            <span class="text-secondary fw-semibold">Ubicación:</span>
+            <span class="text-dark fw-bold">{{ accionPendiente.asignacion.nombre_edificio }}, Hab {{ accionPendiente.asignacion.numero_habitacion }}</span>
+          </div>
+          <div class="d-flex justify-content-between">
+            <span class="text-secondary fw-semibold">Fecha de Operación:</span>
+            <span class="text-dark fw-bold text-success">Hoy</span>
+          </div>
+        </div>
+
+        <p class="warning-text m-0 mt-2">
+          <i class="pi pi-exclamation-triangle mt-1"></i> Esta acción liberará el cupo en la habitación para nuevas asignaciones.
+        </p>
+      </div>
+
+      <footer class="modal-footer d-flex justify-content-end p-3 gap-2">
+        <button type="button" class="ghost border-0" (click)="cerrarModal()">Cancelar</button>
+        <button type="button" class="primary border-0" [ngClass]="{'danger-bg': accionPendiente.tipo === 'RENUNCIA'}" (click)="ejecutarAccionPendiente()">
+          <i class="pi pi-check me-2"></i> Confirmar
+        </button>
+      </footer>
+    </div>
+  </div>
+}

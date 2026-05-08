@@ -15,7 +15,6 @@ import {
   styleUrl: './admin-incidents.scss'
 })
 export class AdminIncidentsComponent implements OnInit {
-  // 👇 Exponemos los Enums a la vista HTML
   public EstadoEnum = EstadoIncidencia;
   public GravedadEnum = GravedadIncidencia;
 
@@ -97,13 +96,15 @@ export class AdminIncidentsComponent implements OnInit {
     this.aplicarFiltros();
   }
 
-  cambiarEstado(incidencia: IncidenciaDTO, nuevoEstado: EstadoIncidencia): void {
-    incidencia.estado = nuevoEstado;
-    this.aplicarFiltros(); 
-  }
-
   openModal(incidencia: IncidenciaDTO): void {
     this.selectedIncident = incidencia;
+    
+    // Opcional: Si está PENDIENTE y la abren, podría pasar a EN_PROCESO automáticamente
+    if (this.selectedIncident.estado === EstadoIncidencia.PENDIENTE) {
+      this.selectedIncident.estado = EstadoIncidencia.EN_PROCESO;
+      this.aplicarFiltros(); // Refrescamos la tabla
+    }
+
     this.isModalOpen = true;
     document.body.style.overflow = 'hidden'; 
   }
@@ -112,5 +113,14 @@ export class AdminIncidentsComponent implements OnInit {
     this.isModalOpen = false;
     this.selectedIncident = null;
     document.body.style.overflow = 'auto'; 
+  }
+
+  marcarComoResuelta(): void {
+    if (this.selectedIncident) {
+      this.selectedIncident.estado = EstadoIncidencia.RESUELTA;
+      this.aplicarFiltros();
+      this.closeModal();
+      console.log('Incidencia resuelta:', this.selectedIncident.id_incidencia);
+    }
   }
 }

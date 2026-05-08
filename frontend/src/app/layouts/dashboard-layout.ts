@@ -31,8 +31,10 @@ export class DashboardLayoutComponent implements OnInit {
     { label: 'Inicio', icon: 'pi pi-home', route: '/admin/home', roles: ['ADMIN'] },
     { label: 'Solicitudes', icon: 'pi pi-inbox', route: '/admin/requests', roles: ['ADMIN'] },
     { label: 'Asignaciones', icon: 'pi pi-users', route: '/admin/assignments', roles: ['ADMIN'] },
+    { label: 'Check In/Out', icon: 'pi pi-key', route: '/admin/stay-management', roles: ['ADMIN'] },
     { label: 'Incidencias', icon: 'pi pi-exclamation-triangle', route: '/admin/incidents', roles: ['ADMIN'] },
     { label: 'Infraestructura', icon: 'pi pi-building', route: '/admin/infrastructure', roles: ['ADMIN'] },
+    { label: 'Plan Alimenticio', icon: 'pi pi-apple', route: '/admin/diet-management', roles: ['ADMIN'] },
     
     // --- RUTAS DEL ESTUDIANTE ---
     { label: 'Inicio', icon: 'pi pi-home', route: '/student/home', roles: ['STUDENT'] },

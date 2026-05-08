@@ -18,7 +18,7 @@
       
       <div class="row g-3">
         <div class="col-12 col-md-6 col-lg-4">
-          <label for="periodo" class="form-label mb-1 fw-bold text-dark" style="font-size: 0.9rem;">Periodo Académico</label>
+          <label for="periodo" class="form-label mb-1 fw-bold text-dark" style="font-size: 0.9rem;">Periodo</label>
           <select id="periodo" class="form-select custom-control" [(ngModel)]="filtroPeriodo" (change)="aplicarFiltros()">
             <option value="">Todos los periodos</option>
             @for (p of periodos; track p) {
@@ -28,7 +28,7 @@
         </div>
 
         <div class="col-12 col-md-6 col-lg-4">
-          <label for="estado" class="form-label mb-1 fw-bold text-dark" style="font-size: 0.9rem;">Estado de Solicitud</label>
+          <label for="estado" class="form-label mb-1 fw-bold text-dark" style="font-size: 0.9rem;">Estado</label>
           <select id="estado" class="form-select custom-control" [(ngModel)]="filtroEstado" (change)="aplicarFiltros()">
             <option value="">Todos los estados</option>
             <!-- 👇 Usamos la variable exportada -->

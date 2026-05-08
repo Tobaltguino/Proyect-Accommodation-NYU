@@ -1,7 +1,6 @@
 <div class="container-fluid p-3 p-lg-4">
   <section class="incidents-shell mx-auto">
     
-    <!-- HEADER -->
     <header class="d-flex flex-column flex-md-row justify-content-between align-items-md-start gap-3 mb-4">
       <div>
         <h1 class="page-title m-0">Reporte de Incidencias</h1>
@@ -9,7 +8,6 @@
       </div>
     </header>
 
-    <!-- BLOQUE DE FILTROS -->
     <section class="filters-block border rounded-4 p-3 p-md-4 mb-4">
       <div class="d-flex justify-content-between align-items-center mb-3">
         <h2 class="m-0 fs-6 fw-bold block-title">Filtros de Búsqueda</h2>
@@ -43,7 +41,6 @@
           <label for="estado" class="form-label mb-1">Estado</label>
           <select id="estado" class="form-select custom-control" [(ngModel)]="filtroEstado" (change)="aplicarFiltros()">
             <option value="">Todos los estados</option>
-            <!-- 👇 CORRECCIÓN: Usamos [value]="EstadoEnum..." -->
             <option [value]="EstadoEnum.PENDIENTE">Pendiente</option>
             <option [value]="EstadoEnum.EN_PROCESO">En Proceso</option>
             <option [value]="EstadoEnum.RESUELTA">Resuelta</option>
@@ -54,7 +51,6 @@
           <label for="gravedad" class="form-label mb-1">Gravedad</label>
           <select id="gravedad" class="form-select custom-control" [(ngModel)]="filtroGravedad" (change)="aplicarFiltros()">
             <option value="">Cualquier gravedad</option>
-            <!-- 👇 CORRECCIÓN: Usamos [value]="GravedadEnum..." -->
             <option [value]="GravedadEnum.LEVE">Leve</option>
             <option [value]="GravedadEnum.MODERADO">Moderado</option>
             <option [value]="GravedadEnum.GRAVE">Grave</option>
@@ -63,7 +59,6 @@
       </div>
     </section>
 
-    <!-- CONTENEDOR DE LA TABLA -->
     <div class="table-responsive bg-white border rounded-3 custom-table-container">
       @if (incidenciasFiltradas.length === 0) {
         <div class="empty-state d-flex flex-column align-items-center justify-content-center">
@@ -78,8 +73,7 @@
               <th>Reportado por</th>
               <th>Gravedad</th>
               <th>Estado</th>
-              <th class="text-center">Detalle</th>
-              <th class="actions-col">Acciones Rápidas</th>
+              <th class="actions-col text-center">Acciones</th>
             </tr>
           </thead>
           <tbody>
@@ -116,39 +110,10 @@
                   <button 
                     type="button" 
                     class="ghost small icon-only mx-auto" 
-                    title="Ver descripción detallada"
+                    title="Revisar Incidencia"
                     (click)="openModal(incidencia)">
-                    <i class="pi pi-eye"></i>
+                    <i class="pi pi-search"></i>
                   </button>
-                </td>
-
-                <td>
-                  <div class="d-flex gap-2 align-items-center">
-                    <!-- 👇 CORRECCIÓN: Comparamos y enviamos con EstadoEnum -->
-                    <button 
-                      type="button" 
-                      class="ghost small icon-only" 
-                      [disabled]="incidencia.estado === EstadoEnum.PENDIENTE"
-                      title="Marcar Pendiente"
-                      (click)="cambiarEstado(incidencia, EstadoEnum.PENDIENTE)">
-                      <i class="pi pi-clock"></i>
-                    </button>
-                    <button 
-                      type="button" 
-                      class="ghost small icon-only" 
-                      [disabled]="incidencia.estado === EstadoEnum.EN_PROCESO"
-                      title="Marcar En Proceso"
-                      (click)="cambiarEstado(incidencia, EstadoEnum.EN_PROCESO)">
-                      <i class="pi pi-spinner"></i>
-                    </button>
-                    <button 
-                      type="button" 
-                      class="primary small" 
-                      [disabled]="incidencia.estado === EstadoEnum.RESUELTA"
-                      (click)="cambiarEstado(incidencia, EstadoEnum.RESUELTA)">
-                      <i class="pi pi-check"></i> Resolver
-                    </button>
-                  </div>
                 </td>
               </tr>
             }
@@ -159,7 +124,6 @@
   </section>
 </div>
 
-<!-- MODAL DE DESCRIPCIÓN -->
 @if (isModalOpen && selectedIncident) {
   <div class="modal-backdrop position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center z-3 p-3" (click)="closeModal()">
     <div class="modal-card bg-white d-flex flex-column" (click)="$event.stopPropagation()">
@@ -188,7 +152,7 @@
             <strong class="text-dark">{{ selectedIncident.fecha }}</strong>
           </div>
           <div class="col-12 col-sm-6 d-flex flex-column align-items-start">
-            <small class="text-muted text-uppercase" style="font-size: 0.8rem; letter-spacing: 0.02em;">Estado</small>
+            <small class="text-muted text-uppercase" style="font-size: 0.8rem; letter-spacing: 0.02em;">Estado Actual</small>
             <span class="badge rounded-pill mt-1 status" [ngClass]="selectedIncident.estado | lowercase | slice:0:3">
               {{ selectedIncident.estado }}
             </span>
@@ -201,8 +165,14 @@
         </div>
       </div>
       
-      <footer class="modal-footer d-flex justify-content-end p-3 bg-light border-top rounded-bottom-4">
+      <footer class="modal-footer d-flex justify-content-end p-3 bg-light border-top rounded-bottom-4 gap-2">
         <button type="button" class="ghost border-0" (click)="closeModal()">Cerrar</button>
+        
+        @if (selectedIncident.estado !== EstadoEnum.RESUELTA) {
+          <button type="button" class="primary border-0" style="background-color: #16a34a;" (click)="marcarComoResuelta()">
+            <i class="pi pi-check me-1"></i> Marcar como Resuelta
+          </button>
+        }
       </footer>
     </div>
   </div>
