@@ -59,7 +59,8 @@ export class AdminInfrastructureComponent {
   
   targetIdPiso: number | null = null;
   targetIdHabitacion: number | null = null;
-  itemToDelete: { type: 'EDIFICIO' | 'PISO' | 'HABITACION', data: any, parentData?: any } | null = null;
+  // 👇 Solo permitimos borrar pisos y habitaciones
+  itemToDelete: { type: 'PISO' | 'HABITACION', data: any, parentData?: any } | null = null;
 
   edificioForm = { id_edificio: 0, nombre: '', ubicacion: '', genero: Genero.MIXTO };
   pisoForm = { id_piso: 0, nro_piso: 1, nombre: '' };
@@ -73,28 +74,18 @@ export class AdminInfrastructureComponent {
     this.activeModal = null;
   }
 
-  // --- LÓGICA DE EDIFICIOS ---
-  abrirModalEdificio(mode: ModalMode, edificio?: EdificioDTO): void {
-    this.modalMode = mode;
+  // --- LÓGICA DE EDIFICIOS (Solo Edición) ---
+  abrirModalEdificio(edificio: EdificioDTO): void {
     this.activeModal = 'EDIFICIO';
-    if (mode === 'EDIT' && edificio) {
-      this.edificioForm = { ...edificio };
-    } else {
-      this.edificioForm = { id_edificio: Date.now(), nombre: '', ubicacion: '', genero: Genero.MIXTO };
-    }
+    this.edificioForm = { ...edificio };
   }
 
   guardarEdificio(): void {
-    if (this.modalMode === 'CREATE') {
-      this.edificios.push({ ...this.edificioForm, pisos: [] });
-      this.edificioSeleccionado = this.edificios[this.edificios.length - 1];
-    } else {
-      const idx = this.edificios.findIndex(e => e.id_edificio === this.edificioForm.id_edificio);
-      if (idx !== -1) {
-        this.edificios[idx].nombre = this.edificioForm.nombre;
-        this.edificios[idx].ubicacion = this.edificioForm.ubicacion;
-        this.edificios[idx].genero = this.edificioForm.genero;
-      }
+    const idx = this.edificios.findIndex(e => e.id_edificio === this.edificioForm.id_edificio);
+    if (idx !== -1) {
+      this.edificios[idx].nombre = this.edificioForm.nombre;
+      this.edificios[idx].ubicacion = this.edificioForm.ubicacion;
+      this.edificios[idx].genero = this.edificioForm.genero;
     }
     this.cerrarModal();
   }
@@ -182,7 +173,8 @@ export class AdminInfrastructureComponent {
     habitacion.disponibilidad = !habitacion.disponibilidad;
   }
 
-  confirmarEliminacion(type: 'EDIFICIO' | 'PISO' | 'HABITACION', data: any, parentData?: any): void {
+  // 👇 Solo acepta PISO o HABITACION para eliminar
+  confirmarEliminacion(type: 'PISO' | 'HABITACION', data: any, parentData?: any): void {
     this.itemToDelete = { type, data, parentData };
     this.activeModal = 'DELETE';
   }
@@ -191,12 +183,7 @@ export class AdminInfrastructureComponent {
     if (!this.itemToDelete) return;
     const { type, data, parentData } = this.itemToDelete;
 
-    if (type === 'EDIFICIO') {
-      this.edificios = this.edificios.filter(e => e.id_edificio !== data.id_edificio);
-      if (this.edificioSeleccionado?.id_edificio === data.id_edificio) {
-        this.edificioSeleccionado = this.edificios.length > 0 ? this.edificios[0] : null;
-      }
-    } else if (type === 'PISO') {
+    if (type === 'PISO') {
       if (this.edificioSeleccionado) {
         this.edificioSeleccionado.pisos = this.edificioSeleccionado.pisos.filter(p => p.id_piso !== data.id_piso);
       }

@@ -7,9 +7,7 @@
         <h1 class="page-title m-0">Gestión de Infraestructura</h1>
         <p class="page-subtitle mt-1 mb-0">Administra edificios, pisos y configura la capacidad de las habitaciones.</p>
       </div>
-      <button type="button" class="primary border-0" (click)="abrirModalEdificio('CREATE')">
-        <i class="pi pi-plus"></i> Nuevo Edificio
-      </button>
+      <!-- 👇 Botón de Nuevo Edificio ELIMINADO -->
     </header>
 
     <!-- LAYOUT GRID (Bootstrap Row) -->
@@ -54,12 +52,11 @@
               <div>
                 <div class="d-flex align-items-center gap-2 mb-1">
                   <h2 class="m-0 fs-5 fw-bold block-title">{{ edificioSeleccionado.nombre }}</h2>
-                  <button type="button" class="icon-only small-ghost border-0" title="Editar Edificio" (click)="abrirModalEdificio('EDIT', edificioSeleccionado)">
+                  <!-- 👇 Modificado para solo llamar a edición -->
+                  <button type="button" class="icon-only small-ghost border-0" title="Editar Detalles del Edificio" (click)="abrirModalEdificio(edificioSeleccionado)">
                     <i class="pi pi-pencil"></i>
                   </button>
-                  <button type="button" class="icon-only small-ghost danger-text border-0" title="Eliminar Edificio" (click)="confirmarEliminacion('EDIFICIO', edificioSeleccionado)">
-                    <i class="pi pi-trash"></i>
-                  </button>
+                  <!-- 👇 Botón de Eliminar Edificio ELIMINADO -->
                 </div>
                 <span class="text-secondary" style="font-size: 0.88rem;">{{ edificioSeleccionado.ubicacion }}</span>
               </div>
@@ -156,7 +153,7 @@
       <!-- MODAL EDIFICIO -->
       @if (activeModal === 'EDIFICIO') {
         <header class="modal-header d-flex justify-content-between align-items-center">
-          <h2 class="m-0">{{ modalMode === 'CREATE' ? 'Nuevo Edificio' : 'Editar Edificio' }}</h2>
+          <h2 class="m-0">Editar Edificio</h2> <!-- 👇 Titulo estático ahora -->
           <button type="button" class="close-btn border-0" (click)="cerrarModal()"><i class="pi pi-times"></i></button>
         </header>
         <div class="modal-body p-4 d-flex flex-column gap-3">
