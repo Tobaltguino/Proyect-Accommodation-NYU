@@ -2,7 +2,10 @@ import {
   Column,
   Entity,
   PrimaryGeneratedColumn,
+  ManyToOne,
+  JoinColumn
 } from 'typeorm';
+import { UsuarioEntity } from '../../users/entities/usuario.entity';
 
 @Entity({ name: 'solicitudes', schema: 'relacional_v1' })
 export class SolicitudEntity {
@@ -23,4 +26,9 @@ export class SolicitudEntity {
 
   @Column({ name: 'id_usuario', type: 'int' })
   idUsuario!: number;
+
+  @ManyToOne(() => UsuarioEntity)
+  @JoinColumn({ name: 'id_usuario', referencedColumnName: 'idUsuario' })
+  usuario!: UsuarioEntity;
+
 }
