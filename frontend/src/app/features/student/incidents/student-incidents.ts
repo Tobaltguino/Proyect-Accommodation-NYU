@@ -26,12 +26,14 @@ export class StudentIncidentsComponent implements OnInit {
       descripcion: 'Fuga de agua en el lavamanos.',
       estado: EstadoIncidencia.PENDIENTE, 
       fecha: '2026-05-02',
-      gravedad: GravedadIncidencia.MODERADO, 
+      gravedad: GravedadIncidencia.MODERADO,
+      id_habitacion: 20, // <- Nuevo campo requerido por DTO
       nro_habitacion: 204,
       nombre_edificio: 'Residencia Norte',
-      rut_usuario: '12.345.678-9',
-      nombre_usuario: 'Estudiante Demo',
-      periodo: '2026-1'
+      rut_estudiante: '12.345.678-9', // <- Actualizado
+      nombre_estudiante: 'Estudiante Demo', // <- Actualizado
+      periodo: '2026-1',
+      rut_admin: null // <- Nuevo campo requerido por DTO (nadie la ha tomado)
     },
     {
       id_incidencia: 102,
@@ -39,11 +41,14 @@ export class StudentIncidentsComponent implements OnInit {
       estado: EstadoIncidencia.RESUELTA,
       fecha: '2026-04-15',
       gravedad: GravedadIncidencia.LEVE,
+      id_habitacion: 20, // <- Nuevo campo requerido por DTO
       nro_habitacion: 204,
       nombre_edificio: 'Residencia Norte',
-      rut_usuario: '12.345.678-9',
-      nombre_usuario: 'Estudiante Demo',
-      periodo: '2026-1'
+      rut_estudiante: '12.345.678-9', // <- Actualizado
+      nombre_estudiante: 'Estudiante Demo', // <- Actualizado
+      periodo: '2026-1',
+      rut_admin: '11.222.333-4', // <- Simulación de que un admin ya la gestionó
+      nombre_admin: 'Admin Mantenimiento'
     }
   ];
 

@@ -1,7 +1,6 @@
 <div class="container-fluid requests-page">
   <section class="requests-shell mx-auto">
     
-    <!-- HEADER -->
     <header class="d-flex flex-column flex-md-row justify-content-between align-items-md-start gap-3 mb-4">
       <div>
         <h1 class="page-title m-0">Gestión de Solicitudes</h1>
@@ -9,7 +8,6 @@
       </div>
     </header>
 
-    <!-- BLOQUE DE FILTROS -->
     <section class="filters-block border rounded-4 p-3 p-md-4 mb-4">
       <div class="d-flex justify-content-between align-items-center mb-3">
         <h2 class="m-0 fs-6 fw-bold block-title">Filtros de Búsqueda</h2>
@@ -31,7 +29,6 @@
           <label for="estado" class="form-label mb-1 fw-bold text-dark" style="font-size: 0.9rem;">Estado</label>
           <select id="estado" class="form-select custom-control" [(ngModel)]="filtroEstado" (change)="aplicarFiltros()">
             <option value="">Todos los estados</option>
-            <!-- 👇 Usamos la variable exportada -->
             <option [value]="EstadoEnum.PENDIENTE">Pendiente</option>
             <option [value]="EstadoEnum.EN_REVISION">En Revisión</option>
             <option [value]="EstadoEnum.APROBADA">Aprobada</option>
@@ -41,7 +38,6 @@
       </div>
     </section>
 
-    <!-- CONTENEDOR DE LA TABLA -->
     <div class="table-responsive bg-white border rounded-3 custom-table-container">
       @if (solicitudesFiltradas.length === 0) {
         <div class="empty-state d-flex flex-column align-items-center justify-content-center">
@@ -56,7 +52,7 @@
               <th>Fecha Solicitud</th>
               <th>Estudiante</th>
               <th>Estado</th>
-              <th class="actions-col">Acciones</th>
+              <th>Gestionado por</th> <th class="actions-col">Acciones</th>
             </tr>
           </thead>
           <tbody>
@@ -66,8 +62,8 @@
                 <td class="date-cell">{{ solicitud.fecha_solicitud }}</td>
                 <td>
                   <div class="d-flex flex-column">
-                    <span class="user-name">{{ solicitud.nombre_usuario }}</span>
-                    <span class="rut">RUT: {{ solicitud.rut_usuario }}</span>
+                    <span class="user-name">{{ solicitud.nombre_estudiante }}</span>
+                    <span class="rut">RUT: {{ solicitud.rut_estudiante }}</span>
                   </div>
                 </td>
                 <td>
@@ -76,15 +72,22 @@
                   </span>
                 </td>
                 <td>
-                  <div class="d-flex gap-2">
-                    <button 
-                      type="button" 
-                      class="ghost small icon-only primary-btn border-0" 
-                      title="Revisar Solicitud"
-                      (click)="abrirModal(solicitud)">
-                      <i class="pi pi-search"></i>
-                    </button>
-                  </div>
+                  @if (solicitud.nombre_admin) {
+                    <div class="d-flex flex-column" style="font-size: 0.85rem;">
+                      <span class="text-dark fw-semibold">{{ solicitud.nombre_admin }}</span>
+                      <span class="text-muted">{{ solicitud.rut_admin }}</span>
+                    </div>
+                  } @else {
+                    <span class="text-muted small">Sin asignar</span>
+                  }
+                </td>
+                <td>
+                  <button 
+                    type="button" 
+                    class="ghost small icon-only primary-btn border-0" 
+                    (click)="abrirModal(solicitud)">
+                    <i class="pi pi-search"></i>
+                  </button>
                 </td>
               </tr>
             }
@@ -95,12 +98,10 @@
   </section>
 </div>
 
-<!-- MODAL DE REVISIÓN Y ASIGNACIÓN -->
 @if (isModalOpen && solicitudSeleccionada) {
   <div class="modal-overlay position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center z-3 p-3" (click)="cerrarModal()">
     <div class="modal-box modal-large bg-white d-flex flex-column" (click)="$event.stopPropagation()">
       
-      <!-- HEADER MODAL -->
       <header class="modal-header d-flex justify-content-between align-items-center p-3 border-bottom">
         <h2 class="m-0 fs-5 text-primary-custom">Revisión de Solicitud y Asignación</h2>
         <button type="button" class="close-btn border-0" (click)="cerrarModal()">
@@ -108,20 +109,27 @@
         </button>
       </header>
 
-      <!-- BODY MODAL -->
       <div class="modal-body custom-scrollbar p-4 d-flex flex-column gap-4">
         
-        <!-- Info del Estudiante -->
         <div class="student-info bg-light p-3 rounded-3 border-start border-primary border-4">
-          <h3 class="m-0 mb-1 fs-5 text-dark fw-bold">{{ solicitudSeleccionada.nombre_usuario }}</h3>
-          <p class="m-0 text-secondary" style="font-size: 0.9rem;">
-            <strong class="text-dark">RUT:</strong> {{ solicitudSeleccionada.rut_usuario }} | 
-            <strong class="text-dark">Género:</strong> {{ solicitudSeleccionada.genero_usuario }} | 
-            <strong class="text-dark">Periodo:</strong> {{ solicitudSeleccionada.nombre_periodo }}
-          </p>
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <h3 class="m-0 mb-1 fs-5 text-dark fw-bold">{{ solicitudSeleccionada.nombre_estudiante }}</h3>
+              <p class="m-0 text-secondary" style="font-size: 0.9rem;">
+                <strong class="text-dark">RUT:</strong> {{ solicitudSeleccionada.rut_estudiante }} | 
+                <strong class="text-dark">Género:</strong> {{ solicitudSeleccionada.genero_estudiante }} | 
+                <strong class="text-dark">Periodo:</strong> {{ solicitudSeleccionada.nombre_periodo }}
+              </p>
+            </div>
+            @if (solicitudSeleccionada.rut_admin) {
+              <div class="text-end">
+                <span class="d-block text-uppercase text-muted fw-bold" style="font-size: 0.7rem;">Administrador Asignado</span>
+                <span class="text-dark small fw-semibold">{{ solicitudSeleccionada.nombre_admin }}</span>
+              </div>
+            }
+          </div>
         </div>
 
-        <!-- Historial de Incidencias -->
         <div class="incidencias-section">
           <h4 class="fs-6 fw-bold mb-3 border-bottom pb-2">Historial de Incidencias</h4>
           @if (incidenciasEstudiante.length === 0) {
@@ -131,8 +139,10 @@
               @for (inc of incidenciasEstudiante; track inc.id_incidencia) {
                 <li class="d-flex align-items-center gap-3 bg-white border rounded-3 p-2 px-3">
                   <span class="inc-date text-muted" style="font-size: 0.8rem; min-width: 80px;">{{ inc.fecha }}</span>
-                  <span class="inc-desc text-dark flex-grow-1" style="font-size: 0.9rem;">{{ inc.descripcion }}</span>
-                  <!-- 👇 CORRECCIÓN APLICADA AQUÍ -->
+                  <div class="flex-grow-1">
+                    <span class="inc-desc d-block text-dark" style="font-size: 0.9rem;">{{ inc.descripcion }}</span>
+                    <small class="text-muted">Por: {{ inc.nombre_admin }}</small>
+                  </div>
                   <span class="badge rounded-pill" 
                     [ngClass]="{'bg-red': inc.gravedad === GravedadEnum.GRAVE, 'bg-yellow': inc.gravedad === GravedadEnum.MODERADO, 'bg-green': inc.gravedad === GravedadEnum.LEVE}">
                     {{ inc.gravedad }}
@@ -143,44 +153,20 @@
           }
         </div>
 
-        <!-- Checkbox de Decisión -->
         <div class="decision-section bg-light p-3 rounded-3">
           <label class="d-flex align-items-center gap-2 m-0 fw-semibold text-dark" style="cursor: pointer;">
-            <input type="checkbox" class="form-check-input mt-0" style="width: 18px; height: 18px; cursor: pointer;" [(ngModel)]="matriculaActiva">
+            <input type="checkbox" class="form-check-input mt-0" [(ngModel)]="matriculaActiva">
             El estudiante cuenta con matrícula activa validada.
           </label>
         </div>
 
-        <!-- Selección de Habitación -->
         <div class="building-selection-block border rounded-3 p-3 bg-white">
           <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-baseline border-bottom pb-2 mb-3 gap-2">
             <h4 class="m-0 fs-6 fw-bold text-primary-custom">Selección de Habitación</h4>
-            
-            @if (edificiosFiltrados.length > 1) {
-              <div class="d-flex align-items-center gap-2">
-                <label for="edificioMapa" class="fw-semibold text-secondary m-0" style="font-size: 0.85rem;">Edificio:</label>
-                <select id="edificioMapa" class="form-select form-select-sm custom-control w-auto" 
-                        [ngModel]="edificioSeleccionadoMapa?.id_edificio" 
-                        (ngModelChange)="cambiarEdificioMapa($event)">
-                  @for (edif of edificiosFiltrados; track edif.id_edificio) {
-                    <option [value]="edif.id_edificio">{{ edif.nombre }} ({{ edif.genero }})</option>
-                  }
-                </select>
-              </div>
-            } @else {
-              <span class="text-secondary fw-semibold" style="font-size: 0.85rem;">{{ edificioSeleccionadoMapa?.nombre ?? 'Sin edificio compatible' }}</span>
-            }
+            <span class="text-secondary fw-semibold" style="font-size: 0.85rem;">{{ edificioSeleccionadoMapa?.nombre }}</span>
           </div>
 
           @if (edificioSeleccionadoMapa) {
-            <!-- Leyenda del Mapa -->
-            <div class="map-legend d-flex gap-3 mb-3">
-              <span class="legend available">Disponible</span>
-              <span class="legend partial">Parcial</span>
-              <span class="legend full">Completa</span>
-            </div>
-
-            <!-- Mapa -->
             <section class="d-flex flex-column gap-3">
               @for (piso of edificioSeleccionadoMapa.pisos; track piso.id_piso) {
                 <article class="border rounded-3 p-3 bg-white">
@@ -192,8 +178,6 @@
                         class="room-chip"
                         [class.selected]="esHabitacionSeleccionada(room.id_habitacion)"
                         [class.full]="room.capacidad_actual === room.capacidad_total"
-                        [class.partial]="room.capacidad_actual > 0 && room.capacidad_actual < room.capacidad_total"
-                        [class.available]="room.capacidad_actual === 0"
                         [disabled]="room.capacidad_actual === room.capacidad_total || !room.disponibilidad"
                         (click)="seleccionarHabitacion(room)"
                       >
@@ -205,19 +189,10 @@
                 </article>
               }
             </section>
-
-            @if (habitacionSeleccionadaId === null) {
-              <small class="d-flex align-items-center gap-1 text-danger mt-3 fw-semibold" style="font-size: 0.85rem;">
-                <i class="pi pi-exclamation-circle"></i> Selecciona una habitación en el mapa para aprobar.
-              </small>
-            }
-          } @else {
-            <p class="text-muted m-0" style="font-style: italic;">No hay edificios registrados que coincidan con el género del estudiante.</p>
           }
         </div>
       </div>
 
-      <!-- FOOTER MODAL -->
       <footer class="modal-footer d-flex justify-content-end p-3 bg-light border-top rounded-bottom-4 gap-2">
         <button type="button" class="ghost danger-text border-0" (click)="procesarSolicitud('Rechazar')">
           <i class="pi pi-times"></i> Rechazar Solicitud
@@ -228,7 +203,6 @@
           <i class="pi pi-check"></i> Aprobar y Asignar
         </button>
       </footer>
-
     </div>
   </div>
 }

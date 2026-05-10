@@ -13,7 +13,11 @@ import { AsignacionDTO, EstadoAsignacion } from '../../../shared/models';
 export class AdminStayManagementComponent implements OnInit {
   public EstadoAsignacionEnum = EstadoAsignacion;
 
-  // Datos simulados (como si vinieran de la BD)
+  // Variables del Administrador simulado
+  public readonly RUT_ADMIN_ACTUAL = '14.555.666-7'; 
+  public readonly NOMBRE_ADMIN_ACTUAL = 'Cristóbal Administrador';
+
+  // Datos simulados (ya sin id_usuario)
   asignaciones: AsignacionDTO[] = [
     {
       id_asignacion: 1,
@@ -21,9 +25,10 @@ export class AdminStayManagementComponent implements OnInit {
       fecha_check_in: null, 
       fecha_check_out: null,
       estado: EstadoAsignacion.ACTIVA,
-      id_habitacion: 10, id_periodo: 1, id_usuario: 50,
+      id_habitacion: 10, id_periodo: 1,
       nombre_estudiante: 'Valentina Soto', rut_estudiante: '21.345.678-9',
-      nombre_periodo: '2026-1', numero_habitacion: '101', nombre_edificio: 'Residencia Norte'
+      nombre_periodo: '2026-1', numero_habitacion: '101', nombre_edificio: 'Residencia Norte',
+      rut_admin: null // Aún no llega
     },
     {
       id_asignacion: 2,
@@ -31,9 +36,10 @@ export class AdminStayManagementComponent implements OnInit {
       fecha_check_in: '2026-03-05',
       fecha_check_out: null,
       estado: EstadoAsignacion.ACTIVA,
-      id_habitacion: 20, id_periodo: 1, id_usuario: 51,
+      id_habitacion: 20, id_periodo: 1,
       nombre_estudiante: 'Matías Fernández', rut_estudiante: '20.123.456-7',
-      nombre_periodo: '2026-1', numero_habitacion: '201', nombre_edificio: 'Pabellón Sur'
+      nombre_periodo: '2026-1', numero_habitacion: '201', nombre_edificio: 'Pabellón Sur',
+      rut_admin: '11.222.333-4', nombre_admin: 'Admin Recepción' // Ya hizo check-in con otro admin
     }
   ];
 
@@ -76,7 +82,12 @@ export class AdminStayManagementComponent implements OnInit {
   marcarCheckIn(asignacion: AsignacionDTO): void {
     const hoy = new Date().toISOString().split('T')[0];
     asignacion.fecha_check_in = hoy;
-    console.log(`Check-In registrado para ${asignacion.nombre_estudiante} el ${hoy}`);
+    
+    // 👇 Vinculamos al admin que hace el Check-in
+    asignacion.rut_admin = this.RUT_ADMIN_ACTUAL;
+    asignacion.nombre_admin = this.NOMBRE_ADMIN_ACTUAL;
+
+    console.log(`Check-In registrado para ${asignacion.nombre_estudiante} el ${hoy} por ${this.NOMBRE_ADMIN_ACTUAL}`);
     // Aquí llamarías a tu servicio para guardar en BD
   }
 
@@ -101,6 +112,12 @@ export class AdminStayManagementComponent implements OnInit {
       }
     }
 
+    // 👇 Vinculamos al admin que procesa la salida definitiva o renuncia
+    asignacion.rut_admin = this.RUT_ADMIN_ACTUAL;
+    asignacion.nombre_admin = this.NOMBRE_ADMIN_ACTUAL;
+
+    console.log(`${tipo} registrado por ${this.NOMBRE_ADMIN_ACTUAL}`);
+
     this.cerrarModal();
     // Limpiamos la pantalla después de procesar para recibir al siguiente alumno
     this.limpiarBusqueda(); 
@@ -109,5 +126,11 @@ export class AdminStayManagementComponent implements OnInit {
   cerrarModal(): void {
     this.isConfirmModalOpen = false;
     this.accionPendiente = null;
+  }
+
+  // Utilidad visual
+  obtenerAccionAdminTexto(asig: AsignacionDTO): string {
+    if (asig.fecha_check_in) return 'Check-in por:';
+    return 'Asignado por:';
   }
 }

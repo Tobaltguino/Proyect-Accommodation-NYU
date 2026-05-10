@@ -75,6 +75,18 @@
                   <span class="badge text-dark" style="background-color: #fde047; font-size: 0.85rem; padding: 0.5rem 0.8rem;">Pendiente Llegada</span>
                 }
               </div>
+
+              <div class="col-12 mt-2 pt-3 border-top">
+                @if (resultadoBusqueda.rut_admin) {
+                  <span class="d-block text-secondary small fw-semibold text-uppercase mb-1">{{ obtenerAccionAdminTexto(resultadoBusqueda) }}</span>
+                  <div class="d-flex align-items-center gap-2">
+                    <strong class="text-dark">{{ resultadoBusqueda.nombre_admin }}</strong>
+                    <span class="text-muted small">({{ resultadoBusqueda.rut_admin }})</span>
+                  </div>
+                } @else {
+                  <span class="text-muted small fst-italic">Pendiente de gestión física en campus.</span>
+                }
+              </div>
             </div>
           </div>
 
@@ -139,11 +151,11 @@
         </div>
 
         <p class="warning-text m-0 mt-2">
-          <i class="pi pi-exclamation-triangle mt-1"></i> Esta acción liberará el cupo en la habitación para nuevas asignaciones.
+          <i class="pi pi-exclamation-triangle mt-1"></i> Esta acción liberará el cupo en la habitación y quedará registrada bajo tu firma: <strong>{{ NOMBRE_ADMIN_ACTUAL }}</strong>.
         </p>
       </div>
 
-      <footer class="modal-footer d-flex justify-content-end p-3 gap-2">
+      <footer class="modal-footer d-flex justify-content-end p-3 gap-2 border-top">
         <button type="button" class="ghost border-0" (click)="cerrarModal()">Cancelar</button>
         <button type="button" class="primary border-0" [ngClass]="{'danger-bg': accionPendiente.tipo === 'RENUNCIA'}" (click)="ejecutarAccionPendiente()">
           <i class="pi pi-check me-2"></i> Confirmar

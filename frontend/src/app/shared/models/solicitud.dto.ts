@@ -12,9 +12,14 @@ export interface SolicitudDTO {
   estado: EstadoSolicitud;
   fecha_solicitud: string;
   id_periodo: number;
-  nombre_periodo: string;
-  id_usuario: number;
-  rut_usuario: string;
-  nombre_usuario: string;
-  genero_usuario: Genero; 
+  
+  // Nuevos identificadores externos
+  rut_estudiante: string;
+  rut_admin: string | null;
+
+  // JOINs opcionales para mostrar en tablas
+  nombre_periodo?: string;
+  nombre_estudiante?: string; 
+  genero_estudiante?: Genero; 
+  nombre_admin?: string;
 }

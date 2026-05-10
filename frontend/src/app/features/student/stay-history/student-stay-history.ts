@@ -23,13 +23,12 @@ export class StudentStayHistoryComponent implements OnInit {
       estado: EstadoAsignacion.ACTIVA,
       id_habitacion: 204,
       numero_habitacion: '204', 
-      id_edificio: 1,
-      nombre_edificio: 'Residencia Norte',
       id_periodo: 1,
       nombre_periodo: '2026-1',
-      id_usuario: 50,
       rut_estudiante: '12.345.678-9',
-      nombre_estudiante: 'Estudiante Demo'
+      nombre_estudiante: 'Estudiante Demo',
+      rut_admin: null, // Agregado para cumplir con la interfaz
+      nombre_edificio: 'Residencia Norte'
     },
     {
       id_asignacion: 2,
@@ -39,13 +38,12 @@ export class StudentStayHistoryComponent implements OnInit {
       estado: EstadoAsignacion.FINALIZADA,
       id_habitacion: 101,
       numero_habitacion: '101',
-      id_edificio: 2,
-      nombre_edificio: 'Pabellón Sur',
       id_periodo: 2,
       nombre_periodo: '2025-2',
-      id_usuario: 50,
       rut_estudiante: '12.345.678-9',
-      nombre_estudiante: 'Estudiante Demo'
+      nombre_estudiante: 'Estudiante Demo',
+      rut_admin: '11.222.333-4', // Agregado para cumplir con la interfaz
+      nombre_edificio: 'Pabellón Sur'
     },
     {
       id_asignacion: 3,
@@ -55,13 +53,12 @@ export class StudentStayHistoryComponent implements OnInit {
       estado: EstadoAsignacion.RENUNCIADA,
       id_habitacion: 305,
       numero_habitacion: '305',
-      id_edificio: 1,
-      nombre_edificio: 'Residencia Norte',
       id_periodo: 3,
       nombre_periodo: '2025-1',
-      id_usuario: 50,
       rut_estudiante: '12.345.678-9',
-      nombre_estudiante: 'Estudiante Demo'
+      nombre_estudiante: 'Estudiante Demo',
+      rut_admin: '12.888.777-6', // Agregado para cumplir con la interfaz
+      nombre_edificio: 'Residencia Norte'
     }
   ];
 

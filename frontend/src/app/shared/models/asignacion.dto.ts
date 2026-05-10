@@ -1,3 +1,4 @@
+// --- ASIGNACIONES ---
 export enum EstadoAsignacion {
   ACTIVA = 'Activa',
   FINALIZADA = 'Finalizada',
@@ -13,13 +14,16 @@ export interface AsignacionDTO {
   
   id_habitacion: number;
   id_periodo: number;
-  id_usuario: number;
+  
+  // Nuevos identificadores externos
+  rut_estudiante: string;
+  rut_admin: string | null;
 
-  // Son los datos "unidos" (JOINs) que necesitamos para mostrar en las tablas
+  // JOINs opcionales para mostrar en tablas
   numero_habitacion?: string; 
   id_edificio?: number;
   nombre_edificio?: string;
   nombre_periodo?: string;
-  rut_estudiante?: string;
   nombre_estudiante?: string;
+  nombre_admin?: string;
 }

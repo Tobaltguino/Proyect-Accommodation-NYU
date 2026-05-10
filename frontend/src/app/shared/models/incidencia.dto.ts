@@ -16,9 +16,16 @@ export interface IncidenciaDTO {
   estado: EstadoIncidencia;
   fecha: string;
   gravedad: GravedadIncidencia;
-  nro_habitacion: number;
-  nombre_edificio: string;
-  rut_usuario: string;
-  nombre_usuario: string;
-  periodo: string;
+  id_habitacion: number; // Base de datos real
+  
+  // Nuevos identificadores externos
+  rut_estudiante: string;
+  rut_admin: string | null;
+
+  // JOINs opcionales para mostrar en tablas
+  nro_habitacion?: number; 
+  nombre_edificio?: string;
+  nombre_estudiante?: string;
+  periodo?: string;
+  nombre_admin?: string;
 }

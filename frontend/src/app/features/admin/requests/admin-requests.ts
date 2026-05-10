@@ -9,7 +9,9 @@ import {
   HabitacionDTO, 
   IncidenciaDTO,
   GravedadIncidencia,
-  EstadoIncidencia
+  EstadoIncidencia,
+  AsignacionDTO,
+  EstadoAsignacion
 } from '../../../shared/models';
 
 @Component({
@@ -20,18 +22,36 @@ import {
   styleUrl: './admin-requests.scss'
 })
 export class AdminRequestsComponent implements OnInit {
-  // 👇 Exponemos los Enums para que el HTML los pueda leer
   public GravedadEnum = GravedadIncidencia;
   public EstadoEnum = EstadoSolicitud;
 
+  // RUT del administrador que está usando el sistema (simulado)
+  private readonly RUT_ADMIN_ACTUAL = '14.555.666-7'; 
+  private readonly NOMBRE_ADMIN_ACTUAL = 'Cristóbal Administrador';
+
   solicitudes: SolicitudDTO[] = [
     {
-      id_solicitud: 101, estado: EstadoSolicitud.PENDIENTE, fecha_solicitud: '2026-04-25',
-      id_periodo: 1, nombre_periodo: '2026-1', id_usuario: 50, rut_usuario: '21.345.678-9', nombre_usuario: 'Valentina Soto', genero_usuario: Genero.FEMENINO
+      id_solicitud: 101, 
+      estado: EstadoSolicitud.PENDIENTE, 
+      fecha_solicitud: '2026-04-25',
+      id_periodo: 1, 
+      nombre_periodo: '2026-1', 
+      rut_estudiante: '21.345.678-9', 
+      nombre_estudiante: 'Valentina Soto', 
+      genero_estudiante: Genero.FEMENINO,
+      rut_admin: null
     },
     {
-      id_solicitud: 102, estado: EstadoSolicitud.EN_REVISION, fecha_solicitud: '2026-04-22',
-      id_periodo: 1, nombre_periodo: '2026-1', id_usuario: 51, rut_usuario: '20.123.456-7', nombre_usuario: 'Matías Fernández', genero_usuario: Genero.MASCULINO
+      id_solicitud: 102, 
+      estado: EstadoSolicitud.EN_REVISION, 
+      fecha_solicitud: '2026-04-22',
+      id_periodo: 1, 
+      nombre_periodo: '2026-1', 
+      rut_estudiante: '20.123.456-7', 
+      nombre_estudiante: 'Matías Fernández', 
+      genero_estudiante: Genero.MASCULINO,
+      rut_admin: '12.999.888-7',
+      nombre_admin: 'Admin Previo'
     }
   ];
 
@@ -62,18 +82,7 @@ export class AdminRequestsComponent implements OnInit {
       pisos: [
         {
           id_piso: 2, nro_piso: 1, nombre: 'Piso 1', id_edificio: 2, habitaciones: [
-            { id_habitacion: 20, nro_habitacion: 201, capacidad_actual: 0, capacidad_total: 4, disponibilidad: true, id_piso: 2 },
-            { id_habitacion: 21, nro_habitacion: 202, capacidad_actual: 1, capacidad_total: 2, disponibilidad: true, id_piso: 2 }
-          ]
-        }
-      ]
-    },
-    {
-      id_edificio: 3, nombre: 'Residencia Este', ubicacion: 'Campus Este', genero: Genero.FEMENINO,
-      pisos: [
-        {
-          id_piso: 3, nro_piso: 1, nombre: 'Piso 1', id_edificio: 3, habitaciones: [
-            { id_habitacion: 30, nro_habitacion: 301, capacidad_actual: 0, capacidad_total: 2, disponibilidad: true, id_piso: 3 }
+            { id_habitacion: 20, nro_habitacion: 201, capacidad_actual: 0, capacidad_total: 4, disponibilidad: true, id_piso: 2 }
           ]
         }
       ]
@@ -110,19 +119,23 @@ export class AdminRequestsComponent implements OnInit {
     
     if (solicitud.estado === EstadoSolicitud.PENDIENTE) {
       solicitud.estado = EstadoSolicitud.EN_REVISION;
+      // Vinculamos al admin que inició la revisión
+      solicitud.rut_admin = this.RUT_ADMIN_ACTUAL;
+      solicitud.nombre_admin = this.NOMBRE_ADMIN_ACTUAL;
     }
 
     this.incidenciasEstudiante = [
       { 
         id_incidencia: 1, fecha: '2025-10-12', descripcion: 'Ruido excesivo en horario de descanso', 
         gravedad: GravedadIncidencia.MODERADO, estado: EstadoIncidencia.RESUELTA,
-        nro_habitacion: 101, nombre_edificio: 'Residencia Norte',
-        rut_usuario: solicitud.rut_usuario, nombre_usuario: solicitud.nombre_usuario, periodo: '2025-2'
+        id_habitacion: 10, nro_habitacion: 101, nombre_edificio: 'Residencia Norte',
+        rut_estudiante: solicitud.rut_estudiante, nombre_estudiante: solicitud.nombre_estudiante,
+        rut_admin: '12.888.777-6', nombre_admin: 'Admin Guardia', periodo: '2025-2'
       }
     ];
 
     this.edificiosFiltrados = this.edificiosDisponibles.filter(
-      e => e.genero === Genero.MIXTO || e.genero === solicitud.genero_usuario
+      e => e.genero === Genero.MIXTO || e.genero === solicitud.genero_estudiante
     );
 
     this.edificioSeleccionadoMapa = this.edificiosFiltrados.length > 0 ? this.edificiosFiltrados[0] : null;
@@ -156,17 +169,22 @@ export class AdminRequestsComponent implements OnInit {
   procesarSolicitud(accion: 'Aprobar' | 'Rechazar'): void {
     if (!this.solicitudSeleccionada) return;
 
+    // Al procesar, aseguramos que el administrador actual quede registrado
+    this.solicitudSeleccionada.rut_admin = this.RUT_ADMIN_ACTUAL;
+    this.solicitudSeleccionada.nombre_admin = this.NOMBRE_ADMIN_ACTUAL;
+
     if (accion === 'Rechazar') {
       this.solicitudSeleccionada.estado = EstadoSolicitud.RECHAZADA;
     } else if (accion === 'Aprobar') {
       this.solicitudSeleccionada.estado = EstadoSolicitud.APROBADA;
       
-      const nuevaAsignacion = {
+      const nuevaAsignacion: Partial<AsignacionDTO> = {
         fecha_asignacion: new Date().toISOString().split('T')[0],
-        estado: 'Activa',
-        id_habitacion: this.habitacionSeleccionadaId,
+        estado: EstadoAsignacion.ACTIVA,
+        id_habitacion: this.habitacionSeleccionadaId!,
         id_periodo: this.solicitudSeleccionada.id_periodo,
-        id_usuario: this.solicitudSeleccionada.id_usuario
+        rut_estudiante: this.solicitudSeleccionada.rut_estudiante,
+        rut_admin: this.RUT_ADMIN_ACTUAL
       };
       console.log('Solicitud Aprobada. Creando Asignación:', nuevaAsignacion);
     }

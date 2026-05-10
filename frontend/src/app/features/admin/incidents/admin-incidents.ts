@@ -18,6 +18,10 @@ export class AdminIncidentsComponent implements OnInit {
   public EstadoEnum = EstadoIncidencia;
   public GravedadEnum = GravedadIncidencia;
 
+  // RUT del administrador simulado
+  private readonly RUT_ADMIN_ACTUAL = '14.555.666-7'; 
+  private readonly NOMBRE_ADMIN_ACTUAL = 'Cristóbal Administrador';
+
   incidencias: IncidenciaDTO[] = [
     {
       id_incidencia: 1,
@@ -25,11 +29,13 @@ export class AdminIncidentsComponent implements OnInit {
       estado: EstadoIncidencia.PENDIENTE, 
       fecha: '2026-04-20',
       gravedad: GravedadIncidencia.MODERADO, 
+      id_habitacion: 10,
       nro_habitacion: 101,
       nombre_edificio: 'Residencia Masculina',
-      rut_usuario: '21.345.678-9',
-      nombre_usuario: 'Juan Pérez',
-      periodo: '2026-1'
+      rut_estudiante: '21.345.678-9',
+      nombre_estudiante: 'Juan Pérez',
+      periodo: '2026-1',
+      rut_admin: null // Nadie la ha tomado aún
     },
     {
       id_incidencia: 2,
@@ -37,11 +43,14 @@ export class AdminIncidentsComponent implements OnInit {
       estado: EstadoIncidencia.RESUELTA,
       fecha: '2026-04-15',
       gravedad: GravedadIncidencia.LEVE,
+      id_habitacion: 25,
       nro_habitacion: 205,
       nombre_edificio: 'Residencia Femenina',
-      rut_usuario: '20.123.456-7',
-      nombre_usuario: 'María González',
-      periodo: '2026-1'
+      rut_estudiante: '20.123.456-7',
+      nombre_estudiante: 'María González',
+      periodo: '2026-1',
+      rut_admin: '11.222.333-4', 
+      nombre_admin: 'Admin Mantenimiento'
     },
     {
       id_incidencia: 3,
@@ -49,11 +58,14 @@ export class AdminIncidentsComponent implements OnInit {
       estado: EstadoIncidencia.EN_PROCESO,
       fecha: '2026-04-26',
       gravedad: GravedadIncidencia.GRAVE,
+      id_habitacion: 30,
       nro_habitacion: 310,
       nombre_edificio: 'Residencia Masculina',
-      rut_usuario: '19.876.543-2',
-      nombre_usuario: 'Carlos Silva',
-      periodo: '2026-1'
+      rut_estudiante: '19.876.543-2',
+      nombre_estudiante: 'Carlos Silva',
+      periodo: '2026-1',
+      rut_admin: '12.888.777-6',
+      nombre_admin: 'Admin Noche'
     }
   ];
 
@@ -82,7 +94,7 @@ export class AdminIncidentsComponent implements OnInit {
       const matchPeriodo = this.filtroPeriodo ? inc.periodo === this.filtroPeriodo : true;
       const matchEstado = this.filtroEstado ? inc.estado === this.filtroEstado : true;
       const matchGravedad = this.filtroGravedad ? inc.gravedad === this.filtroGravedad : true;
-      const matchRut = rutBuscado ? inc.rut_usuario.toLowerCase().includes(rutBuscado) : true;
+      const matchRut = rutBuscado ? inc.rut_estudiante.toLowerCase().includes(rutBuscado) : true;
       
       return matchPeriodo && matchEstado && matchGravedad && matchRut;
     });
@@ -99,10 +111,12 @@ export class AdminIncidentsComponent implements OnInit {
   openModal(incidencia: IncidenciaDTO): void {
     this.selectedIncident = incidencia;
     
-    // Opcional: Si está PENDIENTE y la abren, podría pasar a EN_PROCESO automáticamente
+    // Si está PENDIENTE y el admin la abre, asume la responsabilidad (pasa a EN_PROCESO)
     if (this.selectedIncident.estado === EstadoIncidencia.PENDIENTE) {
       this.selectedIncident.estado = EstadoIncidencia.EN_PROCESO;
-      this.aplicarFiltros(); // Refrescamos la tabla
+      this.selectedIncident.rut_admin = this.RUT_ADMIN_ACTUAL;
+      this.selectedIncident.nombre_admin = this.NOMBRE_ADMIN_ACTUAL;
+      this.aplicarFiltros(); 
     }
 
     this.isModalOpen = true;
@@ -118,9 +132,13 @@ export class AdminIncidentsComponent implements OnInit {
   marcarComoResuelta(): void {
     if (this.selectedIncident) {
       this.selectedIncident.estado = EstadoIncidencia.RESUELTA;
+      // Aseguramos que el admin actual firme la resolución final
+      this.selectedIncident.rut_admin = this.RUT_ADMIN_ACTUAL;
+      this.selectedIncident.nombre_admin = this.NOMBRE_ADMIN_ACTUAL;
+
       this.aplicarFiltros();
       this.closeModal();
-      console.log('Incidencia resuelta:', this.selectedIncident.id_incidencia);
+      console.log(`Incidencia ${this.selectedIncident.id_incidencia} resuelta por ${this.NOMBRE_ADMIN_ACTUAL}`);
     }
   }
 }
