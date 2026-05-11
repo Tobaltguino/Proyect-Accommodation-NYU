@@ -13,7 +13,7 @@ import { AsignacionDTO, EstadoAsignacion } from '../../../shared/models';
 export class StudentStayHistoryComponent implements OnInit {
   public EstadoAsignacionEnum = EstadoAsignacion;
 
-  // Datos simulados (mocks) del historial de un estudiante específico
+  // Datos simulados del historial de un estudiante específico
   historial: AsignacionDTO[] = [
     {
       id_asignacion: 1,
@@ -27,7 +27,7 @@ export class StudentStayHistoryComponent implements OnInit {
       nombre_periodo: '2026-1',
       rut_estudiante: '12.345.678-9',
       nombre_estudiante: 'Estudiante Demo',
-      rut_admin: null, // Agregado para cumplir con la interfaz
+      rut_admin: null, 
       nombre_edificio: 'Residencia Norte'
     },
     {
@@ -42,7 +42,7 @@ export class StudentStayHistoryComponent implements OnInit {
       nombre_periodo: '2025-2',
       rut_estudiante: '12.345.678-9',
       nombre_estudiante: 'Estudiante Demo',
-      rut_admin: '11.222.333-4', // Agregado para cumplir con la interfaz
+      rut_admin: '11.222.333-4', 
       nombre_edificio: 'Pabellón Sur'
     },
     {
@@ -57,7 +57,7 @@ export class StudentStayHistoryComponent implements OnInit {
       nombre_periodo: '2025-1',
       rut_estudiante: '12.345.678-9',
       nombre_estudiante: 'Estudiante Demo',
-      rut_admin: '12.888.777-6', // Agregado para cumplir con la interfaz
+      rut_admin: '12.888.777-6', 
       nombre_edificio: 'Residencia Norte'
     }
   ];
@@ -70,11 +70,33 @@ export class StudentStayHistoryComponent implements OnInit {
   filtroEstado: EstadoAsignacion | '' = '';
   periodos: string[] = ['2026-1', '2025-2', '2025-1'];
 
+  // Variables de Paginación
+  paginaActual: number = 1;
+  itemsPorPagina: number = 20;
+
   ngOnInit(): void {
     this.historialFiltrado = [...this.historial];
     
     // Identificamos la asignación actual para destacarla si existe
     this.asignacionActual = this.historial.find(a => a.estado === EstadoAsignacion.ACTIVA) || null;
+    this.aplicarFiltros();
+  }
+
+  // Getters de Paginación
+  get historialPaginado(): AsignacionDTO[] {
+    const inicio = (this.paginaActual - 1) * this.itemsPorPagina;
+    const fin = inicio + this.itemsPorPagina;
+    return this.historialFiltrado.slice(inicio, fin);
+  }
+
+  get totalPaginas(): number {
+    return Math.ceil(this.historialFiltrado.length / this.itemsPorPagina) || 1;
+  }
+
+  cambiarPagina(nuevaPagina: number): void {
+    if (nuevaPagina >= 1 && nuevaPagina <= this.totalPaginas) {
+      this.paginaActual = nuevaPagina;
+    }
   }
 
   aplicarFiltros(): void {
@@ -83,6 +105,9 @@ export class StudentStayHistoryComponent implements OnInit {
       const matchEstado = this.filtroEstado ? asig.estado === this.filtroEstado : true;
       return matchPeriodo && matchEstado;
     });
+    
+    // Reiniciar página al filtrar
+    this.paginaActual = 1;
   }
 
   limpiarFiltros(): void {

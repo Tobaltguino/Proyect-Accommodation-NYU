@@ -71,13 +71,18 @@ export class AdminIncidentsComponent implements OnInit {
 
   incidenciasFiltradas: IncidenciaDTO[] = [];
 
+  // Filtros
   filtroPeriodo: string = '';
   filtroEstado: EstadoIncidencia | '' = '';
   filtroGravedad: GravedadIncidencia | '' = '';
   filtroRut: string = '';
-
   periodos: string[] = ['2026-1', '2025-2', '2025-1'];
 
+  // Variables de Paginación
+  paginaActual: number = 1;
+  itemsPorPagina: number = 20;
+
+  // Modal
   isModalOpen = false;
   selectedIncident: IncidenciaDTO | null = null; 
 
@@ -85,6 +90,23 @@ export class AdminIncidentsComponent implements OnInit {
     this.incidenciasFiltradas = [...this.incidencias];
     this.filtroPeriodo = '2026-1';
     this.aplicarFiltros();
+  }
+
+  // Getters de Paginación
+  get incidenciasPaginadas(): IncidenciaDTO[] {
+    const inicio = (this.paginaActual - 1) * this.itemsPorPagina;
+    const fin = inicio + this.itemsPorPagina;
+    return this.incidenciasFiltradas.slice(inicio, fin);
+  }
+
+  get totalPaginas(): number {
+    return Math.ceil(this.incidenciasFiltradas.length / this.itemsPorPagina) || 1;
+  }
+
+  cambiarPagina(nuevaPagina: number): void {
+    if (nuevaPagina >= 1 && nuevaPagina <= this.totalPaginas) {
+      this.paginaActual = nuevaPagina;
+    }
   }
 
   aplicarFiltros(): void {
@@ -98,6 +120,9 @@ export class AdminIncidentsComponent implements OnInit {
       
       return matchPeriodo && matchEstado && matchGravedad && matchRut;
     });
+
+    // Reiniciar página al filtrar
+    this.paginaActual = 1;
   }
 
   limpiarFiltros(): void {
@@ -132,7 +157,7 @@ export class AdminIncidentsComponent implements OnInit {
   marcarComoResuelta(): void {
     if (this.selectedIncident) {
       this.selectedIncident.estado = EstadoIncidencia.RESUELTA;
-      // Aseguramos que el admin actual firme la resolución final
+      
       this.selectedIncident.rut_admin = this.RUT_ADMIN_ACTUAL;
       this.selectedIncident.nombre_admin = this.NOMBRE_ADMIN_ACTUAL;
 

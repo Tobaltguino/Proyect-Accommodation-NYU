@@ -13,7 +13,6 @@ import { DietaDTO, TipoDieta } from '../../../shared/models';
 export class AdminDietManagementComponent implements OnInit {
   public TipoDietaEnum = TipoDieta;
 
-  // Datos simulados ajustados a la nueva interfaz (sin id_usuario)
   planes: DietaDTO[] = [
     {
       id_plan: 1,
@@ -57,6 +56,10 @@ export class AdminDietManagementComponent implements OnInit {
   filtroBusqueda: string = '';
   periodos: string[] = ['2026-1', '2025-2'];
 
+  // Variables de Paginación
+  paginaActual: number = 1;
+  itemsPorPagina: number = 20;
+
   // Control del Modal
   isModalOpen = false;
   planSeleccionado: DietaDTO | null = null;
@@ -66,6 +69,23 @@ export class AdminDietManagementComponent implements OnInit {
     this.planesFiltrados = [...this.planes];
     this.filtroPeriodo = '2026-1';
     this.aplicarFiltros();
+  }
+
+  // Getters de Paginación
+  get planesPaginados(): DietaDTO[] {
+    const inicio = (this.paginaActual - 1) * this.itemsPorPagina;
+    const fin = inicio + this.itemsPorPagina;
+    return this.planesFiltrados.slice(inicio, fin);
+  }
+
+  get totalPaginas(): number {
+    return Math.ceil(this.planesFiltrados.length / this.itemsPorPagina) || 1;
+  }
+
+  cambiarPagina(nuevaPagina: number): void {
+    if (nuevaPagina >= 1 && nuevaPagina <= this.totalPaginas) {
+      this.paginaActual = nuevaPagina;
+    }
   }
 
   aplicarFiltros(): void {
@@ -81,6 +101,9 @@ export class AdminDietManagementComponent implements OnInit {
       
       return matchPeriodo && matchTipo && matchBusqueda;
     });
+
+    // Reiniciamos la página al filtrar
+    this.paginaActual = 1;
   }
 
   limpiarFiltros(): void {

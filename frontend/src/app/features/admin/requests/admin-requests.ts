@@ -60,6 +60,10 @@ export class AdminRequestsComponent implements OnInit {
   filtroEstado: EstadoSolicitud | '' = '';
   periodos: string[] = ['2026-1', '2025-2', '2025-1'];
 
+  // Variables de Paginación
+  paginaActual: number = 1;
+  itemsPorPagina: number = 20;
+
   isModalOpen: boolean = false;
   solicitudSeleccionada: SolicitudDTO | null = null;
   incidenciasEstudiante: IncidenciaDTO[] = [];
@@ -100,12 +104,32 @@ export class AdminRequestsComponent implements OnInit {
     this.aplicarFiltros();
   }
 
+  // Getters de Paginación
+  get solicitudesPaginadas(): SolicitudDTO[] {
+    const inicio = (this.paginaActual - 1) * this.itemsPorPagina;
+    const fin = inicio + this.itemsPorPagina;
+    return this.solicitudesFiltradas.slice(inicio, fin);
+  }
+
+  get totalPaginas(): number {
+    return Math.ceil(this.solicitudesFiltradas.length / this.itemsPorPagina) || 1;
+  }
+
+  cambiarPagina(nuevaPagina: number): void {
+    if (nuevaPagina >= 1 && nuevaPagina <= this.totalPaginas) {
+      this.paginaActual = nuevaPagina;
+    }
+  }
+
   aplicarFiltros(): void {
     this.solicitudesFiltradas = this.solicitudes.filter(sol => {
       const matchPeriodo = this.filtroPeriodo ? sol.nombre_periodo === this.filtroPeriodo : true;
       const matchEstado = this.filtroEstado ? sol.estado === this.filtroEstado : true;
       return matchPeriodo && matchEstado;
     });
+
+    // Reiniciar paginación al filtrar
+    this.paginaActual = 1;
   }
 
   limpiarFiltros(): void {

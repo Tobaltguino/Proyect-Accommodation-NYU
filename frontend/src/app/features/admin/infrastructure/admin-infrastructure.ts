@@ -59,7 +59,8 @@ export class AdminInfrastructureComponent {
   
   targetIdPiso: number | null = null;
   targetIdHabitacion: number | null = null;
-  // 👇 Solo permitimos borrar pisos y habitaciones
+
+  // Solo permitimos borrar pisos y habitaciones
   itemToDelete: { type: 'PISO' | 'HABITACION', data: any, parentData?: any } | null = null;
 
   edificioForm = { id_edificio: 0, nombre: '', ubicacion: '', genero: Genero.MIXTO };
@@ -173,7 +174,7 @@ export class AdminInfrastructureComponent {
     habitacion.disponibilidad = !habitacion.disponibilidad;
   }
 
-  // 👇 Solo acepta PISO o HABITACION para eliminar
+  // Solo acepta PISO o HABITACION para eliminar
   confirmarEliminacion(type: 'PISO' | 'HABITACION', data: any, parentData?: any): void {
     this.itemToDelete = { type, data, parentData };
     this.activeModal = 'DELETE';

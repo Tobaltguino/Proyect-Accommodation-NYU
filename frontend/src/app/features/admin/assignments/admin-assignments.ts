@@ -14,11 +14,12 @@ import { AsignacionDTO, EstadoAsignacion } from '../../../shared/models';
 export class AdminAssignmentsComponent implements OnInit {
   public EstadoAsignacionEnum = EstadoAsignacion;
 
+  // RUT del administrador simulado
   public readonly RUT_ADMIN_ACTUAL = '14.555.666-7'; 
   public readonly NOMBRE_ADMIN_ACTUAL = 'Cristóbal Administrador';
 
   asignaciones: AsignacionDTO[] = [
-    { // 1. Sin check-in (Pendiente) -> No ligado a admin
+    { 
       id_asignacion: 1,
       fecha_asignacion: '2026-03-15',
       fecha_check_in: null, 
@@ -29,7 +30,7 @@ export class AdminAssignmentsComponent implements OnInit {
       nombre_periodo: '2026-1', numero_habitacion: '101', nombre_edificio: 'Residencia Norte',
       rut_admin: null, nombre_admin: undefined
     },
-    { // 2. Con check-in -> Muestra "Check-in por"
+    { 
       id_asignacion: 2,
       fecha_asignacion: '2026-03-10',
       fecha_check_in: '2026-03-25', 
@@ -40,7 +41,7 @@ export class AdminAssignmentsComponent implements OnInit {
       nombre_periodo: '2026-1', numero_habitacion: '201', nombre_edificio: 'Pabellón Sur',
       rut_admin: '11.222.333-4', nombre_admin: 'Admin Recepción'
     },
-    { // 3. Finalizada (Check-out) -> Muestra "Check-out por"
+    { 
       id_asignacion: 3,
       fecha_asignacion: '2025-08-01',
       fecha_check_in: '2025-08-15',
@@ -51,7 +52,7 @@ export class AdminAssignmentsComponent implements OnInit {
       nombre_periodo: '2025-2', numero_habitacion: '103', nombre_edificio: 'Residencia Norte',
       rut_admin: '12.888.777-6', nombre_admin: 'Admin Turno Noche'
     },
-    { // 4. Renunciada -> Muestra "Renuncia por"
+    { 
       id_asignacion: 4,
       fecha_asignacion: '2026-04-01',
       fecha_check_in: null,
@@ -66,12 +67,17 @@ export class AdminAssignmentsComponent implements OnInit {
 
   asignacionesFiltradas: AsignacionDTO[] = [];
 
+  // Filtros
   filtroPeriodo: string = '';
   filtroEstado: EstadoAsignacion | '' = '';
-  filtroRut: string = ''; // Renombrado para mayor claridad
-
+  filtroRut: string = '';
   periodos: string[] = ['2026-1', '2025-2', '2025-1'];
 
+  // Variables de Paginación
+  paginaActual: number = 1;
+  itemsPorPagina: number = 20; 
+
+  // Control del Modal
   isConfirmModalOpen = false;
   accionPendiente: { tipo: 'RENUNCIA', asignacion: AsignacionDTO } | null = null;
 
@@ -81,18 +87,37 @@ export class AdminAssignmentsComponent implements OnInit {
     this.aplicarFiltros();
   }
 
+  // --- GETTERS DE PAGINACIÓN ---
+  get asignacionesPaginadas(): AsignacionDTO[] {
+    const inicio = (this.paginaActual - 1) * this.itemsPorPagina;
+    const fin = inicio + this.itemsPorPagina;
+    return this.asignacionesFiltradas.slice(inicio, fin);
+  }
+
+  get totalPaginas(): number {
+    return Math.ceil(this.asignacionesFiltradas.length / this.itemsPorPagina) || 1;
+  }
+
+  cambiarPagina(nuevaPagina: number): void {
+    if (nuevaPagina >= 1 && nuevaPagina <= this.totalPaginas) {
+      this.paginaActual = nuevaPagina;
+    }
+  }
+  // -----------------------------
+
   aplicarFiltros(): void {
     const rutBuscado = this.filtroRut.trim().toLowerCase();
     
     this.asignacionesFiltradas = this.asignaciones.filter(asig => {
       const matchPeriodo = this.filtroPeriodo ? asig.nombre_periodo === this.filtroPeriodo : true;
       const matchEstado = this.filtroEstado ? asig.estado === this.filtroEstado : true;
-      
-      // 👇 Filtro exclusivo por RUT
       const matchRut = rutBuscado ? (asig.rut_estudiante || '').toLowerCase().includes(rutBuscado) : true;
       
       return matchPeriodo && matchEstado && matchRut;
     });
+
+    // Reiniciar paginación al filtrar
+    this.paginaActual = 1;
   }
 
   limpiarFiltros(): void {
@@ -118,6 +143,7 @@ export class AdminAssignmentsComponent implements OnInit {
       if (!asignacion.fecha_check_out) {
         asignacion.fecha_check_out = hoy; 
       }
+      // Vinculamos al admin
       asignacion.rut_admin = this.RUT_ADMIN_ACTUAL;
       asignacion.nombre_admin = this.NOMBRE_ADMIN_ACTUAL;
     }

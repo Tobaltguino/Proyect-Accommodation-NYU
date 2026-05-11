@@ -52,7 +52,6 @@ export class AdminStayManagementComponent implements OnInit {
   accionPendiente: { tipo: 'CHECKOUT' | 'RENUNCIA', asignacion: AsignacionDTO } | null = null;
 
   ngOnInit(): void {
-    // Inicializamos vacío
   }
 
   buscarEstudiante(): void {
@@ -83,12 +82,11 @@ export class AdminStayManagementComponent implements OnInit {
     const hoy = new Date().toISOString().split('T')[0];
     asignacion.fecha_check_in = hoy;
     
-    // 👇 Vinculamos al admin que hace el Check-in
+    // Vinculamos al admin que hace el Check-in
     asignacion.rut_admin = this.RUT_ADMIN_ACTUAL;
     asignacion.nombre_admin = this.NOMBRE_ADMIN_ACTUAL;
 
     console.log(`Check-In registrado para ${asignacion.nombre_estudiante} el ${hoy} por ${this.NOMBRE_ADMIN_ACTUAL}`);
-    // Aquí llamarías a tu servicio para guardar en BD
   }
 
   prepararAccion(tipo: 'CHECKOUT' | 'RENUNCIA', asignacion: AsignacionDTO): void {
@@ -112,14 +110,13 @@ export class AdminStayManagementComponent implements OnInit {
       }
     }
 
-    // 👇 Vinculamos al admin que procesa la salida definitiva o renuncia
+    // Vinculamos al admin que procesa la salida definitiva o renuncia
     asignacion.rut_admin = this.RUT_ADMIN_ACTUAL;
     asignacion.nombre_admin = this.NOMBRE_ADMIN_ACTUAL;
 
     console.log(`${tipo} registrado por ${this.NOMBRE_ADMIN_ACTUAL}`);
 
     this.cerrarModal();
-    // Limpiamos la pantalla después de procesar para recibir al siguiente alumno
     this.limpiarBusqueda(); 
   }
 
