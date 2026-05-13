@@ -96,10 +96,20 @@ export class AdminIncidentsComponent implements OnInit {
     
     // Si está PENDIENTE y el admin la abre, asume la responsabilidad (pasa a EN_PROCESO)
     if (this.selectedIncident.estado === EstadoIncidencia.PENDIENTE) {
-      this.selectedIncident.estado = EstadoIncidencia.EN_PROCESO;
-      this.selectedIncident.rut_admin = this.RUT_ADMIN_ACTUAL;
-      this.selectedIncident.nombre_admin = this.NOMBRE_ADMIN_ACTUAL;
-      this.aplicarFiltros(); 
+      this.adminIncidentsService
+        .updateEstadoIncidencia(this.selectedIncident.id_incidencia, {
+          estado: EstadoIncidencia.EN_PROCESO,
+          rutAdmin: this.RUT_ADMIN_ACTUAL,
+        })
+        .subscribe({
+          next: (updated) => {
+            this.syncIncidentFromApi(updated);
+            this.aplicarFiltros();
+          },
+          error: () => {
+            alert('No se pudo marcar la incidencia en proceso.');
+          },
+        });
     }
 
     this.isModalOpen = true;
@@ -114,14 +124,24 @@ export class AdminIncidentsComponent implements OnInit {
 
   marcarComoResuelta(): void {
     if (this.selectedIncident) {
-      this.selectedIncident.estado = EstadoIncidencia.RESUELTA;
-      
-      this.selectedIncident.rut_admin = this.RUT_ADMIN_ACTUAL;
-      this.selectedIncident.nombre_admin = this.NOMBRE_ADMIN_ACTUAL;
+      const incidenciaId = this.selectedIncident.id_incidencia;
 
-      this.aplicarFiltros();
-      this.closeModal();
-      console.log(`Incidencia ${this.selectedIncident.id_incidencia} resuelta por ${this.NOMBRE_ADMIN_ACTUAL}`);
+      this.adminIncidentsService
+        .updateEstadoIncidencia(incidenciaId, {
+          estado: EstadoIncidencia.RESUELTA,
+          rutAdmin: this.RUT_ADMIN_ACTUAL,
+        })
+        .subscribe({
+          next: (updated) => {
+            this.syncIncidentFromApi(updated);
+            this.aplicarFiltros();
+            this.closeModal();
+            console.log(`Incidencia ${incidenciaId} resuelta por ${this.NOMBRE_ADMIN_ACTUAL}`);
+          },
+          error: () => {
+            alert('No se pudo marcar la incidencia como resuelta.');
+          },
+        });
     }
   }
 
@@ -165,5 +185,24 @@ export class AdminIncidentsComponent implements OnInit {
     );
 
     return dynamicPeriods.length > 0 ? dynamicPeriods : ['2026-1'];
+  }
+
+  private syncIncidentFromApi(row: IncidenciaApiResponse): void {
+    const index = this.incidencias.findIndex((item) => item.id_incidencia === row.idIncidencia);
+
+    if (index === -1) {
+      return;
+    }
+
+    this.incidencias[index] = {
+      ...this.incidencias[index],
+      estado: row.estado,
+      rut_admin: row.rutAdmin,
+      nombre_admin: row.rutAdmin ? this.NOMBRE_ADMIN_ACTUAL : this.incidencias[index].nombre_admin,
+    };
+
+    if (this.selectedIncident && this.selectedIncident.id_incidencia === row.idIncidencia) {
+      this.selectedIncident = this.incidencias[index];
+    }
   }
 }

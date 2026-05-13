@@ -1,4 +1,4 @@
-import { IsEnum } from 'class-validator';
+import { IsEnum, IsOptional, IsString } from 'class-validator';
 
 export enum EstadoIncidencia {
   PENDIENTE = 'Pendiente',
@@ -9,4 +9,8 @@ export enum EstadoIncidencia {
 export class UpdateIncidenciaEstadoDto {
   @IsEnum(EstadoIncidencia, { message: 'El estado es invalido' })
   estado!: EstadoIncidencia;
+
+  @IsOptional()
+  @IsString({ message: 'El RUT de administrador es invalido' })
+  rutAdmin?: string;
 }

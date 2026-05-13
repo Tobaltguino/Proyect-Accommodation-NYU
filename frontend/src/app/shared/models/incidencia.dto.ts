@@ -55,3 +55,8 @@ export interface IncidenciaFilters {
   gravedad?: GravedadIncidencia;
   rut?: string;
 }
+
+export interface UpdateIncidenciaEstadoRequest {
+  estado: EstadoIncidencia;
+  rutAdmin?: string;
+}

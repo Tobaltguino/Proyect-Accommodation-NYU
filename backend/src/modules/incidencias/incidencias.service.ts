@@ -1,8 +1,13 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Between, FindOptionsWhere, Repository } from 'typeorm';
 import { PeriodoEntity } from '../solicitudes/entities';
-import { CreateIncidenciaDto, EstadoIncidencia, IncidenciaQueryDto } from './dto';
+import {
+  CreateIncidenciaDto,
+  EstadoIncidencia,
+  IncidenciaQueryDto,
+  UpdateIncidenciaEstadoDto,
+} from './dto';
 import { IncidenciaEstanciaEntity } from './entities';
 
 @Injectable()
@@ -66,6 +71,30 @@ export class IncidenciasService {
         idIncidencia: 'DESC',
       },
     });
+  }
+
+  async updateEstadoIncidencia(
+    incidenciaId: number,
+    body: UpdateIncidenciaEstadoDto,
+  ): Promise<IncidenciaEstanciaEntity> {
+    if (!Number.isInteger(incidenciaId) || incidenciaId < 1) {
+      throw new BadRequestException('El id de incidencia es invalido');
+    }
+
+    const incidencia = await this.incidenciaRepository.findOne({
+      where: { idIncidencia: incidenciaId },
+    });
+
+    if (!incidencia) {
+      throw new NotFoundException('No existe la incidencia solicitada');
+    }
+
+    incidencia.estado = body.estado;
+    if (body.rutAdmin) {
+      incidencia.rutAdmin = this.normalizeRut(body.rutAdmin);
+    }
+
+    return this.incidenciaRepository.save(incidencia);
   }
 
   private normalizeRut(rut: string): string {

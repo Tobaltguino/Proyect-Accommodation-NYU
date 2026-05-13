@@ -2,7 +2,11 @@ import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { AuthService } from '../../../core/auth/auth.service';
-import { IncidenciaApiResponse, IncidenciaFilters } from '../../../shared/models';
+import {
+  IncidenciaApiResponse,
+  IncidenciaFilters,
+  UpdateIncidenciaEstadoRequest,
+} from '../../../shared/models';
 
 @Injectable({ providedIn: 'root' })
 export class AdminIncidentsService {
@@ -36,6 +40,19 @@ export class AdminIncidentsService {
       headers: this.getAuthHeaders(),
       params,
     });
+  }
+
+  updateEstadoIncidencia(
+    incidenciaId: number,
+    payload: UpdateIncidenciaEstadoRequest,
+  ): Observable<IncidenciaApiResponse> {
+    return this.http.patch<IncidenciaApiResponse>(
+      `${this.apiBaseUrl}/incidencias/${incidenciaId}/estado`,
+      payload,
+      {
+        headers: this.getAuthHeaders(),
+      },
+    );
   }
 
   private getAuthHeaders(): HttpHeaders {
