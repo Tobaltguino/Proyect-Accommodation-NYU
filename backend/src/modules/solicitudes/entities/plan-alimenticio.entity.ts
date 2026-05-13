@@ -1,6 +1,6 @@
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
-@Entity({ name: 'plan_alimenticio', schema: 'relacional_v1' })
+@Entity({ name: 'plan_alimenticio', schema: 'public' })
 export class PlanAlimenticioEntity {
   @PrimaryGeneratedColumn({ name: 'id_plan' })
   idPlan!: number;
@@ -11,6 +11,6 @@ export class PlanAlimenticioEntity {
   @Column({ name: 'id_periodo', type: 'int' })
   idPeriodo!: number;
 
-  @Column({ name: 'id_usuario', type: 'int' })
-  idUsuario!: number;
+  @Column({ name: 'rut_estudiante', type: 'varchar' })
+  rutEstudiante!: string;
 }

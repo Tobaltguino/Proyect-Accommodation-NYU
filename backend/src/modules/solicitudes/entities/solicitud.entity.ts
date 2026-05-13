@@ -7,7 +7,7 @@ import {
 } from 'typeorm';
 import { UsuarioEntity } from '../../users/entities/usuario.entity';
 
-@Entity({ name: 'solicitudes', schema: 'relacional_v1' })
+@Entity({ name: 'solicitudes', schema: 'public' })
 export class SolicitudEntity {
   @PrimaryGeneratedColumn({ name: 'id_solicitud' })
   idSolicitud!: number;
@@ -24,11 +24,14 @@ export class SolicitudEntity {
   @Column({ name: 'id_asignacion', type: 'int', nullable: true })
   idAsignacion!: number | null;
 
-  @Column({ name: 'id_usuario', type: 'int' })
-  idUsuario!: number;
+  @Column({ name: 'rut_estudiante', type: 'varchar' })
+  rutEstudiante!: string;
+
+  @Column({ name: 'rut_admin', type: 'varchar', nullable: true })
+  rutAdmin!: string | null;
 
   @ManyToOne(() => UsuarioEntity)
-  @JoinColumn({ name: 'id_usuario', referencedColumnName: 'idUsuario' })
+  @JoinColumn({ name: 'rut_estudiante', referencedColumnName: 'rut' })
   usuario!: UsuarioEntity;
 
 }

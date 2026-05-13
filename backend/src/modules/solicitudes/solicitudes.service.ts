@@ -46,7 +46,7 @@ export class SolicitudesService {
 
     const existing = await this.solicitudRepository.findOne({
       where: {
-        idUsuario: user.sub,
+        rutEstudiante: user.rut,
         idPeriodo: period.idPeriodo,
       },
     });
@@ -88,11 +88,12 @@ export class SolicitudesService {
         estado: 'Activa',
         idHabitacion: room.id,
         idPeriodo: period.idPeriodo,
-        idUsuario: user.sub,
+        rutEstudiante: user.rut,
+        rutAdmin: null,
       }),
     );
 
-    await this.upsertMealPlan(user.sub, period.idPeriodo, body.mealPlan);
+    await this.upsertMealPlan(user.rut, period.idPeriodo, body.mealPlan);
 
     const solicitud = await this.solicitudRepository.save(
       this.solicitudRepository.create({
@@ -100,7 +101,8 @@ export class SolicitudesService {
         fechaSolicitud: this.todayDate(),
         idPeriodo: period.idPeriodo,
         idAsignacion: assignment.idAsignacion,
-        idUsuario: user.sub,
+        rutEstudiante: user.rut,
+        rutAdmin: null,
       }),
     );
 
@@ -135,7 +137,7 @@ export class SolicitudesService {
 
     const solicitud = await this.solicitudRepository.findOne({
       where: {
-        idUsuario: user.sub,
+        rutEstudiante: user.rut,
         idPeriodo: period.idPeriodo,
       },
     });
@@ -156,7 +158,7 @@ export class SolicitudesService {
 
     const mealPlan = await this.planAlimenticioRepository.findOne({
       where: {
-        idUsuario: user.sub,
+        rutEstudiante: user.rut,
         idPeriodo: period.idPeriodo,
       },
       order: { idPlan: 'DESC' },
@@ -200,13 +202,13 @@ export class SolicitudesService {
   }
 
   private async upsertMealPlan(
-    userId: number,
+    userRut: string,
     periodId: number,
     mealPlan: MealPlan,
   ): Promise<void> {
     const tipoPlan = this.toDbMealPlan(mealPlan);
     const existing = await this.planAlimenticioRepository.findOne({
-      where: { idUsuario: userId, idPeriodo: periodId },
+      where: { rutEstudiante: userRut, idPeriodo: periodId },
     });
 
     if (existing) {
@@ -218,7 +220,7 @@ export class SolicitudesService {
     await this.planAlimenticioRepository.save(
       this.planAlimenticioRepository.create({
         tipoPlan,
-        idUsuario: userId,
+        rutEstudiante: userRut,
         idPeriodo: periodId,
       }),
     );

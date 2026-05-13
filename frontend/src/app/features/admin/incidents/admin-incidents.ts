@@ -1,7 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { AdminIncidentsService } from './admin-incidents.service';
 import { 
+  IncidenciaApiResponse,
   IncidenciaDTO, 
   EstadoIncidencia, 
   GravedadIncidencia 
@@ -22,52 +24,7 @@ export class AdminIncidentsComponent implements OnInit {
   private readonly RUT_ADMIN_ACTUAL = '14.555.666-7'; 
   private readonly NOMBRE_ADMIN_ACTUAL = 'Cristóbal Administrador';
 
-  incidencias: IncidenciaDTO[] = [
-    {
-      id_incidencia: 1,
-      descripcion: 'Fuga de agua importante en el lavamanos del baño, el piso se está inundando rápidamente y necesitamos que venga alguien pronto a cortar el paso de agua.',
-      estado: EstadoIncidencia.PENDIENTE, 
-      fecha: '2026-04-20',
-      gravedad: GravedadIncidencia.MODERADO, 
-      id_habitacion: 10,
-      nro_habitacion: 101,
-      nombre_edificio: 'Residencia Masculina',
-      rut_estudiante: '21.345.678-9',
-      nombre_estudiante: 'Juan Pérez',
-      periodo: '2026-1',
-      rut_admin: null // Nadie la ha tomado aún
-    },
-    {
-      id_incidencia: 2,
-      descripcion: 'Ampolleta quemada en el escritorio.',
-      estado: EstadoIncidencia.RESUELTA,
-      fecha: '2026-04-15',
-      gravedad: GravedadIncidencia.LEVE,
-      id_habitacion: 25,
-      nro_habitacion: 205,
-      nombre_edificio: 'Residencia Femenina',
-      rut_estudiante: '20.123.456-7',
-      nombre_estudiante: 'María González',
-      periodo: '2026-1',
-      rut_admin: '11.222.333-4', 
-      nombre_admin: 'Admin Mantenimiento'
-    },
-    {
-      id_incidencia: 3,
-      descripcion: 'Cortocircuito en el enchufe principal.',
-      estado: EstadoIncidencia.EN_PROCESO,
-      fecha: '2026-04-26',
-      gravedad: GravedadIncidencia.GRAVE,
-      id_habitacion: 30,
-      nro_habitacion: 310,
-      nombre_edificio: 'Residencia Masculina',
-      rut_estudiante: '19.876.543-2',
-      nombre_estudiante: 'Carlos Silva',
-      periodo: '2026-1',
-      rut_admin: '12.888.777-6',
-      nombre_admin: 'Admin Noche'
-    }
-  ];
+  incidencias: IncidenciaDTO[] = [];
 
   incidenciasFiltradas: IncidenciaDTO[] = [];
 
@@ -86,10 +43,11 @@ export class AdminIncidentsComponent implements OnInit {
   isModalOpen = false;
   selectedIncident: IncidenciaDTO | null = null; 
 
+  constructor(private readonly adminIncidentsService: AdminIncidentsService) {}
+
   ngOnInit(): void {
-    this.incidenciasFiltradas = [...this.incidencias];
     this.filtroPeriodo = '2026-1';
-    this.aplicarFiltros();
+    this.cargarIncidencias();
   }
 
   // Getters de Paginación
@@ -165,5 +123,47 @@ export class AdminIncidentsComponent implements OnInit {
       this.closeModal();
       console.log(`Incidencia ${this.selectedIncident.id_incidencia} resuelta por ${this.NOMBRE_ADMIN_ACTUAL}`);
     }
+  }
+
+  private cargarIncidencias(): void {
+    this.adminIncidentsService.getIncidencias().subscribe({
+      next: (rows) => {
+        this.incidencias = rows.map((row) => this.mapApiToDto(row));
+        this.periodos = this.resolvePeriods(this.incidencias);
+        this.aplicarFiltros();
+      },
+      error: () => {
+        this.incidencias = [];
+        this.incidenciasFiltradas = [];
+      },
+    });
+  }
+
+  private mapApiToDto(row: IncidenciaApiResponse): IncidenciaDTO {
+    return {
+      id_incidencia: row.idIncidencia,
+      descripcion: row.descripcion,
+      estado: row.estado,
+      fecha: row.fecha,
+      gravedad: row.gravedad,
+      id_habitacion: row.idHabitacion,
+      nro_habitacion: row.idHabitacion,
+      rut_estudiante: row.rutEstudiante,
+      rut_admin: row.rutAdmin,
+      periodo: this.filtroPeriodo || 'Sin periodo',
+      nombre_edificio: 'Sin edificio',
+    };
+  }
+
+  private resolvePeriods(rows: IncidenciaDTO[]): string[] {
+    const dynamicPeriods = Array.from(
+      new Set(
+        rows
+          .map((row) => row.periodo)
+          .filter((periodo): periodo is string => Boolean(periodo)),
+      ),
+    );
+
+    return dynamicPeriods.length > 0 ? dynamicPeriods : ['2026-1'];
   }
 }

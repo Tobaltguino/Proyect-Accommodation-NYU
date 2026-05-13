@@ -4,7 +4,7 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
-@Entity({ name: 'habitacion', schema: 'relacional_v1' })
+@Entity({ name: 'habitacion', schema: 'public' })
 export class HabitacionEntity {
   @PrimaryGeneratedColumn({ name: 'id_habitacion' })
   idHabitacion!: number;

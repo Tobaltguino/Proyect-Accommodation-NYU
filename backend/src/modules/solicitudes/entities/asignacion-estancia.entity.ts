@@ -1,6 +1,6 @@
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
-@Entity({ name: 'asignacion_estancia', schema: 'relacional_v1' })
+@Entity({ name: 'asignacion_estancia', schema: 'public' })
 export class AsignacionEstanciaEntity {
   @PrimaryGeneratedColumn({ name: 'id_asignacion' })
   idAsignacion!: number;
@@ -23,6 +23,9 @@ export class AsignacionEstanciaEntity {
   @Column({ name: 'id_periodo', type: 'int' })
   idPeriodo!: number;
 
-  @Column({ name: 'id_usuario', type: 'int' })
-  idUsuario!: number;
+  @Column({ name: 'rut_estudiante', type: 'varchar' })
+  rutEstudiante!: string;
+
+  @Column({ name: 'rut_admin', type: 'varchar', nullable: true })
+  rutAdmin!: string | null;
 }

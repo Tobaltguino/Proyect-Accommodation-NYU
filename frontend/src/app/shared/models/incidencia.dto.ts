@@ -29,3 +29,29 @@ export interface IncidenciaDTO {
   periodo?: string;
   nombre_admin?: string;
 }
+
+export interface CreateIncidenciaRequest {
+  descripcion: string;
+  gravedad: GravedadIncidencia;
+  idHabitacion: number;
+  rutEstudiante: string;
+  rutAdmin?: string;
+}
+
+export interface IncidenciaApiResponse {
+  idIncidencia: number;
+  descripcion: string;
+  estado: EstadoIncidencia;
+  fecha: string;
+  gravedad: GravedadIncidencia;
+  idHabitacion: number;
+  rutEstudiante: string;
+  rutAdmin: string | null;
+}
+
+export interface IncidenciaFilters {
+  semester?: string;
+  estado?: EstadoIncidencia;
+  gravedad?: GravedadIncidencia;
+  rut?: string;
+}

@@ -1,7 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { AuthService } from '../../../core/auth/auth.service';
+import { StudentIncidentsService } from './student-incidents.service';
 import { 
+  IncidenciaApiResponse,
   IncidenciaDTO, 
   EstadoIncidencia, 
   GravedadIncidencia 
@@ -19,38 +22,7 @@ export class StudentIncidentsComponent implements OnInit {
   public EstadoEnum = EstadoIncidencia;
   public GravedadEnum = GravedadIncidencia;
 
-  // Simulamos solo las incidencias de ESTE estudiante
-  misIncidencias: IncidenciaDTO[] = [
-    {
-      id_incidencia: 101,
-      descripcion: 'Fuga de agua en el lavamanos.',
-      estado: EstadoIncidencia.PENDIENTE, 
-      fecha: '2026-05-02',
-      gravedad: GravedadIncidencia.MODERADO,
-      id_habitacion: 20, 
-      nro_habitacion: 204,
-      nombre_edificio: 'Residencia Norte',
-      rut_estudiante: '12.345.678-9', 
-      nombre_estudiante: 'Estudiante Demo', 
-      periodo: '2026-1',
-      rut_admin: null 
-    },
-    {
-      id_incidencia: 102,
-      descripcion: 'Ampolleta principal quemada.',
-      estado: EstadoIncidencia.RESUELTA,
-      fecha: '2026-04-15',
-      gravedad: GravedadIncidencia.LEVE,
-      id_habitacion: 20, 
-      nro_habitacion: 204,
-      nombre_edificio: 'Residencia Norte',
-      rut_estudiante: '12.345.678-9', 
-      nombre_estudiante: 'Estudiante Demo', 
-      periodo: '2026-1',
-      rut_admin: '11.222.333-4', 
-      nombre_admin: 'Admin Mantenimiento'
-    }
-  ];
+  misIncidencias: IncidenciaDTO[] = [];
 
   incidenciasFiltradas: IncidenciaDTO[] = [];
 
@@ -72,13 +44,21 @@ export class StudentIncidentsComponent implements OnInit {
   isCreateModalOpen = false;
   nuevaIncidencia = {
     descripcion: '',
-    gravedad: GravedadIncidencia.LEVE
+    gravedad: GravedadIncidencia.LEVE,
+    id_habitacion: 1,
   };
 
+  private userRut = '';
+
+  constructor(
+    private readonly studentIncidentsService: StudentIncidentsService,
+    private readonly authService: AuthService,
+  ) {}
+
   ngOnInit(): void {
-    this.incidenciasFiltradas = [...this.misIncidencias];
+    this.userRut = this.authService.getCurrentUser()?.rut ?? '';
     this.filtroPeriodo = '2026-1';
-    this.aplicarFiltros();
+    void this.cargarIncidencias();
   }
 
   // Getters de Paginación
@@ -131,7 +111,11 @@ export class StudentIncidentsComponent implements OnInit {
 
   // --- MÉTODOS MODAL CREAR ---
   openCreateModal(): void {
-    this.nuevaIncidencia = { descripcion: '', gravedad: GravedadIncidencia.LEVE };
+    this.nuevaIncidencia = {
+      descripcion: '',
+      gravedad: GravedadIncidencia.LEVE,
+      id_habitacion: this.nuevaIncidencia.id_habitacion,
+    };
     this.isCreateModalOpen = true;
   }
 
@@ -145,9 +129,78 @@ export class StudentIncidentsComponent implements OnInit {
       return;
     }
 
-    console.log('Enviando nueva incidencia:', this.nuevaIncidencia);
-    
-    alert('Reporte enviado con éxito.');
-    this.closeCreateModal();
+    if (!this.userRut) {
+      alert('No se encontro sesion activa para reportar incidencia.');
+      return;
+    }
+
+    if (this.nuevaIncidencia.id_habitacion < 1) {
+      alert('Ingresa un ID de habitacion valido.');
+      return;
+    }
+
+    this.studentIncidentsService
+      .createIncidencia({
+        descripcion: this.nuevaIncidencia.descripcion.trim(),
+        gravedad: this.nuevaIncidencia.gravedad,
+        idHabitacion: this.nuevaIncidencia.id_habitacion,
+        rutEstudiante: this.userRut,
+      })
+      .subscribe({
+        next: () => {
+          alert('Reporte enviado con exito.');
+          this.closeCreateModal();
+          void this.cargarIncidencias();
+        },
+        error: () => {
+          alert('No se pudo enviar el reporte. Revisa backend y datos del formulario.');
+        },
+      });
+  }
+
+  private async cargarIncidencias(): Promise<void> {
+    this.studentIncidentsService
+      .getIncidencias({
+        rut: this.userRut || undefined,
+      })
+      .subscribe({
+        next: (rows) => {
+          this.misIncidencias = rows.map((row) => this.mapApiToDto(row));
+          this.periodos = this.resolvePeriods(this.misIncidencias);
+          this.aplicarFiltros();
+        },
+        error: () => {
+          this.misIncidencias = [];
+          this.incidenciasFiltradas = [];
+        },
+      });
+  }
+
+  private mapApiToDto(row: IncidenciaApiResponse): IncidenciaDTO {
+    return {
+      id_incidencia: row.idIncidencia,
+      descripcion: row.descripcion,
+      estado: row.estado,
+      fecha: row.fecha,
+      gravedad: row.gravedad,
+      id_habitacion: row.idHabitacion,
+      nro_habitacion: row.idHabitacion,
+      rut_estudiante: row.rutEstudiante,
+      rut_admin: row.rutAdmin,
+      periodo: this.filtroPeriodo || 'Sin periodo',
+      nombre_edificio: 'Sin edificio',
+    };
+  }
+
+  private resolvePeriods(rows: IncidenciaDTO[]): string[] {
+    const dynamicPeriods = Array.from(
+      new Set(
+        rows
+          .map((row) => row.periodo)
+          .filter((periodo): periodo is string => Boolean(periodo)),
+      ),
+    );
+
+    return dynamicPeriods.length > 0 ? dynamicPeriods : ['2026-1'];
   }
 }
