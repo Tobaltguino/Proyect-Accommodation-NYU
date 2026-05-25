@@ -1,4 +1,4 @@
-import { Controller, Post, Delete, Body, Param, ParseIntPipe } from '@nestjs/common';
+import { Controller, Post, Delete, Body, Param, ParseIntPipe, Patch } from '@nestjs/common';
 import { PisosService } from './pisos.service';
 
 @Controller('pisos')
@@ -20,4 +20,14 @@ export class PisosController {
   eliminarPiso(@Param('id', ParseIntPipe) idPiso: number) {
     return this.pisosService.eliminarPiso(idPiso);
   }
+
+  // PATCH http://localhost:3000/pisos/5
+  @Patch(':id')
+  modificarPiso(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() datosActualizados: any
+  ) {
+    return this.pisosService.modificarPiso(id, datosActualizados);
+  }
+
 }

@@ -44,4 +44,18 @@ export class PisosService {
       message: `El piso '${piso.nombre}' fue eliminado correctamente.`
     };
   }
+
+  async modificarPiso(idPiso: number, datosActualizados: Partial<PisoEntity>): Promise<PisoEntity> {
+    const piso = await this.pisoRepo.findOne({
+      where: { idPiso }
+    });
+
+    if (!piso) {
+      throw new NotFoundException(`El piso con ID ${idPiso} no existe.`);
+    }
+
+    Object.assign(piso, datosActualizados);
+
+    return await this.pisoRepo.save(piso);
+  }
 }
