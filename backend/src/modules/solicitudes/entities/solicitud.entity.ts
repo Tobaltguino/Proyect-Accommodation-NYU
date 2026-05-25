@@ -1,13 +1,10 @@
 import {
   Column,
   Entity,
-  PrimaryGeneratedColumn,
-  ManyToOne,
-  JoinColumn
+  PrimaryGeneratedColumn
 } from 'typeorm';
-import { UsuarioEntity } from '../../users/entities/usuario.entity';
 
-@Entity({ name: 'solicitudes', schema: 'relacional_v1' })
+@Entity({ name: 'solicitudes' })
 export class SolicitudEntity {
   @PrimaryGeneratedColumn({ name: 'id_solicitud' })
   idSolicitud!: number;
@@ -24,11 +21,15 @@ export class SolicitudEntity {
   @Column({ name: 'id_asignacion', type: 'int', nullable: true })
   idAsignacion!: number | null;
 
-  @Column({ name: 'id_usuario', type: 'int' })
-  idUsuario!: number;
+  @Column({ name: 'rut_estudiante', type: 'varchar' })
+  rutEstudiante!: string;
 
-  @ManyToOne(() => UsuarioEntity)
-  @JoinColumn({ name: 'id_usuario', referencedColumnName: 'idUsuario' })
-  usuario!: UsuarioEntity;
+  @Column({ name: 'rut_admin', type: 'varchar' })
+  rutAdmin!: string;
 
+  @Column({ name: 'plan_alimenticio', type: 'varchar' })
+  planAlimenticio!: string;
+
+  // Temporal para evitar errores de compilación con código de compañeros
+  idUsuario?: number;
 }

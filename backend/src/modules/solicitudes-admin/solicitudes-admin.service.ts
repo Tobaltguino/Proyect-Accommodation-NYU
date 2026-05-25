@@ -8,14 +8,14 @@ export class SolicitudesAdminService {
   constructor(
     @InjectRepository(SolicitudEntity)
     private readonly solicitudRepo: Repository<SolicitudEntity>,
-  ) {}
+  ) { }
 
   // El Admin solicita ver las peticiones de un periodo específico
   async obtenerPorPeriodo(idPeriodo: number) {
     return await this.solicitudRepo.find({
       where: { idPeriodo: idPeriodo },
-      relations: ['usuario'],
-      order: { fechaSolicitud: 'DESC' } // Mostramos primero las más nuevas
+      // Eliminamos el bloque relations porque el RUT ya es parte de la tabla base
+      order: { fechaSolicitud: 'DESC' }
     });
   }
 }
