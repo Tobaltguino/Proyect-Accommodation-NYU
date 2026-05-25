@@ -11,6 +11,7 @@ import { HistorialModule } from './modules/historial/historial.module';
 import { IncidenciasModule } from './modules/incidencias/incidencias.module';
 import { ResidenciasModule } from './modules/residencias/residencias.module';
 import { SolicitudesModule } from './modules/solicitudes/solicitudes.module';
+import { PisosModule } from './modules/pisos/pisos.module';
 
 import { SolicitudesAdminModule } from './modules/solicitudes-admin/solicitudes-admin.module';
 
@@ -42,6 +43,7 @@ import { AppController } from './app.controller';
     CheckinModule,
     HistorialModule,
     SolicitudesAdminModule,
+    PisosModule
 
 
 
