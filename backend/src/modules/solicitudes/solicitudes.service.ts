@@ -76,21 +76,22 @@ export class SolicitudesService {
       semester,
     );
 
-    if (currentOccupancy >= room.bedCapacity) {
+  if (currentOccupancy >= room.bedCapacity) {
       throw new ConflictException('La habitacion ya no tiene cupos disponibles');
     }
 
-    const assignment = await this.asignacionRepository.save(
+    const assignment = (await this.asignacionRepository.save(
       this.asignacionRepository.create({
-        fechaAsignacion: this.todayDate(),
+        fechaAsignacion: this.todayDate() as any,
         fechaCheckIn: null,
         fechaCheckOut: null,
         estado: 'Activa',
         idHabitacion: room.id,
         idPeriodo: period.idPeriodo,
-        idUsuario: user.sub,
+        // SOLUCIÓN: Convertimos el sub (número) a string para que calce con la entidad
+        rutEstudiante: user.sub ? user.sub.toString() : '', 
       }),
-    );
+    )) as unknown as AsignacionEstanciaEntity; 
 
     await this.upsertMealPlan(user.sub, period.idPeriodo, body.mealPlan);
 
@@ -99,7 +100,7 @@ export class SolicitudesService {
         estado: this.toDbStatus(SolicitudStatus.EN_REVISION),
         fechaSolicitud: this.todayDate(),
         idPeriodo: period.idPeriodo,
-        idAsignacion: assignment.idAsignacion,
+        idAsignacion: assignment.idAsignacion, 
         idUsuario: user.sub,
       }),
     );

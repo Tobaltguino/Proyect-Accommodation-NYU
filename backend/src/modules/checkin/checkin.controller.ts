@@ -1,12 +1,12 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Param } from '@nestjs/common';
 import { CheckinService } from './checkin.service';
 
 @Controller('checkin')
 export class CheckinController {
   constructor(private readonly checkinService: CheckinService) {}
 
-  @Get('status')
-  status() {
-    return this.checkinService.getStatus();
+  @Get(':rut')
+  async obtenerAsignacionParaCheckIn(@Param('rut') rut: string) {
+    return this.checkinService.obtenerDatosAsignacion(rut);
   }
 }
