@@ -30,14 +30,11 @@ export class StudentPostulationPageComponent {
   readonly postulationForm = this.formBuilder.nonNullable.group({
     fullName: [{ value: '', disabled: true }, [Validators.required]],
     rut: [{ value: '', disabled: true }, [Validators.required]],
-    career: ['', [Validators.required]],
     semester: [{ value: this.activeSemester, disabled: true }, [Validators.required]],
-    gender: ['MUJER' as Gender, [Validators.required]],
-    phone: ['', [Validators.required]],
-    city: ['', [Validators.required]],
+    career: [{ value: '', disabled: true }, [Validators.required]],
+    gender: [{ value: 'MUJER' as Gender, disabled: true }, [Validators.required]],
     mealPlan: ['OMNIVORA' as MealPlan, [Validators.required]],
     roomCode: ['', [Validators.required]],
-    motivation: ['', [Validators.required, Validators.minLength(15)]],
     declaration: [false, [Validators.requiredTrue]],
   });
 
@@ -53,16 +50,16 @@ export class StudentPostulationPageComponent {
     private readonly postulationService: StudentPostulationService,
   ) {
     this.currentUser = this.authService.getCurrentUser();
-    this.postulationForm.patchValue({
-      fullName: this.currentUser?.fullName ?? '',
-      rut: this.currentUser?.rut ?? '',
-      semester: this.activeSemester,
-    });
+    
+    // Extraemos los datos de forma segura para no causar errores de TS
+    const user = this.currentUser as any; 
 
-    this.postulationForm.controls.gender.valueChanges.subscribe((gender) => {
-      this.postulationForm.controls.roomCode.setValue('');
-      this.loadAvailability(gender);
-      this.formMessage = '';
+    this.postulationForm.patchValue({
+      fullName: user?.fullName ?? '',
+      rut: user?.rut ?? '',
+      career: user?.career ?? 'No especificada', 
+      gender: user?.gender ?? 'MUJER',
+      semester: this.activeSemester,
     });
 
     this.loadMySolicitud();
@@ -95,12 +92,13 @@ export class StudentPostulationPageComponent {
       .createSolicitud({
         career: payload.career,
         gender: payload.gender,
-        phone: payload.phone,
-        city: payload.city,
         mealPlan: payload.mealPlan,
         roomCode: payload.roomCode,
-        motivation: payload.motivation,
         semester: this.activeSemester,
+        // Campos obligatorios para el backend, pero invisibles para el usuario:
+        phone: 'No especificado',
+        city: 'No especificada',
+        motivation: 'No aplica por el momento',
       })
       .pipe(finalize(() => (this.isSubmitting = false)))
       .subscribe({
@@ -194,11 +192,8 @@ export class StudentPostulationPageComponent {
     this.postulationForm.patchValue({
       career: solicitud.career,
       gender: solicitud.gender,
-      phone: solicitud.phone,
-      city: solicitud.city,
       mealPlan: solicitud.mealPlan,
       roomCode: solicitud.roomCode,
-      motivation: solicitud.motivation,
     });
   }
 }
