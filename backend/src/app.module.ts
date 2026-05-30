@@ -14,6 +14,7 @@ import { SolicitudesModule } from './modules/solicitudes/solicitudes.module';
 import { PisosModule } from './modules/pisos/pisos.module';
 import { HabitacionesModule } from './modules/habitaciones/habitaciones.module';
 import { PeriodosModule } from './modules/periodos/periodos.module';
+import { EdificiosModule } from './modules/edificios/edificios.module';
 
 import { SolicitudesAdminModule } from './modules/solicitudes-admin/solicitudes-admin.module';
 
@@ -47,7 +48,8 @@ import { AppController } from './app.controller';
     SolicitudesAdminModule,
     PisosModule,
     HabitacionesModule,
-    PeriodosModule
+    PeriodosModule,
+    EdificiosModule
 
 
 
