@@ -8,7 +8,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { JwtService } from '@nestjs/jwt';
 import { Repository } from 'typeorm';
-import { UsuarioEntity } from '../users/entities';
+import { UsuarioEntity } from '../users/entities'; // Asegúrate de que UsuarioEntity tenga la columna 'genero'
 import { Role } from './enums/role.enum';
 import { RegisterDto } from './dto/register.dto';
 import { AuthenticatedUser, JwtPayload } from './types/auth.types';
@@ -19,7 +19,7 @@ export class AuthService implements OnModuleInit {
     private readonly jwtService: JwtService,
     @InjectRepository(UsuarioEntity)
     private readonly usuarioRepository: Repository<UsuarioEntity>,
-  ) {}
+  ) { }
 
   async onModuleInit(): Promise<void> {
     await this.ensureSeedUsers();
@@ -48,11 +48,13 @@ export class AuthService implements OnModuleInit {
 
     const role = this.toRole(user.tipoUsuario);
 
+    // CAMBIO 1: Agregamos el género al Payload del Token
     const payload: JwtPayload = {
       sub: user.idUsuario,
       rut: this.normalizeRut(user.rut),
       fullName: user.nombre,
       role,
+      genero: user.genero, // <-- Extraemos el género de la base de datos
     };
 
     const accessToken = await this.jwtService.signAsync(payload);
@@ -79,14 +81,17 @@ export class AuthService implements OnModuleInit {
         rut: normalizedRut,
         contrasena: body.password,
         tipoUsuario: this.toTipoUsuario(body.role),
+        genero: (body as any).genero || 'No Especificado', // <-- Guardamos el género (Asegúrate de agregarlo al RegisterDto)
       }),
     );
 
+    // CAMBIO 2: Agregamos el género al Payload al registrar
     const payload: JwtPayload = {
       sub: newUser.idUsuario,
       rut: this.normalizeRut(newUser.rut),
       fullName: newUser.nombre,
       role: this.toRole(newUser.tipoUsuario),
+      genero: newUser.genero, // <-- Lo inyectamos aquí
     };
 
     const accessToken = await this.jwtService.signAsync(payload);
@@ -97,12 +102,14 @@ export class AuthService implements OnModuleInit {
     };
   }
 
+  // CAMBIO 3: Devolvemos el género en el objeto final
   toAuthenticatedUser(payload: JwtPayload): AuthenticatedUser {
     return {
       id: payload.sub,
       rut: payload.rut,
       fullName: payload.fullName,
       role: payload.role,
+      genero: payload.genero, // <-- Exportado para el frontend y los Guards
     };
   }
 
@@ -118,6 +125,7 @@ export class AuthService implements OnModuleInit {
     return role === Role.ADMIN ? 'Admin' : 'Estudiante';
   }
 
+  // CAMBIO 4: Añadimos género a los usuarios de prueba (Seeders)
   private async ensureSeedUsers(): Promise<void> {
     const total = await this.usuarioRepository.count();
 
@@ -131,24 +139,28 @@ export class AuthService implements OnModuleInit {
         rut: '12345678-5',
         contrasena: 'Admin123*',
         tipoUsuario: 'Admin',
+        genero: 'Masculino', // Admin
       }),
       this.usuarioRepository.create({
         nombre: 'Juanito Carlos Perez Hernandez',
         rut: '87654321-K',
         contrasena: 'Student123*',
         tipoUsuario: 'Estudiante',
+        genero: 'Masculino', // Estudiante Hombre
       }),
       this.usuarioRepository.create({
         nombre: 'Maria Fernanda Soto Rojas',
         rut: '11222333-4',
         contrasena: 'Student456*',
         tipoUsuario: 'Estudiante',
+        genero: 'Femenino', // Estudiante Mujer
       }),
       this.usuarioRepository.create({
         nombre: 'Diego Alejandro Vargas Morales',
         rut: '20567891-7',
         contrasena: 'Student789*',
         tipoUsuario: 'Estudiante',
+        genero: 'Masculino',
       }),
     ]);
   }
