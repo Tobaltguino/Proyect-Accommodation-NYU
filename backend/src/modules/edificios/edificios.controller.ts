@@ -19,4 +19,11 @@ export class EdificiosController {
   ) {
     return this.edificiosService.modificarEdificio(id, datosActualizados);
   }
+
+  // GET http://localhost:3000/edificios/genero/Masculino
+  @Get('genero/:genero')
+  obtenerPorGenero(@Param('genero') genero: string) {
+    return this.edificiosService.obtenerPorGenero(genero);
+  }
+
 }

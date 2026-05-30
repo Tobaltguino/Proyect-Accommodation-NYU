@@ -32,4 +32,14 @@ export class EdificiosService {
 
     return await this.edificioRepo.save(edificio);
   }
+
+  // 3. OBTENER EDIFICIOS POR GÉNERO
+  async obtenerPorGenero(genero: string): Promise<EdificioEntity[]> {
+    return await this.edificioRepo.find({
+      where: { genero: genero },
+      order: { idEdificio: 'ASC' }
+    });
+  }
+
+
 }
