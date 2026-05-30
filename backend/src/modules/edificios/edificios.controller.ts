@@ -57,7 +57,7 @@ export class EdificiosController {
       // Como el JWT actual no tiene el género, hacemos un MOCK (simulación).
       // En el futuro, cuando consuman la API externa, tu compañero solo debe 
       // agregar el género al JWT y aquí usarás directamente: const generoEstudiante = user.genero;
-      const generoEstudiante = (user as any).genero || 'Masculino'; // <-- APAÑO TEMPORAL
+      const generoEstudiante = user.genero;
 
       // Lógica: Si el edificio no es "Mixto" y el género del estudiante no coincide con el del edificio...
       if (generoEdificio !== 'Mixto' && generoEdificio !== generoEstudiante) {
