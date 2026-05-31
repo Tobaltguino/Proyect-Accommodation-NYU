@@ -18,6 +18,12 @@ export class HabitacionesController {
     return this.habitacionesService.crearHabitacion(nroHabitacion, capacidadActual, disponibilidad, idPiso);
   }
 
+  // GET http://localhost:3000/habitaciones/disponibles/total
+  @Get('disponibles/total')
+  obtenerTotalDisponibles() {
+    return this.habitacionesService.obtenerTotalDisponibles();
+  }
+
   // PATCH http://localhost:3000/habitaciones/5
   @Patch(':id')
   modificarHabitacion(
