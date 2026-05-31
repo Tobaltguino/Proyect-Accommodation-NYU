@@ -20,48 +20,48 @@ export class AdminAssignmentsComponent implements OnInit {
 
   asignaciones: AsignacionDTO[] = [
     { 
-      id_asignacion: 1,
-      fecha_asignacion: '2026-03-15',
-      fecha_check_in: null, 
-      fecha_check_out: null,
+      idAsignacion: 1,
+      fechaAsignacion: '2026-03-15',
+      fechaCheckIn: null, 
+      fechaCheckOut: null,
       estado: EstadoAsignacion.ACTIVA,
-      id_habitacion: 10, id_periodo: 1, 
-      nombre_estudiante: 'Valentina Soto', rut_estudiante: '21.345.678-9',
-      nombre_periodo: '2026-1', numero_habitacion: '101', nombre_edificio: 'Residencia Norte',
-      rut_admin: null, nombre_admin: undefined
+      idHabitacion: 10, idPeriodo: 1, 
+      nombreEstudiante: 'Valentina Soto', rutEstudiante: '21.345.678-9',
+      nombrePeriodo: '2026-1', numeroHabitacion: '101', nombreEdificio: 'Residencia Norte',
+      rutAdmin: null, nombreAdmin: undefined
     },
     { 
-      id_asignacion: 2,
-      fecha_asignacion: '2026-03-10',
-      fecha_check_in: '2026-03-25', 
-      fecha_check_out: null,
+      idAsignacion: 2,
+      fechaAsignacion: '2026-03-10',
+      fechaCheckIn: '2026-03-25', 
+      fechaCheckOut: null,
       estado: EstadoAsignacion.ACTIVA,
-      id_habitacion: 20, id_periodo: 1, 
-      nombre_estudiante: 'Matías Fernández', rut_estudiante: '20.123.456-7',
-      nombre_periodo: '2026-1', numero_habitacion: '201', nombre_edificio: 'Pabellón Sur',
-      rut_admin: '11.222.333-4', nombre_admin: 'Admin Recepción'
+      idHabitacion: 20, idPeriodo: 1, 
+      nombreEstudiante: 'Matías Fernández', rutEstudiante: '20.123.456-7',
+      nombrePeriodo: '2026-1', numeroHabitacion: '201', nombreEdificio: 'Pabellón Sur',
+      rutAdmin: '11.222.333-4', nombreAdmin: 'Admin Recepción'
     },
     { 
-      id_asignacion: 3,
-      fecha_asignacion: '2025-08-01',
-      fecha_check_in: '2025-08-15',
-      fecha_check_out: '2025-12-20', 
+      idAsignacion: 3,
+      fechaAsignacion: '2025-08-01',
+      fechaCheckIn: '2025-08-15',
+      fechaCheckOut: '2025-12-20', 
       estado: EstadoAsignacion.FINALIZADA,
-      id_habitacion: 12, id_periodo: 2, 
-      nombre_estudiante: 'Camila Rojas', rut_estudiante: '19.876.543-2',
-      nombre_periodo: '2025-2', numero_habitacion: '103', nombre_edificio: 'Residencia Norte',
-      rut_admin: '12.888.777-6', nombre_admin: 'Admin Turno Noche'
+      idHabitacion: 12, idPeriodo: 2, 
+      nombreEstudiante: 'Camila Rojas', rutEstudiante: '19.876.543-2',
+      nombrePeriodo: '2025-2', numeroHabitacion: '103', nombreEdificio: 'Residencia Norte',
+      rutAdmin: '12.888.777-6', nombreAdmin: 'Admin Turno Noche'
     },
     { 
-      id_asignacion: 4,
-      fecha_asignacion: '2026-04-01',
-      fecha_check_in: null,
-      fecha_check_out: '2026-04-10', 
+      idAsignacion: 4,
+      fechaAsignacion: '2026-04-01',
+      fechaCheckIn: null,
+      fechaCheckOut: '2026-04-10', 
       estado: EstadoAsignacion.RENUNCIADA,
-      id_habitacion: 11, id_periodo: 1,
-      nombre_estudiante: 'Sebastián Morales', rut_estudiante: '22.111.222-3',
-      nombre_periodo: '2026-1', numero_habitacion: '102', nombre_edificio: 'Residencia Norte',
-      rut_admin: '13.444.555-6', nombre_admin: 'Admin Supervisor'
+      idHabitacion: 11, idPeriodo: 1,
+      nombreEstudiante: 'Sebastián Morales', rutEstudiante: '22.111.222-3',
+      nombrePeriodo: '2026-1', numeroHabitacion: '102', nombreEdificio: 'Residencia Norte',
+      rutAdmin: '13.444.555-6', nombreAdmin: 'Admin Supervisor'
     }
   ];
 
@@ -109,9 +109,9 @@ export class AdminAssignmentsComponent implements OnInit {
     const rutBuscado = this.filtroRut.trim().toLowerCase();
     
     this.asignacionesFiltradas = this.asignaciones.filter(asig => {
-      const matchPeriodo = this.filtroPeriodo ? asig.nombre_periodo === this.filtroPeriodo : true;
+      const matchPeriodo = this.filtroPeriodo ? asig.nombrePeriodo === this.filtroPeriodo : true;
       const matchEstado = this.filtroEstado ? asig.estado === this.filtroEstado : true;
-      const matchRut = rutBuscado ? (asig.rut_estudiante || '').toLowerCase().includes(rutBuscado) : true;
+      const matchRut = rutBuscado ? (asig.rutEstudiante || '').toLowerCase().includes(rutBuscado) : true;
       
       return matchPeriodo && matchEstado && matchRut;
     });
@@ -140,12 +140,12 @@ export class AdminAssignmentsComponent implements OnInit {
 
     if (tipo === 'RENUNCIA') {
       asignacion.estado = EstadoAsignacion.RENUNCIADA;
-      if (!asignacion.fecha_check_out) {
-        asignacion.fecha_check_out = hoy; 
+      if (!asignacion.fechaCheckOut) {
+        asignacion.fechaCheckOut = hoy; 
       }
       // Vinculamos al admin
-      asignacion.rut_admin = this.RUT_ADMIN_ACTUAL;
-      asignacion.nombre_admin = this.NOMBRE_ADMIN_ACTUAL;
+      asignacion.rutAdmin = this.RUT_ADMIN_ACTUAL;
+      asignacion.nombreAdmin = this.NOMBRE_ADMIN_ACTUAL;
     }
 
     this.cerrarModal();
@@ -164,7 +164,7 @@ export class AdminAssignmentsComponent implements OnInit {
     if (asig.estado === EstadoAsignacion.FINALIZADA) {
       return 'Check-out por:';
     }
-    if (asig.estado === EstadoAsignacion.ACTIVA && asig.fecha_check_in) {
+    if (asig.estado === EstadoAsignacion.ACTIVA && asig.fechaCheckIn) {
       return 'Check-in por:';
     }
     return 'Asignado por:';

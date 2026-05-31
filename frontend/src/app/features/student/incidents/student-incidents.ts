@@ -22,33 +22,33 @@ export class StudentIncidentsComponent implements OnInit {
   // Simulamos solo las incidencias de ESTE estudiante
   misIncidencias: IncidenciaDTO[] = [
     {
-      id_incidencia: 101,
+      idIncidencia: 101,
       descripcion: 'Fuga de agua en el lavamanos.',
       estado: EstadoIncidencia.PENDIENTE, 
       fecha: '2026-05-02',
       gravedad: GravedadIncidencia.MODERADO,
-      id_habitacion: 20, 
-      nro_habitacion: 204,
-      nombre_edificio: 'Residencia Norte',
-      rut_estudiante: '12.345.678-9', 
-      nombre_estudiante: 'Estudiante Demo', 
+      idHabitacion: 20, 
+      nroHabitacion: 204,
+      nombreEdificio: 'Residencia Norte',
+      rutEstudiante: '12.345.678-9', 
+      nombreEstudiante: 'Estudiante Demo', 
       periodo: '2026-1',
-      rut_admin: null 
+      rutAdmin: null 
     },
     {
-      id_incidencia: 102,
+      idIncidencia: 102,
       descripcion: 'Ampolleta principal quemada.',
       estado: EstadoIncidencia.RESUELTA,
       fecha: '2026-04-15',
       gravedad: GravedadIncidencia.LEVE,
-      id_habitacion: 20, 
-      nro_habitacion: 204,
-      nombre_edificio: 'Residencia Norte',
-      rut_estudiante: '12.345.678-9', 
-      nombre_estudiante: 'Estudiante Demo', 
+      idHabitacion: 20, 
+      nroHabitacion: 204,
+      nombreEdificio: 'Residencia Norte',
+      rutEstudiante: '12.345.678-9', 
+      nombreEstudiante: 'Estudiante Demo', 
       periodo: '2026-1',
-      rut_admin: '11.222.333-4', 
-      nombre_admin: 'Admin Mantenimiento'
+      rutAdmin: '11.222.333-4', 
+      nombreAdmin: 'Admin Mantenimiento'
     }
   ];
 

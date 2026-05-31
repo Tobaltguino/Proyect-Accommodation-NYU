@@ -18,13 +18,12 @@ export class StudentHomePageComponent implements OnInit {
   
   tieneAsignacion: boolean = true; 
 
-  // 👇 Actualizado a la nueva interfaz (sin id_usuario)
   miPlanDieta: DietaDTO = {
-    id_plan: 1,
-    tipo_plan: TipoDieta.VEGANO,
-    id_periodo: 1,
-    rut_estudiante: '', // Lo inicializamos vacío por ahora
-    nombre_estudiante: '' 
+    idPlan: 1,
+    tipoPlan: TipoDieta.VEGANO,
+    idPeriodo: 1,
+    rutEstudiante: '', 
+    nombreEstudiante: '' 
   };
 
   miAsignacion = {
@@ -37,11 +36,11 @@ export class StudentHomePageComponent implements OnInit {
   constructor(private authService: AuthService) {
     this.currentUser = this.authService.getCurrentUser();
     
-    // 👇 Si hay un usuario logueado, le asignamos su RUT (no su ID) al plan de dieta
+    // Si hay un usuario logueado, le asignamos su RUT al plan de dieta
     if (this.currentUser) {
       // Nota: Asumo que en tu auth.models.ts agregaste el 'rut' al SessionUser.
-      // Si la variable se llama diferente (ej: currentUser.rut_usuario), cámbialo aquí.
-      this.miPlanDieta.rut_estudiante = (this.currentUser as any).rut || '12.345.678-9';
+      // Si la variable se llama diferente, cámbialo aquí.
+      this.miPlanDieta.rutEstudiante = (this.currentUser as any).rut || '12.345.678-9';
     }
   }
 

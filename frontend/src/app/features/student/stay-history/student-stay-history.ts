@@ -16,49 +16,49 @@ export class StudentStayHistoryComponent implements OnInit {
   // Datos simulados del historial de un estudiante específico
   historial: AsignacionDTO[] = [
     {
-      id_asignacion: 1,
-      fecha_asignacion: '2026-02-15',
-      fecha_check_in: '2026-03-01',
-      fecha_check_out: null, 
+      idAsignacion: 1,
+      fechaAsignacion: '2026-02-15',
+      fechaCheckIn: '2026-03-01',
+      fechaCheckOut: null, 
       estado: EstadoAsignacion.ACTIVA,
-      id_habitacion: 204,
-      numero_habitacion: '204', 
-      id_periodo: 1,
-      nombre_periodo: '2026-1',
-      rut_estudiante: '12.345.678-9',
-      nombre_estudiante: 'Estudiante Demo',
-      rut_admin: null, 
-      nombre_edificio: 'Residencia Norte'
+      idHabitacion: 204,
+      numeroHabitacion: '204', 
+      idPeriodo: 1,
+      nombrePeriodo: '2026-1',
+      rutEstudiante: '12.345.678-9',
+      nombreEstudiante: 'Estudiante Demo',
+      rutAdmin: null, 
+      nombreEdificio: 'Residencia Norte'
     },
     {
-      id_asignacion: 2,
-      fecha_asignacion: '2025-07-20',
-      fecha_check_in: '2025-08-05',
-      fecha_check_out: '2025-12-15',
+      idAsignacion: 2,
+      fechaAsignacion: '2025-07-20',
+      fechaCheckIn: '2025-08-05',
+      fechaCheckOut: '2025-12-15',
       estado: EstadoAsignacion.FINALIZADA,
-      id_habitacion: 101,
-      numero_habitacion: '101',
-      id_periodo: 2,
-      nombre_periodo: '2025-2',
-      rut_estudiante: '12.345.678-9',
-      nombre_estudiante: 'Estudiante Demo',
-      rut_admin: '11.222.333-4', 
-      nombre_edificio: 'Pabellón Sur'
+      idHabitacion: 101,
+      numeroHabitacion: '101',
+      idPeriodo: 2,
+      nombrePeriodo: '2025-2',
+      rutEstudiante: '12.345.678-9',
+      nombreEstudiante: 'Estudiante Demo',
+      rutAdmin: '11.222.333-4', 
+      nombreEdificio: 'Pabellón Sur'
     },
     {
-      id_asignacion: 3,
-      fecha_asignacion: '2025-01-10',
-      fecha_check_in: '2025-03-01',
-      fecha_check_out: '2025-05-10',
+      idAsignacion: 3,
+      fechaAsignacion: '2025-01-10',
+      fechaCheckIn: '2025-03-01',
+      fechaCheckOut: '2025-05-10',
       estado: EstadoAsignacion.RENUNCIADA,
-      id_habitacion: 305,
-      numero_habitacion: '305',
-      id_periodo: 3,
-      nombre_periodo: '2025-1',
-      rut_estudiante: '12.345.678-9',
-      nombre_estudiante: 'Estudiante Demo',
-      rut_admin: '12.888.777-6', 
-      nombre_edificio: 'Residencia Norte'
+      idHabitacion: 305,
+      numeroHabitacion: '305',
+      idPeriodo: 3,
+      nombrePeriodo: '2025-1',
+      rutEstudiante: '12.345.678-9',
+      nombreEstudiante: 'Estudiante Demo',
+      rutAdmin: '12.888.777-6', 
+      nombreEdificio: 'Residencia Norte'
     }
   ];
 
@@ -101,7 +101,7 @@ export class StudentStayHistoryComponent implements OnInit {
 
   aplicarFiltros(): void {
     this.historialFiltrado = this.historial.filter(asig => {
-      const matchPeriodo = this.filtroPeriodo ? asig.nombre_periodo === this.filtroPeriodo : true;
+      const matchPeriodo = this.filtroPeriodo ? asig.nombrePeriodo === this.filtroPeriodo : true;
       const matchEstado = this.filtroEstado ? asig.estado === this.filtroEstado : true;
       return matchPeriodo && matchEstado;
     });

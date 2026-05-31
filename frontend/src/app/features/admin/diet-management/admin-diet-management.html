@@ -62,20 +62,20 @@
             </tr>
           </thead>
           <tbody>
-            @for (plan of planesPaginados; track plan.id_plan) {
+            @for (plan of planesPaginados; track plan.idPlan) {
               <tr>
                 <td>
                   <div class="d-flex flex-column">
-                    <span class="user-name">{{ plan.nombre_estudiante }}</span>
-                    <span class="user-sub">{{ plan.rut_estudiante }}</span>
+                    <span class="user-name">{{ plan.nombreEstudiante }}</span>
+                    <span class="user-sub">{{ plan.rutEstudiante }}</span>
                   </div>
                 </td>
                 
-                <td><strong>{{ plan.nombre_periodo }}</strong></td>
+                <td><strong>{{ plan.nombrePeriodo }}</strong></td>
 
                 <td>
-                  <span class="badge rounded-pill dieta-badge" [ngClass]="getClassForDieta(plan.tipo_plan)">
-                    {{ plan.tipo_plan }}
+                  <span class="badge rounded-pill dieta-badge" [ngClass]="getClassForDieta(plan.tipoPlan)">
+                    {{ plan.tipoPlan }}
                   </span>
                 </td>
               </tr>
@@ -135,7 +135,7 @@
       <div class="modal-body p-4 d-flex flex-column gap-3">
         <div class="bg-light p-3 rounded-3 border mb-2">
           <span class="d-block text-secondary small fw-semibold text-uppercase mb-1">Estudiante</span>
-          <strong class="text-dark fs-6">{{ planSeleccionado.nombre_estudiante }}</strong>
+          <strong class="text-dark fs-6">{{ planSeleccionado.nombreEstudiante }}</strong>
         </div>
 
         <div>

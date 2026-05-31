@@ -55,30 +55,30 @@
             </tr>
           </thead>
           <tbody>
-            @for (asig of historialPaginado; track asig.id_asignacion) {
+            @for (asig of historialPaginado; track asig.idAsignacion) {
               <tr [class.bg-light]="asig.estado === EstadoAsignacionEnum.ACTIVA">
                 <td>
-                  <strong class="text-dark">{{ asig.nombre_periodo }}</strong>
+                  <strong class="text-dark">{{ asig.nombrePeriodo }}</strong>
                 </td>
                 
                 <td>
                   <div class="d-flex flex-column">
-                    <span class="room fw-semibold text-dark">Hab. {{ asig.numero_habitacion }}</span>
-                    <span class="building text-muted small"><i class="pi pi-building me-1" style="font-size: 0.8rem;"></i>{{ asig.nombre_edificio }}</span>
+                    <span class="room fw-semibold text-dark">Hab. {{ asig.numeroHabitacion }}</span>
+                    <span class="building text-muted small"><i class="pi pi-building me-1" style="font-size: 0.8rem;"></i>{{ asig.nombreEdificio }}</span>
                   </div>
                 </td>
 
                 <td>
-                  <span class="user-sub text-muted small">{{ asig.fecha_asignacion }}</span>
+                  <span class="user-sub text-muted small">{{ asig.fechaAsignacion }}</span>
                 </td>
 
                 <td>
                   <div class="dates-meta d-flex flex-column gap-1 text-sm">
-                    <span [class.text-400]="!asig.fecha_check_in" [title]="!asig.fecha_check_in ? 'Aún no realizas tu ingreso' : 'Fecha de Ingreso'">
-                      <i class="pi pi-sign-in text-secondary"></i> {{ asig.fecha_check_in || 'Ingreso Pendiente' }}
+                    <span [class.text-400]="!asig.fechaCheckIn" [title]="!asig.fechaCheckIn ? 'Aún no realizas tu ingreso' : 'Fecha de Ingreso'">
+                      <i class="pi pi-sign-in text-secondary"></i> {{ asig.fechaCheckIn || 'Ingreso Pendiente' }}
                     </span>
-                    <span [class.text-400]="!asig.fecha_check_out && asig.estado !== EstadoAsignacionEnum.ACTIVA" [title]="!asig.fecha_check_out ? 'No registra fecha de salida' : 'Fecha de Salida'">
-                      <i class="pi pi-sign-out text-secondary"></i> {{ asig.fecha_check_out || '--/--/----' }}
+                    <span [class.text-400]="!asig.fechaCheckOut && asig.estado !== EstadoAsignacionEnum.ACTIVA" [title]="!asig.fechaCheckOut ? 'No registra fecha de salida' : 'Fecha de Salida'">
+                      <i class="pi pi-sign-out text-secondary"></i> {{ asig.fechaCheckOut || '--/--/----' }}
                     </span>
                   </div>
                 </td>

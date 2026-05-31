@@ -6,14 +6,12 @@ export enum TipoDieta {
 }
 
 export interface DietaDTO {
-  id_plan: number;
-  tipo_plan: TipoDieta | string;
-  id_periodo: number;
+  idPlan: number;
+  tipoPlan: TipoDieta | string;
+  idPeriodo: number;
   
-  // Identificador externo (Según tu SQL, la dieta solo tiene rut_estudiante)
-  rut_estudiante: string;
+  rutEstudiante: string;
 
-  // JOINs opcionales para mostrar en tablas
-  nombre_estudiante?: string;
-  nombre_periodo?: string;
+  nombreEstudiante?: string;
+  nombrePeriodo?: string;
 }

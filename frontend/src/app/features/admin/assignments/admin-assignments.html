@@ -65,31 +65,31 @@
             </tr>
           </thead>
           <tbody>
-            @for (asig of asignacionesPaginadas; track asig.id_asignacion) {
+            @for (asig of asignacionesPaginadas; track asig.idAsignacion) {
               <tr>
                 <td>
                   <div class="d-flex flex-column">
-                    <span class="user-name">{{ asig.nombre_estudiante }}</span>
-                    <span class="user-sub">{{ asig.rut_estudiante }}</span>
+                    <span class="user-name">{{ asig.nombreEstudiante }}</span>
+                    <span class="user-sub">{{ asig.rutEstudiante }}</span>
                   </div>
                 </td>
                 
                 <td>
                   <div class="d-flex flex-column">
-                    <span class="room">Hab {{ asig.numero_habitacion }}</span>
-                    <span class="building">{{ asig.nombre_edificio }}</span>
+                    <span class="room">Hab {{ asig.numeroHabitacion }}</span>
+                    <span class="building">{{ asig.nombreEdificio }}</span>
                   </div>
                 </td>
 
-                <td><strong>{{ asig.nombre_periodo }}</strong></td>
+                <td><strong>{{ asig.nombrePeriodo }}</strong></td>
 
                 <td>
                   <div class="dates-meta d-flex flex-column gap-1">
-                    <span [class.missing]="!asig.fecha_check_in">
-                      <i class="pi pi-sign-in"></i> {{ asig.fecha_check_in || 'Pendiente' }}
+                    <span [class.missing]="!asig.fechaCheckIn">
+                      <i class="pi pi-sign-in"></i> {{ asig.fechaCheckIn || 'Pendiente' }}
                     </span>
-                    <span [class.missing]="!asig.fecha_check_out && asig.estado !== EstadoAsignacionEnum.ACTIVA">
-                      <i class="pi pi-sign-out"></i> {{ asig.fecha_check_out || '--/--/----' }}
+                    <span [class.missing]="!asig.fechaCheckOut && asig.estado !== EstadoAsignacionEnum.ACTIVA">
+                      <i class="pi pi-sign-out"></i> {{ asig.fechaCheckOut || '--/--/----' }}
                     </span>
                   </div>
                 </td>
@@ -101,10 +101,10 @@
                 </td>
 
                 <td>
-                  @if (asig.rut_admin) {
+                  @if (asig.rutAdmin) {
                     <div class="d-flex flex-column" style="font-size: 0.85rem;">
                       <span class="text-uppercase text-muted fw-bold" style="font-size: 0.7rem;">{{ obtenerAccionAdmin(asig) }}</span>
-                      <span class="text-dark fw-semibold" [title]="asig.rut_admin">{{ asig.nombre_admin }}</span>
+                      <span class="text-dark fw-semibold" [title]="asig.rutAdmin">{{ asig.nombreAdmin }}</span>
                     </div>
                   } @else {
                     <div class="d-flex flex-column" style="font-size: 0.85rem;">
@@ -180,8 +180,8 @@
       <div class="modal-body p-4 d-flex flex-column gap-3">
         <p class="m-0">
           Estás a punto de <strong>registrar la renuncia</strong> 
-          del estudiante <strong class="text-highlight">{{ accionPendiente.asignacion.nombre_estudiante }}</strong> 
-          en la habitación {{ accionPendiente.asignacion.numero_habitacion }}.
+          del estudiante <strong class="text-highlight">{{ accionPendiente.asignacion.nombreEstudiante }}</strong> 
+          en la habitación {{ accionPendiente.asignacion.numeroHabitacion }}.
         </p>
         <p class="warning-text m-0">
           <i class="pi pi-info-circle mt-1"></i> Esta acción actualizará el estado de la asignación, liberará el cupo y quedará registrada bajo tu firma: <strong>{{ NOMBRE_ADMIN_ACTUAL }}</strong>.

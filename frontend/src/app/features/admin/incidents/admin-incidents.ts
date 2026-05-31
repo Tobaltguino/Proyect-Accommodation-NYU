@@ -24,48 +24,48 @@ export class AdminIncidentsComponent implements OnInit {
 
   incidencias: IncidenciaDTO[] = [
     {
-      id_incidencia: 1,
+      idIncidencia: 1,
       descripcion: 'Fuga de agua importante en el lavamanos del baño, el piso se está inundando rápidamente y necesitamos que venga alguien pronto a cortar el paso de agua.',
       estado: EstadoIncidencia.PENDIENTE, 
       fecha: '2026-04-20',
       gravedad: GravedadIncidencia.MODERADO, 
-      id_habitacion: 10,
-      nro_habitacion: 101,
-      nombre_edificio: 'Residencia Masculina',
-      rut_estudiante: '21.345.678-9',
-      nombre_estudiante: 'Juan Pérez',
+      idHabitacion: 10,
+      nroHabitacion: 101,
+      nombreEdificio: 'Residencia Masculina',
+      rutEstudiante: '21.345.678-9',
+      nombreEstudiante: 'Juan Pérez',
       periodo: '2026-1',
-      rut_admin: null // Nadie la ha tomado aún
+      rutAdmin: null 
     },
     {
-      id_incidencia: 2,
+      idIncidencia: 2,
       descripcion: 'Ampolleta quemada en el escritorio.',
       estado: EstadoIncidencia.RESUELTA,
       fecha: '2026-04-15',
       gravedad: GravedadIncidencia.LEVE,
-      id_habitacion: 25,
-      nro_habitacion: 205,
-      nombre_edificio: 'Residencia Femenina',
-      rut_estudiante: '20.123.456-7',
-      nombre_estudiante: 'María González',
+      idHabitacion: 25,
+      nroHabitacion: 205,
+      nombreEdificio: 'Residencia Femenina',
+      rutEstudiante: '20.123.456-7',
+      nombreEstudiante: 'María González',
       periodo: '2026-1',
-      rut_admin: '11.222.333-4', 
-      nombre_admin: 'Admin Mantenimiento'
+      rutAdmin: '11.222.333-4', 
+      nombreAdmin: 'Admin Mantenimiento'
     },
     {
-      id_incidencia: 3,
+      idIncidencia: 3,
       descripcion: 'Cortocircuito en el enchufe principal.',
       estado: EstadoIncidencia.EN_PROCESO,
       fecha: '2026-04-26',
       gravedad: GravedadIncidencia.GRAVE,
-      id_habitacion: 30,
-      nro_habitacion: 310,
-      nombre_edificio: 'Residencia Masculina',
-      rut_estudiante: '19.876.543-2',
-      nombre_estudiante: 'Carlos Silva',
+      idHabitacion: 30,
+      nroHabitacion: 310,
+      nombreEdificio: 'Residencia Masculina',
+      rutEstudiante: '19.876.543-2',
+      nombreEstudiante: 'Carlos Silva',
       periodo: '2026-1',
-      rut_admin: '12.888.777-6',
-      nombre_admin: 'Admin Noche'
+      rutAdmin: '12.888.777-6',
+      nombreAdmin: 'Admin Noche'
     }
   ];
 
@@ -116,7 +116,7 @@ export class AdminIncidentsComponent implements OnInit {
       const matchPeriodo = this.filtroPeriodo ? inc.periodo === this.filtroPeriodo : true;
       const matchEstado = this.filtroEstado ? inc.estado === this.filtroEstado : true;
       const matchGravedad = this.filtroGravedad ? inc.gravedad === this.filtroGravedad : true;
-      const matchRut = rutBuscado ? inc.rut_estudiante.toLowerCase().includes(rutBuscado) : true;
+      const matchRut = rutBuscado ? inc.rutEstudiante.toLowerCase().includes(rutBuscado) : true;
       
       return matchPeriodo && matchEstado && matchGravedad && matchRut;
     });
@@ -139,8 +139,8 @@ export class AdminIncidentsComponent implements OnInit {
     // Si está PENDIENTE y el admin la abre, asume la responsabilidad (pasa a EN_PROCESO)
     if (this.selectedIncident.estado === EstadoIncidencia.PENDIENTE) {
       this.selectedIncident.estado = EstadoIncidencia.EN_PROCESO;
-      this.selectedIncident.rut_admin = this.RUT_ADMIN_ACTUAL;
-      this.selectedIncident.nombre_admin = this.NOMBRE_ADMIN_ACTUAL;
+      this.selectedIncident.rutAdmin = this.RUT_ADMIN_ACTUAL;
+      this.selectedIncident.nombreAdmin = this.NOMBRE_ADMIN_ACTUAL;
       this.aplicarFiltros(); 
     }
 
@@ -158,12 +158,12 @@ export class AdminIncidentsComponent implements OnInit {
     if (this.selectedIncident) {
       this.selectedIncident.estado = EstadoIncidencia.RESUELTA;
       
-      this.selectedIncident.rut_admin = this.RUT_ADMIN_ACTUAL;
-      this.selectedIncident.nombre_admin = this.NOMBRE_ADMIN_ACTUAL;
+      this.selectedIncident.rutAdmin = this.RUT_ADMIN_ACTUAL;
+      this.selectedIncident.nombreAdmin = this.NOMBRE_ADMIN_ACTUAL;
 
       this.aplicarFiltros();
       this.closeModal();
-      console.log(`Incidencia ${this.selectedIncident.id_incidencia} resuelta por ${this.NOMBRE_ADMIN_ACTUAL}`);
+      console.log(`Incidencia ${this.selectedIncident.idIncidencia} resuelta por ${this.NOMBRE_ADMIN_ACTUAL}`);
     }
   }
 }

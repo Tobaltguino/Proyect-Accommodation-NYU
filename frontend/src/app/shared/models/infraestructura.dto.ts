@@ -5,26 +5,28 @@ export enum Genero {
 }
 
 export interface HabitacionDTO {
-  id_habitacion: number;
-  nro_habitacion: number;
-  capacidad_actual: number;
-  capacidad_total: number;
+  idHabitacion: number;    
+  nroHabitacion: number;   
+  capacidadActual: number; 
+  capacidadTotal: number; 
   disponibilidad: boolean;
-  id_piso: number;
+  idPiso: number;          
 }
 
 export interface PisoDTO {
-  id_piso: number;
-  nro_piso: number;
+  idPiso: number;          
+  nroPiso: number;         
   nombre: string;
-  id_edificio: number;
-  habitaciones: HabitacionDTO[];
+  idEdificio: number;      
+
+  habitaciones?: HabitacionDTO[]; 
 }
 
 export interface EdificioDTO {
-  id_edificio: number;
+  idEdificio: number;      
   nombre: string;
   ubicacion: string;
   genero: Genero; 
-  pisos: PisoDTO[];
+  
+  pisos?: PisoDTO[]; 
 }

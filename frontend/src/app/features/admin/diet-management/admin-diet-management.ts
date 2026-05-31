@@ -15,36 +15,36 @@ export class AdminDietManagementComponent implements OnInit {
 
   planes: DietaDTO[] = [
     {
-      id_plan: 1,
-      tipo_plan: TipoDieta.SIN_PREFERENCIA,
-      id_periodo: 1,
-      nombre_estudiante: 'Valentina Soto',
-      rut_estudiante: '21.345.678-9',
-      nombre_periodo: '2026-1'
+      idPlan: 1,
+      tipoPlan: TipoDieta.SIN_PREFERENCIA,
+      idPeriodo: 1,
+      nombreEstudiante: 'Valentina Soto',
+      rutEstudiante: '21.345.678-9',
+      nombrePeriodo: '2026-1'
     },
     {
-      id_plan: 2,
-      tipo_plan: TipoDieta.VEGANO,
-      id_periodo: 1,
-      nombre_estudiante: 'Matías Fernández',
-      rut_estudiante: '20.123.456-7',
-      nombre_periodo: '2026-1'
+      idPlan: 2,
+      tipoPlan: TipoDieta.VEGANO,
+      idPeriodo: 1,
+      nombreEstudiante: 'Matías Fernández',
+      rutEstudiante: '20.123.456-7',
+      nombrePeriodo: '2026-1'
     },
     {
-      id_plan: 3,
-      tipo_plan: TipoDieta.PECETARIANO, 
-      id_periodo: 1,
-      nombre_estudiante: 'Camila Rojas',
-      rut_estudiante: '19.876.543-2',
-      nombre_periodo: '2026-1'
+      idPlan: 3,
+      tipoPlan: TipoDieta.PECETARIANO, 
+      idPeriodo: 1,
+      nombreEstudiante: 'Camila Rojas',
+      rutEstudiante: '19.876.543-2',
+      nombrePeriodo: '2026-1'
     },
     {
-      id_plan: 4,
-      tipo_plan: TipoDieta.VEGETARIANO,
-      id_periodo: 2,
-      nombre_estudiante: 'Sebastián Morales',
-      rut_estudiante: '22.111.222-3',
-      nombre_periodo: '2025-2'
+      idPlan: 4,
+      tipoPlan: TipoDieta.VEGETARIANO,
+      idPeriodo: 2,
+      nombreEstudiante: 'Sebastián Morales',
+      rutEstudiante: '22.111.222-3',
+      nombrePeriodo: '2025-2'
     }
   ];
 
@@ -92,12 +92,12 @@ export class AdminDietManagementComponent implements OnInit {
     const busqueda = this.filtroBusqueda.toLowerCase();
     
     this.planesFiltrados = this.planes.filter(plan => {
-      const matchPeriodo = this.filtroPeriodo ? plan.nombre_periodo === this.filtroPeriodo : true;
-      const matchTipo = this.filtroTipo ? plan.tipo_plan === this.filtroTipo : true;
+      const matchPeriodo = this.filtroPeriodo ? plan.nombrePeriodo === this.filtroPeriodo : true;
+      const matchTipo = this.filtroTipo ? plan.tipoPlan === this.filtroTipo : true;
       
       const matchBusqueda = busqueda ? 
-        ((plan.nombre_estudiante || '').toLowerCase().includes(busqueda) || 
-         (plan.rut_estudiante || '').toLowerCase().includes(busqueda)) : true;
+        ((plan.nombreEstudiante || '').toLowerCase().includes(busqueda) || 
+         (plan.rutEstudiante || '').toLowerCase().includes(busqueda)) : true;
       
       return matchPeriodo && matchTipo && matchBusqueda;
     });
@@ -115,7 +115,7 @@ export class AdminDietManagementComponent implements OnInit {
 
   abrirModal(plan: DietaDTO): void {
     this.planSeleccionado = plan;
-    this.nuevoTipoPlan = plan.tipo_plan as TipoDieta; 
+    this.nuevoTipoPlan = plan.tipoPlan as TipoDieta; 
     this.isModalOpen = true;
   }
 
@@ -126,8 +126,8 @@ export class AdminDietManagementComponent implements OnInit {
 
   guardarCambios(): void {
     if (this.planSeleccionado) {
-      this.planSeleccionado.tipo_plan = this.nuevoTipoPlan;
-      console.log(`Dieta actualizada para ${this.planSeleccionado.nombre_estudiante}: ${this.nuevoTipoPlan}`);
+      this.planSeleccionado.tipoPlan = this.nuevoTipoPlan;
+      console.log(`Dieta actualizada para ${this.planSeleccionado.nombreEstudiante}: ${this.nuevoTipoPlan}`);
       
       this.aplicarFiltros();
       this.cerrarModal();
