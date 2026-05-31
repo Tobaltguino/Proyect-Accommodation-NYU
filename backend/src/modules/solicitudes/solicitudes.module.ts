@@ -1,28 +1,19 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { AuthModule } from '../auth/auth.module';
-import { ResidenciasModule } from '../residencias/residencias.module';
-import {
-  AsignacionEstanciaEntity,
-  PeriodoEntity,
-  PlanAlimenticioEntity,
-  SolicitudEntity,
-} from './entities';
+import { PeriodosModule } from '../periodos/periodos.module'; // <-- IMPORTANTE: Traemos el módulo vecino
+import { SolicitudEntity } from './entities/solicitud.entity'; // Tu entidad de solicitudes
 import { SolicitudesController } from './solicitudes.controller';
 import { SolicitudesService } from './solicitudes.service';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([
-      SolicitudEntity,
-      PeriodoEntity,
-      AsignacionEstanciaEntity,
-      PlanAlimenticioEntity,
-    ]),
-    ResidenciasModule,
+    TypeOrmModule.forFeature([SolicitudEntity]),
     AuthModule,
+    PeriodosModule,
   ],
   controllers: [SolicitudesController],
   providers: [SolicitudesService],
+  exports: [SolicitudesService], 
 })
 export class SolicitudesModule {}

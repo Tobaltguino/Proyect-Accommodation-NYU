@@ -19,13 +19,14 @@ export class SolicitudEntity {
   idPeriodo!: number;
 
   @Column({ name: 'id_asignacion', type: 'int', nullable: true })
-  idAsignacion!: number | null;
+  idAsignacion!: number | null; 
+
 
   @Column({ name: 'rut_estudiante', type: 'varchar' })
   rutEstudiante!: string;
 
-  @Column({ name: 'rut_admin', type: 'varchar' })
-  rutAdmin!: string;
+  @Column({ name: 'rut_admin', type: 'varchar', length: 10, nullable: true })
+  rutAdmin!: string | null; 
 
   @Column({ name: 'plan_alimenticio', type: 'varchar' })
   planAlimenticio!: string;

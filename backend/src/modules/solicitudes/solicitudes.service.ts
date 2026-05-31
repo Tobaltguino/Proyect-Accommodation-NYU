@@ -2,38 +2,23 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
-  NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { JwtPayload } from '../auth/types/auth.types';
-import { ResidenciasService } from '../residencias/residencias.service';
+import { PeriodosService } from '../periodos/periodos.service'; 
 import { CreateSolicitudDto } from './dto';
-import {
-  AsignacionEstanciaEntity,
-  PeriodoEntity,
-  PlanAlimenticioEntity,
-  SolicitudEntity,
-} from './entities';
-import {
-  BuildingId,
-  MealPlan,
-  SolicitudStatus,
-  StudentGender,
-} from './enums/solicitud.enums';
+import { SolicitudEntity } from './entities';
+
 
 @Injectable()
 export class SolicitudesService {
   constructor(
     @InjectRepository(SolicitudEntity)
     private readonly solicitudRepository: Repository<SolicitudEntity>,
-    @InjectRepository(PeriodoEntity)
-    private readonly periodoRepository: Repository<PeriodoEntity>,
-    @InjectRepository(AsignacionEstanciaEntity)
-    private readonly asignacionRepository: Repository<AsignacionEstanciaEntity>,
-    @InjectRepository(PlanAlimenticioEntity)
-    private readonly planAlimenticioRepository: Repository<PlanAlimenticioEntity>,
-    private readonly residenciasService: ResidenciasService,
+    
+
+    private readonly periodosService: PeriodosService,
   ) {}
 
   getStatus() {
@@ -41,251 +26,71 @@ export class SolicitudesService {
   }
 
   async createSolicitud(user: JwtPayload, body: CreateSolicitudDto) {
-    const semester = body.semester ?? '2026-1';
-    const period = await this.resolvePeriod(semester);
+    try {
 
-    const existing = await this.solicitudRepository.findOne({
+      const periodoActual = await this.periodosService.obtenerActual();
+      if (!periodoActual) {
+        throw new BadRequestException('No hay un periodo académico activo.');
+      }
+
+      const rutEstudianteStr = user.rut;
+
+
+      const existing = await this.solicitudRepository.findOne({
+        where: {
+          rutEstudiante: rutEstudianteStr,
+          idPeriodo: periodoActual.idPeriodo,
+        },
+      });
+
+      if (existing) {
+        throw new ConflictException('Ya existe una postulación para este semestre');
+      }
+
+
+      const solicitud = await this.solicitudRepository.save(
+        this.solicitudRepository.create({
+          estado: 'En Revision',                                  
+          fechaSolicitud: new Date().toISOString().split('T')[0],   
+          idPeriodo: periodoActual.idPeriodo,                      
+          idAsignacion: null,                                       
+          rutEstudiante: rutEstudianteStr,                          
+          rutAdmin: null,                                           
+          planAlimenticio: body.planAlimenticio,                    
+        }),
+      );
+
+  
+      return {
+        id_solicitud: solicitud.idSolicitud,
+        estado: solicitud.estado,
+        fecha_solicitud: solicitud.fechaSolicitud,
+        id_periodo: solicitud.idPeriodo,
+        rut_estudiante: solicitud.rutEstudiante,
+        plan_alimenticio: solicitud.planAlimenticio,
+      };
+
+    } catch (error) {
+  if (error instanceof ConflictException) throw error;
+  
+
+  const mensajeError = error instanceof Error ? error.message : 'Error desconocido';
+  
+  throw new BadRequestException('Error al procesar la solicitud: ' + mensajeError);
+}
+  }
+
+  async getMySolicitud(user: JwtPayload) {
+
+    const periodoActual = await this.periodosService.obtenerActual();
+    if (!periodoActual) return null;
+
+
+    return await this.solicitudRepository.findOne({
       where: {
-        idUsuario: user.sub,
-        idPeriodo: period.idPeriodo,
+        rutEstudiante: user.rut,
+        idPeriodo: periodoActual.idPeriodo,
       },
     });
-
-    if (existing) {
-      throw new ConflictException('Ya existe una postulacion para este semestre');
-    }
-
-    const expectedBuilding =
-      body.gender === StudentGender.MUJER ? BuildingId.FEMENINO : BuildingId.MASCULINO;
-
-    const room = await this.residenciasService.findRoomByCodeAndBuilding(
-      body.roomCode,
-      expectedBuilding,
-    );
-
-    if (!room) {
-      throw new NotFoundException('La habitacion seleccionada no existe');
-    }
-
-    if (room.allowedGender !== body.gender) {
-      throw new BadRequestException('La habitacion no corresponde al genero seleccionado');
-    }
-
-    const currentOccupancy = await this.residenciasService.getRoomOccupancy(
-      body.roomCode,
-      semester,
-    );
-
-  if (currentOccupancy >= room.bedCapacity) {
-      throw new ConflictException('La habitacion ya no tiene cupos disponibles');
-    }
-
-    const assignment = (await this.asignacionRepository.save(
-      this.asignacionRepository.create({
-        fechaAsignacion: this.todayDate() as any,
-        fechaCheckIn: null,
-        fechaCheckOut: null,
-        estado: 'Activa',
-        idHabitacion: room.id,
-        idPeriodo: period.idPeriodo,
-        // SOLUCIÓN: Convertimos el sub (número) a string para que calce con la entidad
-        rutEstudiante: user.sub ? user.sub.toString() : '', 
-      }),
-    )) as unknown as AsignacionEstanciaEntity; 
-
-    await this.upsertMealPlan(user.sub, period.idPeriodo, body.mealPlan);
-
-    const solicitud = await this.solicitudRepository.save(
-      this.solicitudRepository.create({
-        estado: this.toDbStatus(SolicitudStatus.EN_REVISION),
-        fechaSolicitud: this.todayDate(),
-        idPeriodo: period.idPeriodo,
-        idAsignacion: assignment.idAsignacion, 
-        idUsuario: user.sub,
-      }),
-    );
-
-    return {
-      id: solicitud.idSolicitud,
-      rut: user.rut,
-      fullName: user.fullName,
-      semester,
-      career: body.career,
-      gender: body.gender,
-      phone: body.phone,
-      city: body.city,
-      mealPlan: body.mealPlan,
-      buildingId: room.buildingId,
-      roomCode: room.roomCode,
-      motivation: body.motivation,
-      status: SolicitudStatus.EN_REVISION,
-      reservationExpiresAt: null,
-      updatedAt: new Date().toISOString(),
-    };
-  }
-
-  async getMySolicitud(user: JwtPayload, semester?: string) {
-    const effectiveSemester = semester ?? '2026-1';
-    const period = await this.periodoRepository.findOne({
-      where: { nombre: effectiveSemester },
-    });
-
-    if (!period) {
-      return null;
-    }
-
-    const solicitud = await this.solicitudRepository.findOne({
-      where: {
-        idUsuario: user.sub,
-        idPeriodo: period.idPeriodo,
-      },
-    });
-
-    if (!solicitud) {
-      return null;
-    }
-
-    const assignment = solicitud.idAsignacion
-      ? await this.asignacionRepository.findOne({
-          where: { idAsignacion: solicitud.idAsignacion },
-        })
-      : null;
-
-    const roomInfo = assignment
-      ? await this.residenciasService.findRoomByAssignment(assignment.idAsignacion)
-      : null;
-
-    const mealPlan = await this.planAlimenticioRepository.findOne({
-      where: {
-        idUsuario: user.sub,
-        idPeriodo: period.idPeriodo,
-      },
-      order: { idPlan: 'DESC' },
-    });
-
-    return {
-      id: solicitud.idSolicitud,
-      rut: user.rut,
-      fullName: user.fullName,
-      semester: effectiveSemester,
-      career: 'Sin informacion',
-      gender: roomInfo?.gender ?? StudentGender.MUJER,
-      phone: '-',
-      city: '-',
-      mealPlan: this.fromDbMealPlan(mealPlan?.tipoPlan),
-      buildingId: roomInfo?.buildingId ?? BuildingId.FEMENINO,
-      roomCode: roomInfo?.roomCode ?? '---',
-      motivation: 'Registro migrado a Beta2',
-      status: this.fromDbStatus(solicitud.estado),
-      reservationExpiresAt: null,
-      updatedAt: this.asIsoDate(solicitud.fechaSolicitud),
-    };
-  }
-
-  private async resolvePeriod(semester: string): Promise<PeriodoEntity> {
-    const existing = await this.periodoRepository.findOne({
-      where: { nombre: semester },
-    });
-
-    if (existing) {
-      return existing;
-    }
-
-    return this.periodoRepository.save(
-      this.periodoRepository.create({
-        nombre: semester,
-        fechaInicio: '2026-03-01',
-        fechaTermino: '2026-07-31',
-      }),
-    );
-  }
-
-  private async upsertMealPlan(
-    userId: number,
-    periodId: number,
-    mealPlan: MealPlan,
-  ): Promise<void> {
-    const tipoPlan = this.toDbMealPlan(mealPlan);
-    const existing = await this.planAlimenticioRepository.findOne({
-      where: { idUsuario: userId, idPeriodo: periodId },
-    });
-
-    if (existing) {
-      existing.tipoPlan = tipoPlan;
-      await this.planAlimenticioRepository.save(existing);
-      return;
-    }
-
-    await this.planAlimenticioRepository.save(
-      this.planAlimenticioRepository.create({
-        tipoPlan,
-        idUsuario: userId,
-        idPeriodo: periodId,
-      }),
-    );
-  }
-
-  private toDbStatus(status: SolicitudStatus): string {
-    if (status === SolicitudStatus.EN_REVISION) {
-      return 'En Revision';
-    }
-
-    if (status === SolicitudStatus.APROBADA) {
-      return 'Aprobada';
-    }
-
-    if (status === SolicitudStatus.RECHAZADA) {
-      return 'Rechazada';
-    }
-
-    return 'Pendiente';
-  }
-
-  private fromDbStatus(status: string): SolicitudStatus {
-    if (status === 'Aprobada') {
-      return SolicitudStatus.APROBADA;
-    }
-
-    if (status === 'Rechazada') {
-      return SolicitudStatus.RECHAZADA;
-    }
-
-    if (status === 'Pendiente') {
-      return SolicitudStatus.EXPIRADA;
-    }
-
-    return SolicitudStatus.EN_REVISION;
-  }
-
-  private toDbMealPlan(mealPlan: MealPlan): string {
-    if (mealPlan === MealPlan.VEGANA) {
-      return 'Vegano';
-    }
-
-    if (mealPlan === MealPlan.VEGETARIANA) {
-      return 'Vegetariano';
-    }
-
-    return 'Sin preferencia';
-  }
-
-  private fromDbMealPlan(tipoPlan?: string): MealPlan {
-    if (tipoPlan === 'Vegano') {
-      return MealPlan.VEGANA;
-    }
-
-    if (tipoPlan === 'Vegetariano') {
-      return MealPlan.VEGETARIANA;
-    }
-
-    return MealPlan.OMNIVORA;
-  }
-
-  private todayDate(): string {
-    return new Date().toISOString().slice(0, 10);
-  }
-
-  private asIsoDate(date: string): string {
-    return new Date(`${date}T00:00:00.000Z`).toISOString();
   }
 }
