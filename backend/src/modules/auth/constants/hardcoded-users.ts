@@ -8,6 +8,7 @@ export const HARDCODED_USERS: AuthUserRecord[] = [
     password: 'Admin123*',
     fullName: 'Administrador NYU',
     role: Role.ADMIN,
+    genero: 'Masculino',
   },
   {
     id: 2,
@@ -15,6 +16,7 @@ export const HARDCODED_USERS: AuthUserRecord[] = [
     password: 'Student123*',
     fullName: 'Juanito Carlos Perez Hernandez',
     role: Role.STUDENT,
+    genero: 'Masculino',
   },
   {
     id: 3,
@@ -22,13 +24,15 @@ export const HARDCODED_USERS: AuthUserRecord[] = [
     password: 'Student456*',
     fullName: 'Maria Fernanda Soto Rojas',
     role: Role.STUDENT,
+    genero: 'Femenino',
   },
   {
-  id: 4,
-  rut: '20567891-7',
-  password: 'Student789*',
-  fullName: 'Diego Alejandro Vargas Morales',
-  role: Role.STUDENT,
-},
-  
+    id: 4,
+    rut: '20567891-7',
+    password: 'Student789*',
+    fullName: 'Diego Alejandro Vargas Morales',
+    role: Role.STUDENT,
+    genero: 'Masculino',
+  },
+
 ];
