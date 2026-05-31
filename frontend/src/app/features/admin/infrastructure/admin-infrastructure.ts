@@ -1,8 +1,10 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { forkJoin } from 'rxjs';
 
-import { EdificioDTO, PisoDTO, HabitacionDTO, Genero} from '../../../shared/models';
+import { EdificioDTO, PisoDTO, HabitacionDTO, Genero } from '../../../shared/models';
+import { InfraestructuraService } from '../../../core/services/infraestructura.service';
 
 type ModalType = 'EDIFICIO' | 'PISO' | 'HABITACION' | 'DELETE' | null;
 type ModalMode = 'CREATE' | 'EDIT';
@@ -14,81 +16,124 @@ type ModalMode = 'CREATE' | 'EDIT';
   templateUrl: './admin-infrastructure.html',
   styleUrl: './admin-infrastructure.scss'
 })
-export class AdminInfrastructureComponent {
-  edificios: EdificioDTO[] = [
-    {
-      idEdificio: 1,
-      nombre: 'Residencia Norte',
-      ubicacion: 'Campus Central - Ala Norte',
-      genero: Genero.MIXTO,
-      pisos: [
-        {
-          idPiso: 10,
-          nroPiso: 1,
-          nombre: 'Planta Baja',
-          idEdificio: 1,
-          habitaciones: [
-            { idHabitacion: 100, nroHabitacion: 101, capacidadActual: 2, capacidadTotal: 2, disponibilidad: true, idPiso: 10 },
-            { idHabitacion: 101, nroHabitacion: 102, capacidadActual: 1, capacidadTotal: 4, disponibilidad: true, idPiso: 10 }
-          ]
-        },
-        {
-          idPiso: 11,
-          nroPiso: 2,
-          nombre: 'Primer Piso',
-          idEdificio: 1,
-          habitaciones: [
-            { idHabitacion: 102, nroHabitacion: 201, capacidadActual: 0, capacidadTotal: 2, disponibilidad: false, idPiso: 11 }
-          ]
-        }
-      ]
-    },
-    {
-      idEdificio: 2,
-      nombre: 'Pabellón Sur',
-      ubicacion: 'Campus Central - Ala Sur',
-      genero: Genero.FEMENINO,
-      pisos: []
-    }
-  ];
+export class AdminInfrastructureComponent implements OnInit {
+  private infraestructuraService = inject(InfraestructuraService);
+  private cdr = inject(ChangeDetectorRef); // 👈 Inyectamos el detector de cambios
 
-  edificioSeleccionado: EdificioDTO | null = this.edificios[0];
+  edificios: EdificioDTO[] = [];
+  edificioSeleccionado: EdificioDTO | null = null;
 
   activeModal: ModalType = null;
   modalMode: ModalMode = 'CREATE';
   
   targetIdPiso: number | null = null;
   targetIdHabitacion: number | null = null;
-
-  // Solo permitimos borrar pisos y habitaciones
   itemToDelete: { type: 'PISO' | 'HABITACION', data: any, parentData?: any } | null = null;
 
   edificioForm = { idEdificio: 0, nombre: '', ubicacion: '', genero: Genero.MIXTO };
   pisoForm = { idPiso: 0, nroPiso: 1, nombre: '' };
   habitacionForm = { idHabitacion: 0, nroHabitacion: 1, capacidadActual: 0, capacidadTotal: 1 };
 
+  ngOnInit(): void {
+    this.cargarEdificios();
+  }
+
+  // --- LÓGICA DE CARGA DE DATOS ---
+  cargarEdificios(): void {
+    this.infraestructuraService.obtenerTodosLosEdificios().subscribe({
+      next: (data) => {
+        this.edificios = data;
+        this.cdr.detectChanges(); // 👈 Obligamos a Angular a dibujar la barra lateral
+
+        if (this.edificios.length > 0) {
+          // 1. Si ya estábamos viendo un edificio
+          if (this.edificioSeleccionado) {
+            const actualizado = this.edificios.find(e => e.idEdificio === this.edificioSeleccionado!.idEdificio);
+            if (actualizado) {
+              this.seleccionarEdificio(actualizado);
+              return;
+            }
+          }
+          
+          // 2. Si venimos de otra pestaña o se recargó la página (F5)
+          const idGuardado = localStorage.getItem('id_edificio_actual');
+          if (idGuardado) {
+            const guardado = this.edificios.find(e => e.idEdificio === Number(idGuardado));
+            if (guardado) {
+              this.seleccionarEdificio(guardado);
+              return;
+            }
+          }
+
+          // 3. Por defecto, seleccionamos el primero si no hay historial
+          this.seleccionarEdificio(this.edificios[0]);
+        }
+      },
+      error: (err) => console.error('Error al cargar edificios:', err)
+    });
+  }
+
   seleccionarEdificio(edificio: EdificioDTO): void {
     this.edificioSeleccionado = edificio;
+    localStorage.setItem('id_edificio_actual', edificio.idEdificio.toString());
+    this.cargarDetallesEdificio(edificio.idEdificio);
+  }
+
+  cargarDetallesEdificio(idEdificio: number): void {
+    forkJoin({
+      pisos: this.infraestructuraService.obtenerPisosPorEdificio(idEdificio),
+      habitaciones: this.infraestructuraService.obtenerHabitacionesPorEdificio(idEdificio)
+    }).subscribe({
+      next: ({ pisos, habitaciones }) => {
+        if (this.edificioSeleccionado && this.edificioSeleccionado.idEdificio === idEdificio) {
+          
+          // 1. Ordenamos los pisos de menor a mayor (Piso 1, Piso 2...)
+          const pisosOrdenados = pisos.sort((a, b) => a.nroPiso - b.nroPiso);
+
+          this.edificioSeleccionado = {
+            ...this.edificioSeleccionado,
+            pisos: pisosOrdenados.map(piso => {
+              
+              // 2. Filtramos las habitaciones de este piso específico
+              const habitacionesDelPiso = habitaciones.filter(h => h.idPiso === piso.idPiso);
+              
+              // 3. Ordenamos esas habitaciones de menor a mayor (Hab 101, Hab 102...)
+              const habitacionesOrdenadas = habitacionesDelPiso.sort((a, b) => a.nroHabitacion - b.nroHabitacion);
+
+              return {
+                ...piso,
+                habitaciones: habitacionesOrdenadas
+              };
+            })
+          };
+          
+          this.cdr.detectChanges(); 
+        }
+      },
+      error: (err) => console.error('Error al cargar los detalles del edificio:', err)
+    });
   }
 
   cerrarModal(): void {
     this.activeModal = null;
+    this.cdr.detectChanges(); // Previene tirones gráficos al cerrar modales
   }
 
-  // --- LÓGICA DE EDIFICIOS (Solo Edición) ---
+  // --- LÓGICA DE EDIFICIOS ---
   abrirModalEdificio(edificio: EdificioDTO): void {
     this.activeModal = 'EDIFICIO';
     this.edificioForm = { ...edificio };
   }
 
   guardarEdificio(): void {
-    const idx = this.edificios.findIndex(e => e.idEdificio === this.edificioForm.idEdificio);
-    if (idx !== -1) {
-      this.edificios[idx].nombre = this.edificioForm.nombre;
-      this.edificios[idx].ubicacion = this.edificioForm.ubicacion;
-      this.edificios[idx].genero = this.edificioForm.genero;
-    }
-    this.cerrarModal();
+    const { idEdificio, nombre, ubicacion, genero } = this.edificioForm;
+    this.infraestructuraService.modificarEdificio(idEdificio, { nombre, ubicacion, genero }).subscribe({
+      next: () => {
+        this.cargarEdificios();
+        this.cerrarModal();
+      },
+      error: (err) => console.error('Error al modificar edificio', err)
+    });
   }
 
   // --- LÓGICA DE PISOS ---
@@ -99,38 +144,33 @@ export class AdminInfrastructureComponent {
       this.pisoForm = { idPiso: piso.idPiso, nroPiso: piso.nroPiso, nombre: piso.nombre };
       this.targetIdPiso = piso.idPiso;
     } else {
-      // Usamos safe navigation operator y fallback a 1 si no hay pisos
       const nextNro = (this.edificioSeleccionado?.pisos && this.edificioSeleccionado.pisos.length > 0) 
         ? Math.max(...this.edificioSeleccionado.pisos.map(p => p.nroPiso)) + 1 
         : 1;
-      this.pisoForm = { idPiso: Date.now(), nroPiso: nextNro, nombre: `Piso ${nextNro}` };
+      this.pisoForm = { idPiso: 0, nroPiso: nextNro, nombre: `Piso ${nextNro}` };
     }
   }
 
   guardarPiso(): void {
     if (!this.edificioSeleccionado) return;
 
-    if (!this.edificioSeleccionado.pisos) {
-      this.edificioSeleccionado.pisos = [];
-    }
-
     if (this.modalMode === 'CREATE') {
-      this.edificioSeleccionado.pisos.push({
-        idPiso: this.pisoForm.idPiso,
-        nroPiso: this.pisoForm.nroPiso,
-        nombre: this.pisoForm.nombre,
-        idEdificio: this.edificioSeleccionado.idEdificio,
-        habitaciones: []
+      this.infraestructuraService.crearPiso(this.pisoForm.nroPiso, this.pisoForm.nombre, this.edificioSeleccionado.idEdificio).subscribe({
+        next: () => {
+          this.cargarDetallesEdificio(this.edificioSeleccionado!.idEdificio);
+          this.cerrarModal();
+        },
+        error: (err) => console.error('Error al crear piso', err)
       });
-      this.edificioSeleccionado.pisos.sort((a, b) => a.nroPiso - b.nroPiso);
     } else {
-      const piso = this.edificioSeleccionado.pisos.find(p => p.idPiso === this.targetIdPiso);
-      if (piso) {
-        piso.nroPiso = this.pisoForm.nroPiso;
-        piso.nombre = this.pisoForm.nombre;
-      }
+      this.infraestructuraService.modificarPiso(this.targetIdPiso!, { nroPiso: this.pisoForm.nroPiso, nombre: this.pisoForm.nombre }).subscribe({
+        next: () => {
+          this.cargarDetallesEdificio(this.edificioSeleccionado!.idEdificio);
+          this.cerrarModal();
+        },
+        error: (err) => console.error('Error al modificar piso', err)
+      });
     }
-    this.cerrarModal();
   }
 
   // --- LÓGICA DE HABITACIONES ---
@@ -144,67 +184,74 @@ export class AdminInfrastructureComponent {
         idHabitacion: habitacion.idHabitacion, 
         nroHabitacion: habitacion.nroHabitacion, 
         capacidadActual: habitacion.capacidadActual,
-        capacidadTotal: habitacion.capacidadTotal || 1 // Fallback de seguridad
+        capacidadTotal: habitacion.capacidadTotal || 1 
       };
       this.targetIdHabitacion = habitacion.idHabitacion;
     } else {
-      this.habitacionForm = { idHabitacion: Date.now(), nroHabitacion: 0, capacidadActual: 0, capacidadTotal: 2 };
+      this.habitacionForm = { idHabitacion: 0, nroHabitacion: 0, capacidadActual: 0, capacidadTotal: 2 };
     }
   }
 
   guardarHabitacion(): void {
-    if (!this.edificioSeleccionado || !this.edificioSeleccionado.pisos || this.targetIdPiso === null) return;
-    const piso = this.edificioSeleccionado.pisos.find(p => p.idPiso === this.targetIdPiso);
-    if (!piso) return;
-
-    if (!piso.habitaciones) {
-      piso.habitaciones = [];
-    }
-
     if (this.modalMode === 'CREATE') {
-      piso.habitaciones.push({
-        idHabitacion: this.habitacionForm.idHabitacion,
-        nroHabitacion: this.habitacionForm.nroHabitacion,
-        capacidadActual: 0, 
-        capacidadTotal: this.habitacionForm.capacidadTotal,
-        disponibilidad: true,
-        idPiso: piso.idPiso
+      this.infraestructuraService.crearHabitacion(this.habitacionForm.nroHabitacion, this.habitacionForm.capacidadActual, true, this.targetIdPiso!).subscribe({
+        next: () => {
+          this.cargarDetallesEdificio(this.edificioSeleccionado!.idEdificio);
+          this.cerrarModal();
+        },
+        error: (err) => console.error('Error al crear habitación', err)
       });
     } else {
-      const hab = piso.habitaciones.find(h => h.idHabitacion === this.targetIdHabitacion);
-      if (hab) {
-        hab.nroHabitacion = this.habitacionForm.nroHabitacion;
-        hab.capacidadActual = this.habitacionForm.capacidadActual;
-        hab.capacidadTotal = this.habitacionForm.capacidadTotal;
-      }
+      this.infraestructuraService.modificarHabitacion(this.targetIdHabitacion!, {
+        nroHabitacion: this.habitacionForm.nroHabitacion,
+        capacidadActual: this.habitacionForm.capacidadActual
+      }).subscribe({
+        next: () => {
+          this.cargarDetallesEdificio(this.edificioSeleccionado!.idEdificio);
+          this.cerrarModal();
+        },
+        error: (err) => console.error('Error al modificar habitación', err)
+      });
     }
-    this.cerrarModal();
   }
 
   toggleDisponibilidad(habitacion: HabitacionDTO): void {
-    habitacion.disponibilidad = !habitacion.disponibilidad;
+    const nuevoEstado = !habitacion.disponibilidad;
+    this.infraestructuraService.modificarHabitacion(habitacion.idHabitacion, { disponibilidad: nuevoEstado }).subscribe({
+      next: () => {
+        habitacion.disponibilidad = nuevoEstado;
+        this.cdr.detectChanges(); // 👈 Actualizamos la vista local del candado
+      },
+      error: (err) => console.error('Error al cambiar disponibilidad', err)
+    });
   }
 
-  // Solo acepta PISO o HABITACION para eliminar
+  // --- LÓGICA DE ELIMINACIÓN ---
   confirmarEliminacion(type: 'PISO' | 'HABITACION', data: any, parentData?: any): void {
     this.itemToDelete = { type, data, parentData };
     this.activeModal = 'DELETE';
   }
 
   ejecutarEliminacion(): void {
-    if (!this.itemToDelete) return;
-    const { type, data, parentData } = this.itemToDelete;
+    if (!this.itemToDelete || !this.edificioSeleccionado) return;
+    const { type, data } = this.itemToDelete;
 
     if (type === 'PISO') {
-      if (this.edificioSeleccionado && this.edificioSeleccionado.pisos) {
-        this.edificioSeleccionado.pisos = this.edificioSeleccionado.pisos.filter(p => p.idPiso !== data.idPiso);
-      }
+      this.infraestructuraService.eliminarPiso(data.idPiso).subscribe({
+        next: () => {
+          this.cargarDetallesEdificio(this.edificioSeleccionado!.idEdificio);
+          this.cerrarModal();
+        },
+        error: (err) => console.error('Error al eliminar piso', err)
+      });
     } else if (type === 'HABITACION') {
-      const piso = parentData as PisoDTO;
-      if (piso && piso.habitaciones) {
-        piso.habitaciones = piso.habitaciones.filter(h => h.idHabitacion !== data.idHabitacion);
-      }
+      this.infraestructuraService.eliminarHabitacion(data.idHabitacion).subscribe({
+        next: () => {
+          this.cargarDetallesEdificio(this.edificioSeleccionado!.idEdificio);
+          this.cerrarModal();
+        },
+        error: (err) => console.error('Error al eliminar habitación', err)
+      });
     }
-    this.cerrarModal();
   }
 }

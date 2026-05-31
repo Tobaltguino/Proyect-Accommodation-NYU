@@ -33,6 +33,10 @@
                 </div>
                 <small class="text-secondary" style="font-size: 0.8rem;">{{ edificio.ubicacion }}</small>
               </article>
+            } @empty {
+              <div class="text-center p-3 text-secondary small">
+                No hay edificios disponibles.
+              </div>
             }
           </div>
         </section>
@@ -98,6 +102,10 @@
                           </div>
                         }
 
+                      </div>
+                    } @empty {
+                      <div class="text-secondary small p-3 text-center border border-dashed rounded w-100 grid-span-full">
+                        No hay habitaciones disponibles en este piso.
                       </div>
                     }
                   </div>

@@ -116,6 +116,11 @@
                         </div>
 
                       </div>
+                    } @empty {
+                      <div class="text-secondary small p-3 text-center border border-dashed rounded w-100 grid-span-full">
+                        <i class="pi pi-info-circle mb-1"></i><br>
+                        No hay habitaciones registradas en este piso.
+                      </div>
                     }
                   </div>
                 </article>
@@ -205,7 +210,7 @@
           </div>
           <div class="col-12 col-sm-6">
             <label class="form-label mb-1 fw-bold text-dark" style="font-size: 0.85rem;">Máx. Camas</label>
-            <input type="number" class="form-control custom-control" [(ngModel)]="habitacionForm.capacidadTotal" min="1">
+            <input type="number" class="form-control custom-control" [(ngModel)]="habitacionForm.capacidadTotal" min="1" [disabled]="modalMode === 'CREATE'" [title]="modalMode === 'CREATE' ? 'Por defecto se crearán con las especificaciones del servidor' : ''">
           </div>
         </div>
         <footer class="modal-footer d-flex justify-content-end p-3 bg-light border-top rounded-bottom-4 gap-2">
@@ -215,16 +220,16 @@
       }
 
       @if (activeModal === 'DELETE') {
-        <header class="modal-header danger-header d-flex justify-content-between align-items-center">
-          <h2 class="m-0">Confirmar Eliminación</h2>
-          <button type="button" class="close-btn border-0" (click)="cerrarModal()"><i class="pi pi-times"></i></button>
+        <header class="modal-header d-flex justify-content-between align-items-center bg-danger-subtle border-bottom border-danger- Thunderbolt">
+          <h2 class="m-0 text-danger fs-5 fw-bold"><i class="pi pi-exclamation-triangle me-2"></i>Confirmar Eliminación</h2>
+          <button type="button" class="close-btn border-0 text-danger bg-transparent" (click)="cerrarModal()"><i class="pi pi-times"></i></button>
         </header>
         <div class="modal-body p-4">
-          <p class="m-0 text-secondary" style="line-height: 1.5;">¿Estás seguro de que deseas eliminar este elemento? Esta acción no se puede deshacer y borrará los datos asociados.</p>
+          <p class="m-0 text-secondary" style="line-height: 1.5;">¿Estás seguro de que deseas eliminar este elemento? Esta acción no se puede deshacer y borrará permanentemente todos los datos asociados.</p>
         </div>
         <footer class="modal-footer d-flex justify-content-end p-3 bg-light border-top rounded-bottom-4 gap-2">
           <button type="button" class="ghost border-0" (click)="cerrarModal()">Cancelar</button>
-          <button type="button" class="primary danger-bg border-0" (click)="ejecutarEliminacion()">Sí, Eliminar</button>
+          <button type="button" class="btn btn-danger px-4 rounded-3 border-0" (click)="ejecutarEliminacion()">Sí, Eliminar</button>
         </footer>
       }
 

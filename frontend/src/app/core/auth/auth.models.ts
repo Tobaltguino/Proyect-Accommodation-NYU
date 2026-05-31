@@ -5,6 +5,7 @@ export interface SessionUser {
   rut: string;
   fullName: string;
   role: Role;
+  genero?: string;
 }
 
 export interface LoginRequest {
