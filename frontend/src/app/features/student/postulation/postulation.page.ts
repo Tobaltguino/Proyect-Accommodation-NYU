@@ -7,10 +7,8 @@ import { finalize } from 'rxjs';
 import { AuthService } from '../../../core/auth/auth.service';
 import { SessionUser } from '../../../core/auth/auth.models';
 import {
-  BuildingAvailability,
   Gender,
   MealPlan,
-  RoomAvailability,
   SolicitudResponse,
   StudentPostulationService,
 } from './student-postulation.service';
@@ -34,12 +32,9 @@ export class StudentPostulationPageComponent {
     career: [{ value: '', disabled: true }, [Validators.required]],
     gender: [{ value: 'MUJER' as Gender, disabled: true }, [Validators.required]],
     mealPlan: ['OMNIVORA' as MealPlan, [Validators.required]],
-    roomCode: ['', [Validators.required]],
     declaration: [false, [Validators.requiredTrue]],
   });
 
-  selectedBuilding: BuildingAvailability | null = null;
-  isLoadingAvailability = false;
   isLoadingSolicitud = false;
   isSubmitting = false;
   formMessage = '';
@@ -50,8 +45,6 @@ export class StudentPostulationPageComponent {
     private readonly postulationService: StudentPostulationService,
   ) {
     this.currentUser = this.authService.getCurrentUser();
-    
-    // Extraemos los datos de forma segura para no causar errores de TS
     const user = this.currentUser as any; 
 
     this.postulationForm.patchValue({
@@ -63,7 +56,6 @@ export class StudentPostulationPageComponent {
     });
 
     this.loadMySolicitud();
-    this.loadAvailability(this.postulationForm.controls.gender.value);
   }
 
   saveDraft(): void {
@@ -73,8 +65,7 @@ export class StudentPostulationPageComponent {
       return;
     }
 
-    const { roomCode } = this.postulationForm.getRawValue();
-    this.formMessage = `Borrador local listo. Habitacion seleccionada: ${roomCode}.`;
+    this.formMessage = `Borrador local guardado exitosamente.`;
   }
 
   submitPostulation(): void {
@@ -93,9 +84,10 @@ export class StudentPostulationPageComponent {
         career: payload.career,
         gender: payload.gender,
         mealPlan: payload.mealPlan,
-        roomCode: payload.roomCode,
         semester: this.activeSemester,
-        // Campos obligatorios para el backend, pero invisibles para el usuario:
+        
+        // Datos genéricos para satisfacer al backend:
+        roomCode: '000', // El backend exige 3 números
         phone: 'No especificado',
         city: 'No especificada',
         motivation: 'No aplica por el momento',
@@ -126,37 +118,6 @@ export class StudentPostulationPageComponent {
 
   goBack(): void {
     void this.router.navigate(['/student/home']);
-  }
-
-  selectRoom(room: RoomAvailability): void {
-    if (room.occupiedBeds >= room.totalBeds) {
-      return;
-    }
-
-    this.postulationForm.controls.roomCode.setValue(room.code);
-    this.postulationForm.controls.roomCode.markAsTouched();
-    this.formMessage = '';
-  }
-
-  isSelectedRoom(roomCode: string): boolean {
-    return this.postulationForm.controls.roomCode.value === roomCode;
-  }
-
-  private loadAvailability(gender: Gender): void {
-    this.isLoadingAvailability = true;
-
-    this.postulationService
-      .getAvailability(gender, this.activeSemester)
-      .pipe(finalize(() => (this.isLoadingAvailability = false)))
-      .subscribe({
-        next: (response) => {
-          this.selectedBuilding = response.building;
-        },
-        error: () => {
-          this.selectedBuilding = null;
-          this.formMessage = 'No se pudo cargar disponibilidad de habitaciones.';
-        },
-      });
   }
 
   private loadMySolicitud(): void {
@@ -193,7 +154,6 @@ export class StudentPostulationPageComponent {
       career: solicitud.career,
       gender: solicitud.gender,
       mealPlan: solicitud.mealPlan,
-      roomCode: solicitud.roomCode,
     });
   }
 }

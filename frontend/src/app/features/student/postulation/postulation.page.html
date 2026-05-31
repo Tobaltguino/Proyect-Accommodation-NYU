@@ -3,7 +3,7 @@
     <header class="postulation-header">
       <div>
         <h1>Postulacion de Alojamiento</h1>
-        <p>Completa tus datos y selecciona tu habitacion segun disponibilidad.</p>
+        <p>Completa tus datos y selecciona tu plan alimenticio.</p>
       </div>
 
       <button type="button" class="back-btn" (click)="goBack()">Volver al panel</button>
@@ -56,59 +56,6 @@
             <small class="error">Debes seleccionar un plan alimenticio.</small>
           }
         </div>
-      </section>
-
-      <section class="block building-block">
-        <div class="block-title">
-          <h2>Seleccion de habitacion</h2>
-          <span>{{ selectedBuilding?.label ?? 'Sin edificio asignado' }}</span>
-        </div>
-
-        @if (isLoadingAvailability) {
-          <p class="loading-hint">Cargando disponibilidad real desde backend...</p>
-        }
-
-        <div class="map-legend">
-          <span class="legend available">Disponible</span>
-          <span class="legend partial">Parcial</span>
-          <span class="legend full">Completa</span>
-        </div>
-
-        <section class="building-map">
-          @for (floor of selectedBuilding?.floors ?? []; track floor.level) {
-            <article class="floor-card">
-              <h3>Piso {{ floor.level }}</h3>
-              <div class="room-grid">
-                @for (room of floor.rooms; track room.code) {
-                  <button
-                    type="button"
-                    class="room-chip"
-                    [class.selected]="isSelectedRoom(room.code)"
-                    [class.full]="room.occupiedBeds === room.totalBeds"
-                    [class.partial]="room.occupiedBeds === 1"
-                    [class.available]="room.occupiedBeds === 0"
-                    [disabled]="room.occupiedBeds === room.totalBeds"
-                    (click)="selectRoom(room)"
-                  >
-                    <strong>Hab {{ room.code }}</strong>
-                    <small>{{ room.occupiedBeds }}/{{ room.totalBeds }} camas ocupadas</small>
-                  </button>
-                }
-              </div>
-            </article>
-          }
-        </section>
-
-        @if (postulationForm.controls.roomCode.value) {
-          <p class="selected-room">
-            Seleccion actual: {{ selectedBuilding?.label }} - Habitacion
-            {{ postulationForm.controls.roomCode.value }}.
-          </p>
-        }
-
-        @if (postulationForm.controls.roomCode.touched && postulationForm.controls.roomCode.invalid) {
-          <small class="error">Debes seleccionar una habitacion disponible.</small>
-        }
       </section>
 
       <section class="extra-block">
