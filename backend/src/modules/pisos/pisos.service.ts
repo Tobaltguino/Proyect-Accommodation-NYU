@@ -58,4 +58,23 @@ export class PisosService {
 
     return await this.pisoRepo.save(piso);
   }
+
+  // OBTENER TODOS LOS PISOS
+  async obtenerTodos(): Promise<PisoEntity[]> {
+    return await this.pisoRepo.find({
+      order: {
+        idEdificio: 'ASC', // Agrupamos visualmente por edificio
+        nroPiso: 'ASC'     // Y luego ordenamos por el número de piso
+      }
+    });
+  }
+
+  // OBTENER PISOS POR EDIFICIO
+  async obtenerPorEdificio(idEdificio: number): Promise<PisoEntity[]> {
+    return await this.pisoRepo.find({
+      where: { idEdificio: idEdificio },
+      order: { nroPiso: 'ASC' }
+    });
+  }
+
 }
