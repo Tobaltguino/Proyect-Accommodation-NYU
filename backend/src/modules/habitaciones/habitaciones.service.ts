@@ -89,5 +89,16 @@ export class HabitacionesService {
     });
   }
 
+  async obtenerTotalDisponibles(): Promise<{ total: number }> {
+    const cantidad = await this.habitacionRepo.createQueryBuilder('habitacion')
+      .where('habitacion.disponibilidad = :disponibilidad', { disponibilidad: true })
+      .andWhere('habitacion.capacidad_actual > :min', { min: 0 })
+      .andWhere('habitacion.capacidad_actual <= habitacion.capacidad_total')
+      .getCount();
+
+    // Lo devolvemos como un objeto JSON para que el frontend lo procese fácilmente
+    return { total: cantidad };
+  }
+
 
 }
