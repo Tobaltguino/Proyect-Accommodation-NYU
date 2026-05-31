@@ -69,4 +69,25 @@ export class HabitacionesService {
       .getMany();
   }
 
+  async obtenerTodasConPiso(): Promise<HabitacionEntity[]> {
+    return await this.habitacionRepo.find({
+      relations: ['piso'], // Aquí ocurre la magia
+      order: {
+        idPiso: 'ASC',
+        nroHabitacion: 'ASC'
+      }
+    });
+  }
+
+  // OBTENER TODAS LAS HABITACIONES
+  async obtenerTodas(): Promise<HabitacionEntity[]> {
+    return await this.habitacionRepo.find({
+      order: {
+        idPiso: 'ASC',
+        nroHabitacion: 'ASC'
+      }
+    });
+  }
+
+
 }

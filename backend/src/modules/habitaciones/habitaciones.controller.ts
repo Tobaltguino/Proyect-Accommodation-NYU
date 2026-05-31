@@ -39,4 +39,17 @@ export class HabitacionesController {
     return this.habitacionesService.obtenerPorEdificio(idEdificio);
   }
 
+  //TEMPORAL QUIZAS
+  // GET http://localhost:3000/habitaciones/detalles
+  @Get('detalles')
+  obtenerTodasConPiso() {
+    return this.habitacionesService.obtenerTodasConPiso();
+  }
+
+  // GET http://localhost:3000/habitaciones
+  @Get()
+  obtenerTodas() {
+    return this.habitacionesService.obtenerTodas();
+  }
+
 }
