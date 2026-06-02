@@ -15,8 +15,8 @@ export enum BuildingId {
 }
 
 export enum SolicitudStatus {
-  EN_REVISION = 'EN_REVISION',
-  APROBADA = 'APROBADA',
-  RECHAZADA = 'RECHAZADA',
-  EXPIRADA = 'EXPIRADA',
+  EN_REVISION = 'En revision',
+  APROBADA = 'Aprobada',
+  RECHAZADA = 'Rechazada',
+  PENDIENTE = 'Pendiente',
 }
