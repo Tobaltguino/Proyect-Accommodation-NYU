@@ -16,7 +16,6 @@ export class SolicitudesService {
   constructor(
     @InjectRepository(SolicitudEntity)
     private readonly solicitudRepository: Repository<SolicitudEntity>,
-    
 
     private readonly periodosService: PeriodosService,
   ) {}

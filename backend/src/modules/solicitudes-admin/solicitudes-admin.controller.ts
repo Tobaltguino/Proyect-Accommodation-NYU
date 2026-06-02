@@ -34,10 +34,6 @@ export class SolicitudesAdminController {
   @Patch('idSolicitud/:idSolicitud')
   async cambiarEstadoSolicitudAdmin(@Param('idSolicitud', ParseIntPipe) idSolicitud: number, @Body() dto:UpdateSolicitudesAdminDto, @Req() req: any ){
       const rutAdmin = req.user.rut;
-      console.log('--- CONTENIDO DE REQ.USER ---');
-      console.log(req.user); 
-      console.log('-----------------------------');
-      console.log(rutAdmin)
       return this.solicitudesAdminService.cambioEstadoYAdminSolicitud(idSolicitud,dto,rutAdmin);
   }
 }
