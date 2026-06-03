@@ -140,4 +140,27 @@ export class AsignacionesService {
     });
   }
 
+  // OBTENER ASIGNACIÓN DEL ESTUDIANTE ACTUAL
+  async obtenerMiAsignacion(rutEstudiante: string) {
+    const asignacion = await this.asignacionRepo.findOne({
+      where: {
+        rutEstudiante: rutEstudiante,
+        estado: 'Activa'
+      },
+      order: { fechaAsignacion: 'DESC' } // Por si acaso hubiera un historial, tomamos la más reciente
+    });
+
+    if (!asignacion) {
+      return {
+        tieneAsignacion: false,
+        message: 'No tienes ninguna asignación activa en este momento.'
+      };
+    }
+
+    return {
+      tieneAsignacion: true,
+      asignacion: asignacion
+    };
+  }
+
 }
