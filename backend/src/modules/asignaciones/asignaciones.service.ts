@@ -130,4 +130,14 @@ export class AsignacionesService {
       asignacion: asignacionGuardada
     };
   }
+
+  // OBTENER TODAS LAS ASIGNACIONES
+  async obtenerTodas(): Promise<AsignacionEntity[]> {
+    return await this.asignacionRepo.find({
+      order: {
+        fechaAsignacion: 'DESC' // Las más recientes primero
+      }
+    });
+  }
+
 }

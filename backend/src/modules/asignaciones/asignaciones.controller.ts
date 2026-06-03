@@ -4,6 +4,7 @@ import {
   Body,
   Req,
   UseGuards,
+  Get
 } from '@nestjs/common';
 import { AsignacionesService } from './asignaciones.service';
 import { RolesGuard } from 'src/common/guards/roles.guard';
@@ -34,4 +35,13 @@ export class AsignacionesController {
 
     return this.asignacionesService.crearAsignacion(idSolicitud, idHabitacion, rutAdmin);
   }
+
+  // GET http://localhost:3000/asignaciones
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN) // Solo el admin puede ver la lista global
+  @Get()
+  obtenerTodas() {
+    return this.asignacionesService.obtenerTodas();
+  }
+
 }
