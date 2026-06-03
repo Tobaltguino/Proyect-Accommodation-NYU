@@ -4,7 +4,9 @@ import {
   Body,
   Req,
   UseGuards,
-  Get
+  Get,
+  Param,
+  ParseIntPipe
 } from '@nestjs/common';
 import { AsignacionesService } from './asignaciones.service';
 import { RolesGuard } from 'src/common/guards/roles.guard';
@@ -57,6 +59,14 @@ export class AsignacionesController {
     }
 
     return this.asignacionesService.obtenerMiAsignacion(rutEstudiante);
+  }
+
+  // GET http://localhost:3000/asignaciones/periodo/1
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  @Get('periodo/:idPeriodo')
+  obtenerPorPeriodo(@Param('idPeriodo', ParseIntPipe) idPeriodo: number) {
+    return this.asignacionesService.obtenerPorPeriodo(idPeriodo);
   }
 
 }

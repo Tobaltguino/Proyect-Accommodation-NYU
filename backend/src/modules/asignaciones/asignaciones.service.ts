@@ -163,4 +163,12 @@ export class AsignacionesService {
     };
   }
 
+  // OBTENER ASIGNACIONES POR PERIODO
+  async obtenerPorPeriodo(idPeriodo: number): Promise<AsignacionEntity[]> {
+    return await this.asignacionRepo.find({
+      where: { idPeriodo: idPeriodo },
+      order: { fechaAsignacion: 'DESC' }
+    });
+  }
+
 }
