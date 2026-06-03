@@ -18,6 +18,19 @@ export class HabitacionesController {
     return this.habitacionesService.crearHabitacion(nroHabitacion, capacidadActual, disponibilidad, idPiso);
   }
 
+  // GET http://localhost:3000/habitaciones
+  @Get()
+  obtenerTodas() {
+    return this.habitacionesService.obtenerTodas();
+  }
+
+  //TEMPORAL QUIZAS
+  // GET http://localhost:3000/habitaciones/detalles
+  @Get('detalles')
+  obtenerTodasConPiso() {
+    return this.habitacionesService.obtenerTodasConPiso();
+  }
+
   // GET http://localhost:3000/habitaciones/disponibles/total
   @Get('disponibles/total')
   obtenerTotalDisponibles() {
@@ -43,19 +56,6 @@ export class HabitacionesController {
   @Get('edificio/:idEdificio')
   obtenerPorEdificio(@Param('idEdificio', ParseIntPipe) idEdificio: number) {
     return this.habitacionesService.obtenerPorEdificio(idEdificio);
-  }
-
-  //TEMPORAL QUIZAS
-  // GET http://localhost:3000/habitaciones/detalles
-  @Get('detalles')
-  obtenerTodasConPiso() {
-    return this.habitacionesService.obtenerTodasConPiso();
-  }
-
-  // GET http://localhost:3000/habitaciones
-  @Get()
-  obtenerTodas() {
-    return this.habitacionesService.obtenerTodas();
   }
 
 }
