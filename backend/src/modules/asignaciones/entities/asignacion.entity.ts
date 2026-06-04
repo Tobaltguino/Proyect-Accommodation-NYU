@@ -9,10 +9,10 @@ export class AsignacionEntity {
     fechaAsignacion!: Date;
 
     @Column({ name: 'fecha_check_in', type: 'date', nullable: true })
-    fechaCheckIn: Date | null | undefined;
+    fechaCheckIn!: Date | null;
 
     @Column({ name: 'fecha_check_out', type: 'date', nullable: true })
-    fechaCheckOut: Date | null | undefined;
+    fechaCheckOut!: Date | null;
 
     @Column({ name: 'estado', type: 'varchar', length: 20 })
     estado!: string;
