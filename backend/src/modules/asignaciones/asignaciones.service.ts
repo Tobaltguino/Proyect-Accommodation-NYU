@@ -130,4 +130,45 @@ export class AsignacionesService {
       asignacion: asignacionGuardada
     };
   }
+
+  // OBTENER TODAS LAS ASIGNACIONES
+  async obtenerTodas(): Promise<AsignacionEntity[]> {
+    return await this.asignacionRepo.find({
+      order: {
+        fechaAsignacion: 'DESC' // Las más recientes primero
+      }
+    });
+  }
+
+  // OBTENER ASIGNACIÓN DEL ESTUDIANTE ACTUAL
+  async obtenerMiAsignacion(rutEstudiante: string) {
+    const asignacion = await this.asignacionRepo.findOne({
+      where: {
+        rutEstudiante: rutEstudiante,
+        estado: 'Activa'
+      },
+      order: { fechaAsignacion: 'DESC' } // Por si acaso hubiera un historial, tomamos la más reciente
+    });
+
+    if (!asignacion) {
+      return {
+        tieneAsignacion: false,
+        message: 'No tienes ninguna asignación activa en este momento.'
+      };
+    }
+
+    return {
+      tieneAsignacion: true,
+      asignacion: asignacion
+    };
+  }
+
+  // OBTENER ASIGNACIONES POR PERIODO
+  async obtenerPorPeriodo(idPeriodo: number): Promise<AsignacionEntity[]> {
+    return await this.asignacionRepo.find({
+      where: { idPeriodo: idPeriodo },
+      order: { fechaAsignacion: 'DESC' }
+    });
+  }
+
 }
