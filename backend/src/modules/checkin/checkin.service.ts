@@ -34,10 +34,23 @@ export class CheckinService {
       throw new BadRequestException(`El estudiante ya realizó su check-in anteriormente (Fecha registrada: ${asignacion.fechaCheckIn}).`);
     }
 
-    // 4. Actualizamos la fecha con la que viene en el Body
-    asignacion.fechaCheckIn = new Date(fechaIngreso);
+    // 4. FORZAR ZONA HORARIA LOCAL
+    // Desarmamos el string '2026-06-04' en un arreglo ['2026', '06', '04']
+    const partesFecha = fechaIngreso.split('-');
+
+    // Al usar números separados (año, mes, día), JavaScript crea la fecha
+    // asumiendo la zona horaria local del servidor por defecto.
+    // Nota: El mes se resta en 1 porque en JS los meses van del 0 (Enero) al 11 (Diciembre)
+    const fechaLocalSegura = new Date(
+      Number(partesFecha[0]),
+      Number(partesFecha[1]) - 1,
+      Number(partesFecha[2])
+    );
+
+    asignacion.fechaCheckIn = fechaLocalSegura;
 
     // 5. Guardamos en la base de datos
     return await this.asignacionRepo.save(asignacion);
+
   }
 }
