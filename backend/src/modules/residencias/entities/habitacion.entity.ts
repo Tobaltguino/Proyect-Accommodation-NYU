@@ -2,7 +2,11 @@ import {
   Column,
   Entity,
   PrimaryGeneratedColumn,
+  ManyToOne,
+  JoinColumn
 } from 'typeorm';
+
+import { PisoEntity } from './piso.entity';
 
 @Entity({ name: 'habitacion' })
 export class HabitacionEntity {
@@ -20,4 +24,12 @@ export class HabitacionEntity {
 
   @Column({ name: 'id_piso', type: 'int' })
   idPiso!: number;
+
+  @Column({ name: 'capacidad_total', type: 'int' })
+  capacidadTotal!: number;
+
+  @ManyToOne(() => PisoEntity)
+  @JoinColumn({ name: 'id_piso' }) // Le decimos explícitamente qué columna puente usar
+  piso!: PisoEntity;
+
 }

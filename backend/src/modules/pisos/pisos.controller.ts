@@ -1,4 +1,4 @@
-import { Controller, Post, Delete, Body, Param, ParseIntPipe, Patch } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Body, Param, ParseIntPipe } from '@nestjs/common';
 import { PisosService } from './pisos.service';
 
 @Controller('pisos')
@@ -28,6 +28,18 @@ export class PisosController {
     @Body() datosActualizados: any
   ) {
     return this.pisosService.modificarPiso(id, datosActualizados);
+  }
+
+  // GET http://localhost:3000/pisos
+  @Get()
+  obtenerTodos() {
+    return this.pisosService.obtenerTodos();
+  }
+
+  // GET http://localhost:3000/pisos/edificio/1
+  @Get('edificio/:idEdificio')
+  obtenerPorEdificio(@Param('idEdificio', ParseIntPipe) idEdificio: number) {
+    return this.pisosService.obtenerPorEdificio(idEdificio);
   }
 
 }

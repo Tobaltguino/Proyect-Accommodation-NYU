@@ -1,4 +1,6 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, PrimaryGeneratedColumn, ManyToOne, JoinColumn } from 'typeorm';
+
+import { EdificioEntity } from './edificio.entity';
 
 @Entity({ name: 'piso' })
 export class PisoEntity {
@@ -13,4 +15,9 @@ export class PisoEntity {
 
   @Column({ name: 'id_edificio', type: 'int' })
   idEdificio!: number;
+
+  @ManyToOne(() => EdificioEntity)
+  @JoinColumn({ name: 'id_edificio' })
+  edificio!: EdificioEntity;
+
 }

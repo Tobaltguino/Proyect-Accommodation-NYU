@@ -6,6 +6,7 @@ export interface AuthUserRecord {
   password: string;
   fullName: string;
   role: Role;
+  genero: string;
 }
 
 export interface AuthenticatedUser {
@@ -13,6 +14,7 @@ export interface AuthenticatedUser {
   rut: string;
   fullName: string;
   role: Role;
+  genero: string;
 }
 
 export interface JwtPayload {
@@ -20,4 +22,5 @@ export interface JwtPayload {
   rut: string;
   fullName: string;
   role: Role;
+  genero: string;
 }
