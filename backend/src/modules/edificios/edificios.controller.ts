@@ -21,18 +21,18 @@ export class EdificiosController {
   constructor(private readonly edificiosService: EdificiosService) { }
 
   // GET http://localhost:3000/edificios
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
   @Get()
   obtenerTodos() {
     return this.edificiosService.obtenerTodos();
   }
 
-  // PATCH http://localhost:3000/edificios/1
-  @Patch(':id')
-  modificarEdificio(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() datosActualizados: any
-  ) {
-    return this.edificiosService.modificarEdificio(id, datosActualizados);
+  // GET http://localhost:3000/edificios/infraestructura
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Get('infraestructura')
+  obtenerInfraestructuraCompleta() {
+    return this.edificiosService.obtenerInfraestructuraCompleta();
   }
 
   // GET http://localhost:3000/edificios/genero/Masculino
@@ -75,12 +75,17 @@ export class EdificiosController {
     return this.edificiosService.obtenerPorGenero(generoEdificio);
   }
 
-  // GET http://localhost:3000/edificios/infraestructura
+  // PATCH http://localhost:3000/edificios/1
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.ADMIN) // O quita esto si los estudiantes también necesitan ver el mapa
-  @Get('infraestructura')
-  obtenerInfraestructuraCompleta() {
-    return this.edificiosService.obtenerInfraestructuraCompleta();
+  @Roles(Role.ADMIN)
+  @Patch(':id')
+  modificarEdificio(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() datosActualizados: any
+  ) {
+    return this.edificiosService.modificarEdificio(id, datosActualizados);
   }
+
+
 
 }
