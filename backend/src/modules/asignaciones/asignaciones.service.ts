@@ -132,8 +132,8 @@ export class AsignacionesService {
   }
 
   // OBTENER TODAS LAS ASIGNACIONES
-  async obtenerTodas(): Promise<AsignacionEntity[]> {
-    return await this.asignacionRepo.find({
+  async obtenerTodas() {
+    const asignaciones = await this.asignacionRepo.find({
       relations: {
         periodo: true,
         habitacion: {
@@ -147,8 +147,12 @@ export class AsignacionesService {
         fechaAsignacion: 'DESC'
       }
     });
+
+    return asignaciones.map(asignacion => this.mapAsignacionToDTO(asignacion));
+
   }
 
+  // OBTENER ASIGNACIÓN DEL ESTUDIANTE ACTUAL
   // OBTENER ASIGNACIÓN DEL ESTUDIANTE ACTUAL
   async obtenerMiAsignacion(rutEstudiante: string) {
     const asignacion = await this.asignacionRepo.findOne({
@@ -177,13 +181,15 @@ export class AsignacionesService {
 
     return {
       tieneAsignacion: true,
-      asignacion: asignacion
+      // AQUÍ USAMOS EL APLANADOR:
+      asignacion: this.mapAsignacionToDTO(asignacion)
     };
   }
 
   // OBTENER ASIGNACIONES POR PERIODO
-  async obtenerPorPeriodo(idPeriodo: number): Promise<AsignacionEntity[]> {
-    return await this.asignacionRepo.find({
+  // OBTENER ASIGNACIONES POR PERIODO
+  async obtenerPorPeriodo(idPeriodo: number) {
+    const asignaciones = await this.asignacionRepo.find({
       where: { idPeriodo: idPeriodo },
       relations: {
         periodo: true,
@@ -195,6 +201,9 @@ export class AsignacionesService {
       },
       order: { fechaAsignacion: 'DESC' }
     });
+
+    // AQUÍ USAMOS EL APLANADOR (Igual que en obtenerTodas):
+    return asignaciones.map(asignacion => this.mapAsignacionToDTO(asignacion));
   }
 
   // ---------------------------------------------------------
@@ -288,10 +297,27 @@ export class AsignacionesService {
 
     // 4. Guardamos y retornamos
     return await this.asignacionRepo.save(asignacion);
+
   }
 
+  private mapAsignacionToDTO(asignacion: any) {
+    return {
+      idAsignacion: asignacion.idAsignacion,
+      fechaAsignacion: asignacion.fechaAsignacion,
+      fechaCheckIn: asignacion.fechaCheckIn,
+      fechaCheckOut: asignacion.fechaCheckOut,
+      estado: asignacion.estado,
+      rutEstudiante: asignacion.rutEstudiante,
+      rutAdmin: asignacion.rutAdmin,
 
+      // Relaciones aplanadas de forma segura con ?.
+      idPeriodo: asignacion.periodo?.idPeriodo || asignacion.idPeriodo,
+      nombrePeriodo: asignacion.periodo?.nombre || 'Sin periodo',
 
-
+      idHabitacion: asignacion.habitacion?.idHabitacion || asignacion.idHabitacion,
+      numeroHabitacion: asignacion.habitacion?.nroHabitacion?.toString() || 'Sin asignar',
+      nombreEdificio: asignacion.habitacion?.piso?.edificio?.nombre || 'Sin edificio'
+    };
+  }
 
 }
