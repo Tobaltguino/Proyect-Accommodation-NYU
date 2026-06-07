@@ -49,7 +49,7 @@ export class SolicitudesService {
 
       const solicitud = await this.solicitudRepository.save(
         this.solicitudRepository.create({
-          estado: 'En Revision',                                  
+          estado: 'Pendiente',                                  
           fechaSolicitud: new Date().toISOString().split('T')[0],   
           idPeriodo: periodoActual.idPeriodo,                      
           idAsignacion: null,                                       

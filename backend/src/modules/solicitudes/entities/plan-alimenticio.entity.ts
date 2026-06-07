@@ -11,6 +11,6 @@ export class PlanAlimenticioEntity {
   @Column({ name: 'id_periodo', type: 'int' })
   idPeriodo!: number;
 
-  @Column({ name: 'id_usuario', type: 'int' })
-  idUsuario!: number;
+  @Column({ name: 'rut_estudiante', type: 'varchar', length: 10 })
+  rutEstudiante!: string;
 }

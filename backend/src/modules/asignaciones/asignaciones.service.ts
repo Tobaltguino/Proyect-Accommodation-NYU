@@ -12,7 +12,8 @@ import { SolicitudEntity } from '../solicitudes/entities';
 import { HabitacionEntity } from '../residencias/entities';
 import { EdificioEntity } from '../residencias/entities';
 import { PisoEntity } from '../residencias/entities';
-
+import { DataSource } from 'typeorm';
+import { PlanAlimenticioEntity } from '../solicitudes/entities';
 @Injectable()
 export class AsignacionesService {
   constructor(
@@ -26,6 +27,10 @@ export class AsignacionesService {
     private readonly edificioRepo: Repository<EdificioEntity>,
     @InjectRepository(PisoEntity)
     private readonly pisoRepo: Repository<PisoEntity>,
+      @InjectRepository(PlanAlimenticioEntity)
+    private readonly planRepo: Repository<PlanAlimenticioEntity>,
+    
+    private dataSource: DataSource,
   ) { }
 
   // ---------------------------------------------------------
@@ -48,87 +53,87 @@ export class AsignacionesService {
   // ---------------------------------------------------------
   // CORE: CREAR ASIGNACIÓN
   // ---------------------------------------------------------
-  async crearAsignacion(idSolicitud: number, idHabitacion: number, rutAdmin: string) {
+async crearAsignacion(idSolicitud: number, idHabitacion: number, rutAdmin: string) {
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
 
-    // 1. Obtener la Solicitud
-    const solicitud = await this.solicitudRepo.findOne({ where: { idSolicitud } });
-    if (!solicitud) throw new NotFoundException('La solicitud no existe.');
-    if (solicitud.estado !== 'Pendiente') throw new BadRequestException('Esta solicitud ya fue procesada.');
+    try {
+      // 1. Validaciones iniciales (Lecturas)
+      const solicitud = await queryRunner.manager.findOne(SolicitudEntity, { where: { idSolicitud } });
+      if (!solicitud) throw new NotFoundException('La solicitud no existe.');
+      if (solicitud.estado !== 'Pendiente') throw new BadRequestException('Esta solicitud ya fue procesada.');
 
-    // 2. Obtener la Habitación y su Edificio
-    const habitacion = await this.habitacionRepo.findOne({ where: { idHabitacion } });
-    if (!habitacion) throw new NotFoundException('La habitación no existe.');
+      const habitacion = await queryRunner.manager.findOne(HabitacionEntity, { where: { idHabitacion } });
+      if (!habitacion) throw new NotFoundException('La habitación no existe.');
 
-    const piso = await this.pisoRepo.findOne({ where: { idPiso: habitacion.idPiso } });
-    if (!piso) throw new NotFoundException('El piso no existe.');
+      const piso = await queryRunner.manager.findOne(PisoEntity, { where: { idPiso: habitacion.idPiso } });
+      if (!piso) throw new NotFoundException('El piso no existe.');
 
-    const edificio = await this.edificioRepo.findOne({ where: { idEdificio: piso.idEdificio } });
-    if (!edificio) throw new NotFoundException('El edificio asociado no existe.');
+      const edificio = await queryRunner.manager.findOne(EdificioEntity, { where: { idEdificio: piso.idEdificio } });
+      if (!edificio) throw new NotFoundException('El edificio asociado no existe.');
 
-    const rutEstudiante = solicitud.rutEstudiante;
+      const rutEstudiante = solicitud.rutEstudiante;
 
-    //---------------------------------------------------------------------
-    // IMPORTANTE ACTUALIZAR DESPUES
-    //---------------------------------------------------------------------
-    // 3. Validar Matrícula (API Externa)
-    const tieneMatricula = await this.verificarMatriculaActiva(rutEstudiante);
-    if (!tieneMatricula) {
-      throw new ForbiddenException('El estudiante no tiene matrícula activa.');
+      // 2. Validaciones externas
+      const tieneMatricula = await this.verificarMatriculaActiva(rutEstudiante);
+      if (!tieneMatricula) throw new ForbiddenException('El estudiante no tiene matrícula activa.');
+
+      const generoEstudiante = await this.obtenerGeneroEstudiante(rutEstudiante);
+      if (edificio.genero !== 'Mixto' && edificio.genero !== generoEstudiante) {
+        throw new BadRequestException(`Conflicto de género: Estudiante ${generoEstudiante} no puede ingresar a edificio ${edificio.genero}.`);
+      }
+
+      if (habitacion.capacidadActual <= 0 || !habitacion.disponibilidad) {
+        throw new BadRequestException('La habitación seleccionada no tiene camas disponibles.');
+      }
+
+      // 3. Ejecución de operaciones (Escritura dentro de la transacción)
+      
+      // A. Crear Asignación
+      const nuevaAsignacion = queryRunner.manager.create(AsignacionEntity, {
+        fechaAsignacion: new Date(),
+        estado: 'Activa',
+        idHabitacion: habitacion.idHabitacion,
+        idPeriodo: solicitud.idPeriodo,
+        rutEstudiante: rutEstudiante,
+        rutAdmin: rutAdmin,
+      });
+      const asignacionGuardada = await queryRunner.manager.save(nuevaAsignacion);
+
+      // B. Crear Plan Alimenticio
+      const nuevoPlan = queryRunner.manager.create(PlanAlimenticioEntity, {
+        tipoPlan: solicitud.planAlimenticio,
+        idPeriodo: solicitud.idPeriodo,
+        rutEstudiante: rutEstudiante, // Asegúrate de tener este campo en la entidad
+      });
+      await queryRunner.manager.save(nuevoPlan);
+
+      // C. Actualizar Solicitud
+      solicitud.estado = 'Aprobada';
+      solicitud.idAsignacion = asignacionGuardada.idAsignacion;
+      await queryRunner.manager.save(solicitud);
+
+      // D. Actualizar Habitación
+      habitacion.capacidadActual -= 1;
+      await queryRunner.manager.save(habitacion);
+
+      // Finalizar transacción
+      await queryRunner.commitTransaction();
+
+      return {
+        message: 'Asignación completada con éxito',
+        asignacion: asignacionGuardada,
+      };
+
+    } catch (err) {
+      // Revertir todo en caso de error
+      await queryRunner.rollbackTransaction();
+      throw err;
+    } finally {
+      // Liberar conexión
+      await queryRunner.release();
     }
-
-    //---------------------------------------------------------------------
-    // IMPORTANTE ACTUALIZAR DESPUES
-    //---------------------------------------------------------------------
-    // 5. Validar Género (API Externa vs Base de Datos)
-    const generoEstudiante = await this.obtenerGeneroEstudiante(rutEstudiante);
-    if (edificio.genero !== 'Mixto' && edificio.genero !== generoEstudiante) {
-      throw new BadRequestException(`Conflicto de género: Estudiante ${generoEstudiante} no puede ingresar a edificio ${edificio.genero}.`);
-    }
-
-    // 6. Validar Capacidad de la Habitación
-    if (habitacion.capacidadActual <= 0 || !habitacion.disponibilidad) {
-      throw new BadRequestException('La habitación seleccionada no tiene camas disponibles. O no está disponible');
-    }
-
-    // ==========================================
-    // EJECUCIÓN DE LA ASIGNACIÓN
-    // ==========================================
-
-    // A. Crear el registro de Asignación
-    const nuevaAsignacion = this.asignacionRepo.create({
-      fechaAsignacion: new Date(),
-      fechaCheckIn: null,
-      fechaCheckOut: null,
-      estado: 'Activa',
-      idHabitacion: habitacion.idHabitacion,
-      idPeriodo: solicitud.idPeriodo,
-      rutEstudiante: rutEstudiante,
-      rutAdmin: rutAdmin
-    });
-
-    const asignacionGuardada = await this.asignacionRepo.save(nuevaAsignacion);
-
-    // B. Actualizar la Solicitud
-    solicitud.estado = 'Aprobada';
-    solicitud.idAsignacion = asignacionGuardada.idAsignacion;
-    await this.solicitudRepo.save(solicitud);
-
-    // C. Actualizar la Habitación
-    habitacion.capacidadActual -= 1;
-    if (habitacion.capacidadActual === 0) {
-      //habitacion.disponibilidad = false;
-      //Revisar bien si camas = 0, se cambia su disponibilidad
-    }
-    await this.habitacionRepo.save(habitacion);
-
-    // D. ========================================================
-    // (Plan Alimenticio)
-
-
-    return {
-      message: 'Asignación completada con éxito',
-      asignacion: asignacionGuardada
-    };
   }
 
   // OBTENER TODAS LAS ASIGNACIONES
