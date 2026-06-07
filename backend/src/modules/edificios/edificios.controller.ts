@@ -12,6 +12,9 @@ import {
 } from '@nestjs/common'; import { EdificiosService } from './edificios.service';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import type { AuthenticatedRequest } from 'src/common/types/authenticated-request.type';
+import { RolesGuard } from 'src/common/guards/roles.guard';
+import { Roles } from 'src/common/decorators/roles.decorator';
+import { Role } from '../auth/enums/role.enum';
 
 @Controller('edificios')
 export class EdificiosController {
@@ -70,6 +73,14 @@ export class EdificiosController {
 
     // Si pasó todas las validaciones de seguridad, le entregamos los datos
     return this.edificiosService.obtenerPorGenero(generoEdificio);
+  }
+
+  // GET http://localhost:3000/edificios/infraestructura
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN) // O quita esto si los estudiantes también necesitan ver el mapa
+  @Get('infraestructura')
+  obtenerInfraestructuraCompleta() {
+    return this.edificiosService.obtenerInfraestructuraCompleta();
   }
 
 }

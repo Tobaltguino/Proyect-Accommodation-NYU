@@ -1,6 +1,7 @@
-import { Column, Entity, PrimaryGeneratedColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { Column, Entity, PrimaryGeneratedColumn, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
 
 import { EdificioEntity } from './edificio.entity';
+import { HabitacionEntity } from './habitacion.entity';
 
 @Entity({ name: 'piso' })
 export class PisoEntity {
@@ -16,8 +17,11 @@ export class PisoEntity {
   @Column({ name: 'id_edificio', type: 'int' })
   idEdificio!: number;
 
-  @ManyToOne(() => EdificioEntity)
+  @ManyToOne(() => EdificioEntity, (edificio) => edificio.pisos)
   @JoinColumn({ name: 'id_edificio' })
   edificio!: EdificioEntity;
+
+  @OneToMany(() => HabitacionEntity, (habitacion) => habitacion.piso)
+  habitaciones!: HabitacionEntity[];
 
 }

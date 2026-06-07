@@ -41,5 +41,24 @@ export class EdificiosService {
     });
   }
 
+  async obtenerInfraestructuraCompleta(): Promise<EdificioEntity[]> {
+    return await this.edificioRepo.find({
+      relations: {
+        pisos: {
+          habitaciones: true, // Trae las habitaciones dentro de cada piso
+        },
+      },
+      order: {
+        idEdificio: 'ASC',
+        pisos: {
+          nroPiso: 'ASC',
+          habitaciones: {
+            nroHabitacion: 'ASC',
+          },
+        },
+      },
+    });
+  }
+
 
 }
