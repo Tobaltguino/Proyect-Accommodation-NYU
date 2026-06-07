@@ -152,6 +152,26 @@ export class AsignacionesService {
 
   }
 
+  // OBTENER HISTORIAL COMPLETO DEL ESTUDIANTE ACTUAL
+  async obtenerMiHistorial(rutEstudiante: string) {
+    const asignaciones = await this.asignacionRepo.find({
+      where: { rutEstudiante: rutEstudiante }, // Sin filtro de estado para traer todo el historial
+      relations: {
+        periodo: true,
+        habitacion: {
+          piso: {
+            edificio: true
+          }
+        }
+      },
+      order: { fechaAsignacion: 'DESC' } // Las más recientes primero
+    });
+
+    // Reutilizamos el aplanador para mantener el formato plano que el frontend espera
+    //return asignaciones
+    return asignaciones.map(asignacion => this.mapAsignacionToDTO(asignacion));
+  }
+
   // OBTENER ASIGNACIÓN DEL ESTUDIANTE ACTUAL
   // OBTENER ASIGNACIÓN DEL ESTUDIANTE ACTUAL
   async obtenerMiAsignacion(rutEstudiante: string) {
@@ -186,7 +206,6 @@ export class AsignacionesService {
     };
   }
 
-  // OBTENER ASIGNACIONES POR PERIODO
   // OBTENER ASIGNACIONES POR PERIODO
   async obtenerPorPeriodo(idPeriodo: number) {
     const asignaciones = await this.asignacionRepo.find({
@@ -299,6 +318,8 @@ export class AsignacionesService {
     return await this.asignacionRepo.save(asignacion);
 
   }
+
+
 
   private mapAsignacionToDTO(asignacion: any) {
     return {

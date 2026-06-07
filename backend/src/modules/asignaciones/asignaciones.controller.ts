@@ -41,6 +41,21 @@ export class AsignacionesController {
     return this.asignacionesService.crearAsignacion(idSolicitud, idHabitacion, rutAdmin);
   }
 
+  // GET http://localhost:3000/asignaciones/mi-historial
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.STUDENT) // Protegido para que el estudiante acceda a su propia información
+  @Get('mi-historial')
+  obtenerMiHistorial(@Req() request: AuthenticatedRequest) {
+    // Extraemos de forma segura el RUT desde el token JWT cargado por el guardia
+    const rutEstudiante = request.user?.rut;
+
+    if (!rutEstudiante) {
+      throw new UnauthorizedException('No se pudo obtener el RUT del estudiante');
+    }
+
+    return this.asignacionesService.obtenerMiHistorial(rutEstudiante);
+  }
+
   // GET http://localhost:3000/asignaciones
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
