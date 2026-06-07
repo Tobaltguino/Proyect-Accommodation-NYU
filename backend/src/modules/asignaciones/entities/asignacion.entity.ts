@@ -1,4 +1,7 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, PrimaryGeneratedColumn, ManyToOne, JoinColumn } from 'typeorm';
+
+import { PeriodoEntity } from 'src/modules/solicitudes/entities';
+import { HabitacionEntity } from 'src/modules/residencias/entities';
 
 @Entity({ name: 'asignacion_estancia' })
 export class AsignacionEntity {
@@ -28,5 +31,14 @@ export class AsignacionEntity {
 
     @Column({ name: 'rut_admin', type: 'varchar', length: 20 })
     rutAdmin!: string;
+
+    @ManyToOne(() => PeriodoEntity)
+    @JoinColumn({ name: 'id_periodo' })
+    periodo!: PeriodoEntity;
+
+    @ManyToOne(() => HabitacionEntity)
+    @JoinColumn({ name: 'id_habitacion' })
+    habitacion!: HabitacionEntity;
+
 
 }

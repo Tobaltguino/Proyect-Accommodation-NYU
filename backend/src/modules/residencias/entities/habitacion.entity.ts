@@ -28,8 +28,8 @@ export class HabitacionEntity {
   @Column({ name: 'capacidad_total', type: 'int' })
   capacidadTotal!: number;
 
-  @ManyToOne(() => PisoEntity)
-  @JoinColumn({ name: 'id_piso' }) // Le decimos explícitamente qué columna puente usar
+  @ManyToOne(() => PisoEntity, (piso) => piso.habitaciones)
+  @JoinColumn({ name: 'id_piso' })
   piso!: PisoEntity;
 
 }

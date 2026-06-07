@@ -134,8 +134,17 @@ export class AsignacionesService {
   // OBTENER TODAS LAS ASIGNACIONES
   async obtenerTodas(): Promise<AsignacionEntity[]> {
     return await this.asignacionRepo.find({
+      relations: {
+        periodo: true,
+        habitacion: {
+          piso: {
+            edificio: true
+          }
+        }
+      },
+
       order: {
-        fechaAsignacion: 'DESC' // Las más recientes primero
+        fechaAsignacion: 'DESC'
       }
     });
   }
@@ -147,7 +156,16 @@ export class AsignacionesService {
         rutEstudiante: rutEstudiante,
         estado: 'Activa'
       },
-      order: { fechaAsignacion: 'DESC' } // Por si acaso hubiera un historial, tomamos la más reciente
+      // Magia de TypeORM: Traemos el periodo, y bajamos en cascada hasta el edificio
+      relations: {
+        periodo: true,
+        habitacion: {
+          piso: {
+            edificio: true
+          }
+        }
+      },
+      order: { fechaAsignacion: 'DESC' }
     });
 
     if (!asignacion) {
@@ -167,8 +185,113 @@ export class AsignacionesService {
   async obtenerPorPeriodo(idPeriodo: number): Promise<AsignacionEntity[]> {
     return await this.asignacionRepo.find({
       where: { idPeriodo: idPeriodo },
+      relations: {
+        periodo: true,
+        habitacion: {
+          piso: {
+            edificio: true
+          }
+        }
+      },
       order: { fechaAsignacion: 'DESC' }
     });
   }
+
+  // ---------------------------------------------------------
+  // REASIGNAR HABITACIÓN
+  // ---------------------------------------------------------
+  async reasignarHabitacion(idAsignacion: number, idNuevaHabitacion: number, rutAdmin: string) {
+    // 1. Obtener la asignación actual
+    const asignacion = await this.asignacionRepo.findOne({ where: { idAsignacion } });
+    if (!asignacion) throw new NotFoundException('La asignación no existe.');
+    if (asignacion.estado !== 'Activa') {
+      throw new BadRequestException('Solo se pueden reasignar estudiantes que tengan una estadía "Activa".');
+    }
+
+    if (asignacion.idHabitacion === idNuevaHabitacion) {
+      throw new BadRequestException('El estudiante ya se encuentra en esta habitación.');
+    }
+
+    // 2. Obtener la NUEVA Habitación, su Piso y su Edificio
+    const nuevaHabitacion = await this.habitacionRepo.findOne({ where: { idHabitacion: idNuevaHabitacion } });
+    if (!nuevaHabitacion) throw new NotFoundException('La nueva habitación no existe.');
+
+    const piso = await this.pisoRepo.findOne({ where: { idPiso: nuevaHabitacion.idPiso } });
+    if (!piso) throw new NotFoundException('El piso no existe.');
+
+    const edificio = await this.edificioRepo.findOne({ where: { idEdificio: piso.idEdificio } });
+    if (!edificio) throw new NotFoundException('El edificio asociado no existe.');
+
+    // 3. Validar Género (Reutilizamos tu método privado)
+    const generoEstudiante = await this.obtenerGeneroEstudiante(asignacion.rutEstudiante);
+    if (edificio.genero !== 'Mixto' && edificio.genero !== generoEstudiante) {
+      throw new BadRequestException(`Conflicto de género: Estudiante ${generoEstudiante} no puede ser reasignado a un edificio ${edificio.genero}.`);
+    }
+
+    // 4. Validar Capacidad de la NUEVA Habitación
+    if (nuevaHabitacion.capacidadActual <= 0 || !nuevaHabitacion.disponibilidad) {
+      throw new BadRequestException('La nueva habitación seleccionada no tiene camas disponibles.');
+    }
+
+    // ==========================================
+    // EJECUCIÓN DEL INTERCAMBIO (SWAP)
+    // ==========================================
+
+    // A. Liberar la cama de la habitación ANTIGUA
+    const habitacionAntigua = await this.habitacionRepo.findOne({ where: { idHabitacion: asignacion.idHabitacion } });
+    if (habitacionAntigua) {
+      habitacionAntigua.capacidadActual += 1;
+      habitacionAntigua.disponibilidad = true; // Al liberar una cama, vuelve a estar disponible obligatoriamente
+      await this.habitacionRepo.save(habitacionAntigua);
+    }
+
+    // B. Ocupar la cama de la NUEVA habitación
+    nuevaHabitacion.capacidadActual -= 1;
+    if (nuevaHabitacion.capacidadActual === 0) {
+      nuevaHabitacion.disponibilidad = false; // Se llenó
+    }
+    await this.habitacionRepo.save(nuevaHabitacion);
+
+    // C. Actualizar la Asignación
+    asignacion.idHabitacion = idNuevaHabitacion;
+    asignacion.rutAdmin = rutAdmin; // Actualizamos quién fue el responsable del traslado
+
+    return await this.asignacionRepo.save(asignacion);
+  }
+
+  async renunciarAsignacion(idAsignacion: number, rutAdmin: string) {
+    // 1. Buscamos la asignación
+    const asignacion = await this.asignacionRepo.findOne({ where: { idAsignacion } });
+
+    if (!asignacion) {
+      throw new NotFoundException('La asignación no existe.');
+    }
+
+    if (asignacion.estado !== 'Activa') {
+      throw new BadRequestException('Solo se puede procesar la renuncia de asignaciones que estén en estado "Activa".');
+    }
+
+    // 2. Liberar la cama de la habitación
+    const habitacion = await this.habitacionRepo.findOne({ where: { idHabitacion: asignacion.idHabitacion } });
+    if (habitacion) {
+      habitacion.capacidadActual += 1;
+      habitacion.disponibilidad = true; // Al liberar una cama, la habitación vuelve a estar disponible
+      await this.habitacionRepo.save(habitacion);
+    }
+
+    // 3. Actualizar los datos de la Asignación
+    asignacion.estado = 'Renunciada';
+
+    //REVISAR BIEN FECHAS
+    asignacion.fechaCheckOut = new Date(); // La fecha de salida pasa a ser el día de hoy
+    asignacion.rutAdmin = rutAdmin; // Registramos qué admin procesó la salida en el sistema
+
+    // 4. Guardamos y retornamos
+    return await this.asignacionRepo.save(asignacion);
+  }
+
+
+
+
 
 }

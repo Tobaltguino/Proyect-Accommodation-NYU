@@ -12,24 +12,27 @@ import {
 } from '@nestjs/common'; import { EdificiosService } from './edificios.service';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import type { AuthenticatedRequest } from 'src/common/types/authenticated-request.type';
+import { RolesGuard } from 'src/common/guards/roles.guard';
+import { Roles } from 'src/common/decorators/roles.decorator';
+import { Role } from '../auth/enums/role.enum';
 
 @Controller('edificios')
 export class EdificiosController {
   constructor(private readonly edificiosService: EdificiosService) { }
 
   // GET http://localhost:3000/edificios
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
   @Get()
   obtenerTodos() {
     return this.edificiosService.obtenerTodos();
   }
 
-  // PATCH http://localhost:3000/edificios/1
-  @Patch(':id')
-  modificarEdificio(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() datosActualizados: any
-  ) {
-    return this.edificiosService.modificarEdificio(id, datosActualizados);
+  // GET http://localhost:3000/edificios/infraestructura
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Get('infraestructura')
+  obtenerInfraestructuraCompleta() {
+    return this.edificiosService.obtenerInfraestructuraCompleta();
   }
 
   // GET http://localhost:3000/edificios/genero/Masculino
@@ -71,5 +74,18 @@ export class EdificiosController {
     // Si pasó todas las validaciones de seguridad, le entregamos los datos
     return this.edificiosService.obtenerPorGenero(generoEdificio);
   }
+
+  // PATCH http://localhost:3000/edificios/1
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  @Patch(':id')
+  modificarEdificio(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() datosActualizados: any
+  ) {
+    return this.edificiosService.modificarEdificio(id, datosActualizados);
+  }
+
+
 
 }
