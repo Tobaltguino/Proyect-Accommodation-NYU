@@ -1,7 +1,6 @@
 import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { forkJoin } from 'rxjs';
 
 import { EdificioDTO, PisoDTO, HabitacionDTO, Genero } from '../../../shared/models';
 import { InfraestructuraService } from '../../../core/services/infraestructura.service';
@@ -18,7 +17,7 @@ type ModalMode = 'CREATE' | 'EDIT';
 })
 export class AdminInfrastructureComponent implements OnInit {
   private infraestructuraService = inject(InfraestructuraService);
-  private cdr = inject(ChangeDetectorRef); // 👈 Inyectamos el detector de cambios
+  private cdr = inject(ChangeDetectorRef);
 
   edificios: EdificioDTO[] = [];
   edificioSeleccionado: EdificioDTO | null = null;
@@ -38,12 +37,11 @@ export class AdminInfrastructureComponent implements OnInit {
     this.cargarEdificios();
   }
 
-  // --- LÓGICA DE CARGA DE DATOS ---
   cargarEdificios(): void {
-    this.infraestructuraService.obtenerTodosLosEdificios().subscribe({
+    this.infraestructuraService.obtenerInfraestructuraCompleta().subscribe({
       next: (data) => {
         this.edificios = data;
-        this.cdr.detectChanges(); // 👈 Obligamos a Angular a dibujar la barra lateral
+        this.cdr.detectChanges(); 
 
         if (this.edificios.length > 0) {
           // 1. Si ya estábamos viendo un edificio
@@ -55,7 +53,7 @@ export class AdminInfrastructureComponent implements OnInit {
             }
           }
           
-          // 2. Si venimos de otra pestaña o se recargó la página (F5)
+          // 2. Si venimos de otra pestaña o se recargó la página 
           const idGuardado = localStorage.getItem('id_edificio_actual');
           if (idGuardado) {
             const guardado = this.edificios.find(e => e.idEdificio === Number(idGuardado));
@@ -69,57 +67,21 @@ export class AdminInfrastructureComponent implements OnInit {
           this.seleccionarEdificio(this.edificios[0]);
         }
       },
-      error: (err) => console.error('Error al cargar edificios:', err)
+      error: (err) => console.error('Error al cargar la infraestructura completa:', err)
     });
   }
 
   seleccionarEdificio(edificio: EdificioDTO): void {
     this.edificioSeleccionado = edificio;
     localStorage.setItem('id_edificio_actual', edificio.idEdificio.toString());
-    this.cargarDetallesEdificio(edificio.idEdificio);
-  }
-
-  cargarDetallesEdificio(idEdificio: number): void {
-    forkJoin({
-      pisos: this.infraestructuraService.obtenerPisosPorEdificio(idEdificio),
-      habitaciones: this.infraestructuraService.obtenerHabitacionesPorEdificio(idEdificio)
-    }).subscribe({
-      next: ({ pisos, habitaciones }) => {
-        if (this.edificioSeleccionado && this.edificioSeleccionado.idEdificio === idEdificio) {
-          
-          // 1. Ordenamos los pisos de menor a mayor (Piso 1, Piso 2...)
-          const pisosOrdenados = pisos.sort((a, b) => a.nroPiso - b.nroPiso);
-
-          this.edificioSeleccionado = {
-            ...this.edificioSeleccionado,
-            pisos: pisosOrdenados.map(piso => {
-              
-              // 2. Filtramos las habitaciones de este piso específico
-              const habitacionesDelPiso = habitaciones.filter(h => h.idPiso === piso.idPiso);
-              
-              // 3. Ordenamos esas habitaciones de menor a mayor (Hab 101, Hab 102...)
-              const habitacionesOrdenadas = habitacionesDelPiso.sort((a, b) => a.nroHabitacion - b.nroHabitacion);
-
-              return {
-                ...piso,
-                habitaciones: habitacionesOrdenadas
-              };
-            })
-          };
-          
-          this.cdr.detectChanges(); 
-        }
-      },
-      error: (err) => console.error('Error al cargar los detalles del edificio:', err)
-    });
   }
 
   cerrarModal(): void {
     this.activeModal = null;
-    this.cdr.detectChanges(); // Previene tirones gráficos al cerrar modales
+    this.cdr.detectChanges(); 
   }
 
-  // --- LÓGICA DE EDIFICIOS ---
+  // EDIFICIOS ---
   abrirModalEdificio(edificio: EdificioDTO): void {
     this.activeModal = 'EDIFICIO';
     this.edificioForm = { ...edificio };
@@ -129,14 +91,14 @@ export class AdminInfrastructureComponent implements OnInit {
     const { idEdificio, nombre, ubicacion, genero } = this.edificioForm;
     this.infraestructuraService.modificarEdificio(idEdificio, { nombre, ubicacion, genero }).subscribe({
       next: () => {
-        this.cargarEdificios();
+        this.cargarEdificios(); 
         this.cerrarModal();
       },
       error: (err) => console.error('Error al modificar edificio', err)
     });
   }
 
-  // --- LÓGICA DE PISOS ---
+  // PISOS
   abrirModalPiso(mode: ModalMode, piso?: PisoDTO): void {
     this.modalMode = mode;
     this.activeModal = 'PISO';
@@ -157,7 +119,7 @@ export class AdminInfrastructureComponent implements OnInit {
     if (this.modalMode === 'CREATE') {
       this.infraestructuraService.crearPiso(this.pisoForm.nroPiso, this.pisoForm.nombre, this.edificioSeleccionado.idEdificio).subscribe({
         next: () => {
-          this.cargarDetallesEdificio(this.edificioSeleccionado!.idEdificio);
+          this.cargarEdificios();
           this.cerrarModal();
         },
         error: (err) => console.error('Error al crear piso', err)
@@ -165,7 +127,7 @@ export class AdminInfrastructureComponent implements OnInit {
     } else {
       this.infraestructuraService.modificarPiso(this.targetIdPiso!, { nroPiso: this.pisoForm.nroPiso, nombre: this.pisoForm.nombre }).subscribe({
         next: () => {
-          this.cargarDetallesEdificio(this.edificioSeleccionado!.idEdificio);
+          this.cargarEdificios();
           this.cerrarModal();
         },
         error: (err) => console.error('Error al modificar piso', err)
@@ -173,7 +135,7 @@ export class AdminInfrastructureComponent implements OnInit {
     }
   }
 
-  // --- LÓGICA DE HABITACIONES ---
+  // HABITACIONES
   abrirModalHabitacion(mode: ModalMode, piso: PisoDTO, habitacion?: HabitacionDTO): void {
     this.modalMode = mode;
     this.activeModal = 'HABITACION';
@@ -196,7 +158,7 @@ export class AdminInfrastructureComponent implements OnInit {
     if (this.modalMode === 'CREATE') {
       this.infraestructuraService.crearHabitacion(this.habitacionForm.nroHabitacion, this.habitacionForm.capacidadActual, true, this.targetIdPiso!).subscribe({
         next: () => {
-          this.cargarDetallesEdificio(this.edificioSeleccionado!.idEdificio);
+          this.cargarEdificios();
           this.cerrarModal();
         },
         error: (err) => console.error('Error al crear habitación', err)
@@ -207,7 +169,7 @@ export class AdminInfrastructureComponent implements OnInit {
         capacidadActual: this.habitacionForm.capacidadActual
       }).subscribe({
         next: () => {
-          this.cargarDetallesEdificio(this.edificioSeleccionado!.idEdificio);
+          this.cargarEdificios();
           this.cerrarModal();
         },
         error: (err) => console.error('Error al modificar habitación', err)
@@ -220,13 +182,13 @@ export class AdminInfrastructureComponent implements OnInit {
     this.infraestructuraService.modificarHabitacion(habitacion.idHabitacion, { disponibilidad: nuevoEstado }).subscribe({
       next: () => {
         habitacion.disponibilidad = nuevoEstado;
-        this.cdr.detectChanges(); // 👈 Actualizamos la vista local del candado
+        this.cdr.detectChanges(); 
       },
       error: (err) => console.error('Error al cambiar disponibilidad', err)
     });
   }
 
-  // --- LÓGICA DE ELIMINACIÓN ---
+  // ELIMINACIÓN
   confirmarEliminacion(type: 'PISO' | 'HABITACION', data: any, parentData?: any): void {
     this.itemToDelete = { type, data, parentData };
     this.activeModal = 'DELETE';
@@ -239,7 +201,7 @@ export class AdminInfrastructureComponent implements OnInit {
     if (type === 'PISO') {
       this.infraestructuraService.eliminarPiso(data.idPiso).subscribe({
         next: () => {
-          this.cargarDetallesEdificio(this.edificioSeleccionado!.idEdificio);
+          this.cargarEdificios();
           this.cerrarModal();
         },
         error: (err) => console.error('Error al eliminar piso', err)
@@ -247,7 +209,7 @@ export class AdminInfrastructureComponent implements OnInit {
     } else if (type === 'HABITACION') {
       this.infraestructuraService.eliminarHabitacion(data.idHabitacion).subscribe({
         next: () => {
-          this.cargarDetallesEdificio(this.edificioSeleccionado!.idEdificio);
+          this.cargarEdificios();
           this.cerrarModal();
         },
         error: (err) => console.error('Error al eliminar habitación', err)
