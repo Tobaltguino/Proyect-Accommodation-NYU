@@ -35,6 +35,13 @@ export class EdificiosController {
     return this.edificiosService.obtenerInfraestructuraCompleta();
   }
 
+  // GET http://localhost:3000/edificios/infraestructura/Masculino
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Get('infraestructura/:generoEdificio')
+  obtenerInfraestructuraCompletaPorGenero(@Param('generoEdificio') generoEdificio: string) {
+    return this.edificiosService.obtenerInfraestructuraCompletaPorGenero(generoEdificio);
+  }
+
   // GET http://localhost:3000/edificios/genero/Masculino
   @UseGuards(JwtAuthGuard) // 1. Obliga a que la petición traiga un Token válido
   @Get('genero/:generoEdificio')
@@ -53,6 +60,7 @@ export class EdificiosController {
     // Si es Administrador, tiene pase libre para ver cualquier edificio
     if (user.role === 'ADMIN') {
       return this.edificiosService.obtenerPorGenero(generoEdificio);
+
     }
 
     // Si es Estudiante, validamos su género
@@ -84,6 +92,22 @@ export class EdificiosController {
     @Body() datosActualizados: any
   ) {
     return this.edificiosService.modificarEdificio(id, datosActualizados);
+  }
+
+  private mapEdificioToDTO(edificio: any) {
+    return {
+      idEdificio: edificio.idEdificio,
+      nombre: edificio.nombre,
+      genero: edificio.genero,
+
+      // Si tienes otras columnas básicas en tu entidad, agrégalas aquí.
+      // Por ejemplo, si tienes 'ubicacion' o 'estado':
+      // ubicacion: edificio.ubicacion,
+
+      // Ejemplo de cómo aplanar un dato extra: Si en el find() trajeras los pisos, 
+      // podrías mandarle al frontend solo la cantidad de pisos así:
+      // totalPisos: edificio.pisos ? edificio.pisos.length : 0
+    };
   }
 
 
