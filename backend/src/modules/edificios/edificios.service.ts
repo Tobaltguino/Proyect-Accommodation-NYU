@@ -34,11 +34,18 @@ export class EdificiosService {
   }
 
   // 3. OBTENER EDIFICIOS POR GÉNERO
-  async obtenerPorGenero(genero: string): Promise<EdificioEntity[]> {
-    return await this.edificioRepo.find({
+  // =========================================================
+  // OBTENER EDIFICIOS POR GÉNERO
+  // =========================================================
+  async obtenerPorGenero(genero: string) {
+    const edificios = await this.edificioRepo.find({
       where: { genero: genero },
-      order: { idEdificio: 'ASC' }
+      // Si quisieras que el totalPisos del DTO funcione, descomenta la siguiente línea:
+      relations: { pisos: true },
+      order: { nombre: 'ASC' }
     });
+
+    return edificios.map(edificio => this.mapEdificioToDTO(edificio));
   }
 
   async obtenerInfraestructuraCompleta(): Promise<EdificioEntity[]> {
@@ -60,5 +67,41 @@ export class EdificiosService {
     });
   }
 
+  async obtenerInfraestructuraCompletaPorGenero(genero: string): Promise<EdificioEntity[]> {
+    return await this.edificioRepo.find({
+      relations: {
+        pisos: {
+          habitaciones: true, // Trae las habitaciones dentro de cada piso
+        },
+      },
+      where: { genero: genero },
+      order: {
+        idEdificio: 'ASC',
+        pisos: {
+          nroPiso: 'ASC',
+          habitaciones: {
+            nroHabitacion: 'ASC',
+          },
+        },
+      },
+    });
+  }
+
+  // =========================================================
+  // LA HERRAMIENTA APLANADORA DE EDIFICIOS
+  // =========================================================
+  private mapEdificioToDTO(edificio: any) {
+    return {
+      idEdificio: edificio.idEdificio,
+      nombre: edificio.nombre,
+      ubicacion: edificio.ubicacion,
+      capacidadHabitaciones: edificio.capacidadHabitaciones,
+      genero: edificio.genero,
+
+      // Si en alguna ruta futura decides traer la relación de pisos,
+      // esto le enviará al frontend un número limpio con el total de pisos
+      totalPisos: edificio.pisos ? edificio.pisos.length : 0
+    };
+  }
 
 }

@@ -341,4 +341,17 @@ export class AsignacionesService {
     };
   }
 
+  // OBTENER CONTABILIZACIÓN DE ESTUDIANTES RESIDENTES (ACTIVOS) POR PERIODO
+  async obtenerTotalResidentesActivos(idPeriodo: number): Promise<{ total: number }> {
+    const cantidad = await this.asignacionRepo.count({
+      where: {
+        estado: 'Activa',
+        idPeriodo: idPeriodo
+      }
+    });
+
+    // Lo devolvemos en formato JSON para que el frontend lo lea directo como "datos.total"
+    return { total: cantidad };
+  }
+
 }
