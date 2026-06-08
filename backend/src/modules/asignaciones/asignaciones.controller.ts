@@ -41,6 +41,8 @@ export class AsignacionesController {
     return this.asignacionesService.crearAsignacion(idSolicitud, idHabitacion, rutAdmin);
   }
 
+
+
   // GET http://localhost:3000/asignaciones/mi-historial
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.STUDENT) // Protegido para que el estudiante acceda a su propia información
@@ -85,6 +87,16 @@ export class AsignacionesController {
   @Get('periodo/:idPeriodo')
   obtenerPorPeriodo(@Param('idPeriodo', ParseIntPipe) idPeriodo: number) {
     return this.asignacionesService.obtenerPorPeriodo(idPeriodo);
+  }
+
+  // GET http://localhost:3000/asignaciones/residentes-activos/1
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  @Get('residentes-activos/:idPeriodo')
+  obtenerTotalResidentesActivos(
+    @Param('idPeriodo', ParseIntPipe) idPeriodo: number
+  ) {
+    return this.asignacionesService.obtenerTotalResidentesActivos(idPeriodo);
   }
 
   // PATCH http://localhost:3000/asignaciones/1/reasignar
