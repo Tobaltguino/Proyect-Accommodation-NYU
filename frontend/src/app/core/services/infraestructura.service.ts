@@ -14,11 +14,9 @@ export class InfraestructuraService {
   
   private apiUrl = 'http://localhost:3000'; 
 
-  // Memoria global (Caché) para carga rápida al cambiar de pestañas
   public cacheEdificios: EdificioDTO[] = [];
   public cacheEdificioSeleccionado: EdificioDTO | null = null;
 
-  // Función para inyectar el token dinámicamente desde tu AuthService
   private getHeaders(): HttpHeaders {
     const token = this.authService.getToken() || '';
     return new HttpHeaders({
@@ -26,9 +24,15 @@ export class InfraestructuraService {
     });
   }
 
-  /* =========================================
-      EDIFICIOS
-  ========================================= */
+  // EDIFICIOS
+
+  obtenerInfraestructuraCompleta(): Observable<EdificioDTO[]> {
+    return this.http.get<EdificioDTO[]>(`${this.apiUrl}/edificios/infraestructura`, { headers: this.getHeaders() });
+  }
+
+  obtenerInfraestructuraCompletaPorGenero(genero: string): Observable<EdificioDTO[]> {
+    return this.http.get<EdificioDTO[]>(`${this.apiUrl}/edificios/infraestructura/${genero}`, { headers: this.getHeaders() });
+  }
 
   obtenerTodosLosEdificios(): Observable<EdificioDTO[]> {
     return this.http.get<EdificioDTO[]>(`${this.apiUrl}/edificios`, { headers: this.getHeaders() });
@@ -42,9 +46,7 @@ export class InfraestructuraService {
     return this.http.patch(`${this.apiUrl}/edificios/${id}`, datosActualizados, { headers: this.getHeaders() });
   }
 
-  /* =========================================
-      PISOS
-  ========================================= */
+  // PISOS
 
   obtenerTodosLosPisos(): Observable<PisoDTO[]> {
     return this.http.get<PisoDTO[]>(`${this.apiUrl}/pisos`, { headers: this.getHeaders() });
@@ -67,9 +69,7 @@ export class InfraestructuraService {
     return this.http.delete(`${this.apiUrl}/pisos/${id}`, { headers: this.getHeaders() });
   }
 
-  /* =========================================
-      HABITACIONES
-  ========================================= */
+  // HABITACIONES
 
   obtenerTodasLasHabitaciones(): Observable<HabitacionDTO[]> {
     return this.http.get<HabitacionDTO[]>(`${this.apiUrl}/habitaciones`, { headers: this.getHeaders() });
