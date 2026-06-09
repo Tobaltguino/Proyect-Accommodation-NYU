@@ -1,10 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { 
-  IncidenciaDTO, 
-  EstadoIncidencia, 
-  GravedadIncidencia 
+import { AdminIncidentsService } from './admin-incidents.service';
+import {
+  IncidenciaApiResponse,
+  IncidenciaDTO,
+  EstadoIncidencia,
+  GravedadIncidencia
 } from '../../../shared/models';
 
 @Component({
@@ -19,23 +21,23 @@ export class AdminIncidentsComponent implements OnInit {
   public GravedadEnum = GravedadIncidencia;
 
   // RUT del administrador simulado
-  private readonly RUT_ADMIN_ACTUAL = '14.555.666-7'; 
+  private readonly RUT_ADMIN_ACTUAL = '14.555.666-7';
   private readonly NOMBRE_ADMIN_ACTUAL = 'Cristóbal Administrador';
 
   incidencias: IncidenciaDTO[] = [
     {
       idIncidencia: 1,
       descripcion: 'Fuga de agua importante en el lavamanos del baño, el piso se está inundando rápidamente y necesitamos que venga alguien pronto a cortar el paso de agua.',
-      estado: EstadoIncidencia.PENDIENTE, 
+      estado: EstadoIncidencia.PENDIENTE,
       fecha: '2026-04-20',
-      gravedad: GravedadIncidencia.MODERADO, 
+      gravedad: GravedadIncidencia.MODERADO,
       idHabitacion: 10,
       nroHabitacion: 101,
       nombreEdificio: 'Residencia Masculina',
       rutEstudiante: '21.345.678-9',
       nombreEstudiante: 'Juan Pérez',
       periodo: '2026-1',
-      rutAdmin: null 
+      rutAdmin: null
     },
     {
       idIncidencia: 2,
@@ -49,7 +51,7 @@ export class AdminIncidentsComponent implements OnInit {
       rutEstudiante: '20.123.456-7',
       nombreEstudiante: 'María González',
       periodo: '2026-1',
-      rutAdmin: '11.222.333-4', 
+      rutAdmin: '11.222.333-4',
       nombreAdmin: 'Admin Mantenimiento'
     },
     {
@@ -84,12 +86,13 @@ export class AdminIncidentsComponent implements OnInit {
 
   // Modal
   isModalOpen = false;
-  selectedIncident: IncidenciaDTO | null = null; 
+  selectedIncident: IncidenciaDTO | null = null;
+
+  constructor(private readonly adminIncidentsService: AdminIncidentsService) { }
 
   ngOnInit(): void {
-    this.incidenciasFiltradas = [...this.incidencias];
     this.filtroPeriodo = '2026-1';
-    this.aplicarFiltros();
+    this.cargarIncidencias();
   }
 
   // Getters de Paginación
@@ -117,7 +120,7 @@ export class AdminIncidentsComponent implements OnInit {
       const matchEstado = this.filtroEstado ? inc.estado === this.filtroEstado : true;
       const matchGravedad = this.filtroGravedad ? inc.gravedad === this.filtroGravedad : true;
       const matchRut = rutBuscado ? inc.rutEstudiante.toLowerCase().includes(rutBuscado) : true;
-      
+
       return matchPeriodo && matchEstado && matchGravedad && matchRut;
     });
 
@@ -135,29 +138,45 @@ export class AdminIncidentsComponent implements OnInit {
 
   openModal(incidencia: IncidenciaDTO): void {
     this.selectedIncident = incidencia;
-    
+
     // Si está PENDIENTE y el admin la abre, asume la responsabilidad (pasa a EN_PROCESO)
     if (this.selectedIncident.estado === EstadoIncidencia.PENDIENTE) {
       this.selectedIncident.estado = EstadoIncidencia.EN_PROCESO;
       this.selectedIncident.rutAdmin = this.RUT_ADMIN_ACTUAL;
       this.selectedIncident.nombreAdmin = this.NOMBRE_ADMIN_ACTUAL;
-      this.aplicarFiltros(); 
+      this.aplicarFiltros();
+
+      this.adminIncidentsService
+        .updateEstadoIncidencia(this.selectedIncident.id_incidencia, {
+          estado: EstadoIncidencia.EN_PROCESO,
+          rutAdmin: this.RUT_ADMIN_ACTUAL,
+        })
+        .subscribe({
+          next: (updated) => {
+            this.syncIncidentFromApi(updated);
+            this.aplicarFiltros();
+          },
+          error: () => {
+            alert('No se pudo marcar la incidencia en proceso.');
+          },
+        });
+
     }
 
     this.isModalOpen = true;
-    document.body.style.overflow = 'hidden'; 
+    document.body.style.overflow = 'hidden';
   }
 
   closeModal(): void {
     this.isModalOpen = false;
     this.selectedIncident = null;
-    document.body.style.overflow = 'auto'; 
+    document.body.style.overflow = 'auto';
   }
 
   marcarComoResuelta(): void {
     if (this.selectedIncident) {
       this.selectedIncident.estado = EstadoIncidencia.RESUELTA;
-      
+
       this.selectedIncident.rutAdmin = this.RUT_ADMIN_ACTUAL;
       this.selectedIncident.nombreAdmin = this.NOMBRE_ADMIN_ACTUAL;
 

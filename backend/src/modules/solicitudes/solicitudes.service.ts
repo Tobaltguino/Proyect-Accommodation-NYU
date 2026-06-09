@@ -6,7 +6,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { JwtPayload } from '../auth/types/auth.types';
-import { PeriodosService } from '../periodos/periodos.service'; 
+import { PeriodosService } from '../periodos/periodos.service';
 import { CreateSolicitudDto } from './dto';
 import { SolicitudEntity } from './entities';
 
@@ -18,7 +18,7 @@ export class SolicitudesService {
     private readonly solicitudRepository: Repository<SolicitudEntity>,
 
     private readonly periodosService: PeriodosService,
-  ) {}
+  ) { }
 
   getStatus() {
     return { module: 'solicitudes', status: 'ok' };
@@ -37,29 +37,28 @@ export class SolicitudesService {
 
       const existing = await this.solicitudRepository.findOne({
         where: {
-          rutEstudiante: rutEstudianteStr,
+          rutEstudiante: user.rut,
           idPeriodo: periodoActual.idPeriodo,
         },
       });
 
       if (existing) {
-        throw new ConflictException('Ya existe una postulación para este semestre');
+        throw new ConflictException('Ya existe una postulacion para este semestre');
       }
-
 
       const solicitud = await this.solicitudRepository.save(
         this.solicitudRepository.create({
-          estado: 'Pendiente',                                  
-          fechaSolicitud: new Date().toISOString().split('T')[0],   
-          idPeriodo: periodoActual.idPeriodo,                      
-          idAsignacion: null,                                       
-          rutEstudiante: rutEstudianteStr,                          
-          rutAdmin: null,                                           
-          planAlimenticio: body.planAlimenticio,                    
+          estado: 'Pendiente',
+          fechaSolicitud: new Date().toISOString().split('T')[0],
+          idPeriodo: periodoActual.idPeriodo,
+          idAsignacion: null,
+          rutEstudiante: rutEstudianteStr,
+          rutAdmin: null,
+          planAlimenticio: body.planAlimenticio,
         }),
       );
 
-  
+
       return {
         id_solicitud: solicitud.idSolicitud,
         estado: solicitud.estado,
@@ -70,13 +69,13 @@ export class SolicitudesService {
       };
 
     } catch (error) {
-  if (error instanceof ConflictException) throw error;
-  
+      if (error instanceof ConflictException) throw error;
 
-  const mensajeError = error instanceof Error ? error.message : 'Error desconocido';
-  
-  throw new BadRequestException('Error al procesar la solicitud: ' + mensajeError);
-}
+
+      const mensajeError = error instanceof Error ? error.message : 'Error desconocido';
+
+      throw new BadRequestException('Error al procesar la solicitud: ' + mensajeError);
+    }
   }
 
   async getMySolicitud(user: JwtPayload) {

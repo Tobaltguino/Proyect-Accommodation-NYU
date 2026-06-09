@@ -3,7 +3,7 @@ import { Column, Entity, PrimaryGeneratedColumn, ManyToOne, JoinColumn, OneToMan
 import { EdificioEntity } from './edificio.entity';
 import { HabitacionEntity } from './habitacion.entity';
 
-@Entity({ name: 'piso' })
+@Entity({ name: 'piso', schema: 'public' })
 export class PisoEntity {
   @PrimaryGeneratedColumn({ name: 'id_piso' })
   idPiso!: number;

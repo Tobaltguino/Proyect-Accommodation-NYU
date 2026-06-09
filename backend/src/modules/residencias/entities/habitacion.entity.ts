@@ -8,7 +8,7 @@ import {
 
 import { PisoEntity } from './piso.entity';
 
-@Entity({ name: 'habitacion' })
+@Entity({ name: 'habitacion', schema: 'public' })
 export class HabitacionEntity {
   @PrimaryGeneratedColumn({ name: 'id_habitacion' })
   idHabitacion!: number;

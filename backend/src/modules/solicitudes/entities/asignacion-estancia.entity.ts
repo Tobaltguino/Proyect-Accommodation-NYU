@@ -1,7 +1,6 @@
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
-// Arreglo 1: Le avisamos a TypeORM el esquema 'nyu_v2' además del nombre de la tabla
-@Entity({ name: 'asignacion_estancia' })
+@Entity({ name: 'asignacion_estancia', schema: 'public' })
 export class AsignacionEstanciaEntity {
   @PrimaryGeneratedColumn({ name: 'id_asignacion' })
   idAsignacion!: number;

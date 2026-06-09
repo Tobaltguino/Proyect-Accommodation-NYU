@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, LessThanOrEqual, MoreThanOrEqual } from 'typeorm';
-import { PeriodoEntity } from '../solicitudes/entities';
+import { PeriodoEntity } from './entities/periodo.entity';
 
 @Injectable()
 export class PeriodosService {

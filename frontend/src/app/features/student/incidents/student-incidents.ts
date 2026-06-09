@@ -1,10 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { 
-  IncidenciaDTO, 
-  EstadoIncidencia, 
-  GravedadIncidencia 
+import { AuthService } from '../../../core/auth/auth.service';
+import { StudentIncidentsService } from './student-incidents.service';
+import {
+  IncidenciaApiResponse,
+  IncidenciaDTO,
+  EstadoIncidencia,
+  GravedadIncidencia
 } from '../../../shared/models';
 
 @Component({
@@ -24,16 +27,16 @@ export class StudentIncidentsComponent implements OnInit {
     {
       idIncidencia: 101,
       descripcion: 'Fuga de agua en el lavamanos.',
-      estado: EstadoIncidencia.PENDIENTE, 
+      estado: EstadoIncidencia.PENDIENTE,
       fecha: '2026-05-02',
       gravedad: GravedadIncidencia.MODERADO,
-      idHabitacion: 20, 
+      idHabitacion: 20,
       nroHabitacion: 204,
       nombreEdificio: 'Residencia Norte',
-      rutEstudiante: '12.345.678-9', 
-      nombreEstudiante: 'Estudiante Demo', 
+      rutEstudiante: '12.345.678-9',
+      nombreEstudiante: 'Estudiante Demo',
       periodo: '2026-1',
-      rutAdmin: null 
+      rutAdmin: null
     },
     {
       idIncidencia: 102,
@@ -41,13 +44,13 @@ export class StudentIncidentsComponent implements OnInit {
       estado: EstadoIncidencia.RESUELTA,
       fecha: '2026-04-15',
       gravedad: GravedadIncidencia.LEVE,
-      idHabitacion: 20, 
+      idHabitacion: 20,
       nroHabitacion: 204,
       nombreEdificio: 'Residencia Norte',
-      rutEstudiante: '12.345.678-9', 
-      nombreEstudiante: 'Estudiante Demo', 
+      rutEstudiante: '12.345.678-9',
+      nombreEstudiante: 'Estudiante Demo',
       periodo: '2026-1',
-      rutAdmin: '11.222.333-4', 
+      rutAdmin: '11.222.333-4',
       nombreAdmin: 'Admin Mantenimiento'
     }
   ];
@@ -66,19 +69,27 @@ export class StudentIncidentsComponent implements OnInit {
 
   // Variables para Modal de Visualización
   isViewModalOpen = false;
-  selectedIncident: IncidenciaDTO | null = null; 
+  selectedIncident: IncidenciaDTO | null = null;
 
   // Variables para Modal de Creación
   isCreateModalOpen = false;
   nuevaIncidencia = {
     descripcion: '',
-    gravedad: GravedadIncidencia.LEVE
+    gravedad: GravedadIncidencia.LEVE,
+    id_habitacion: 1,
   };
 
+  private userRut = '';
+
+  constructor(
+    private readonly studentIncidentsService: StudentIncidentsService,
+    private readonly authService: AuthService,
+  ) { }
+
   ngOnInit(): void {
-    this.incidenciasFiltradas = [...this.misIncidencias];
+    this.userRut = this.authService.getCurrentUser()?.rut ?? '';
     this.filtroPeriodo = '2026-1';
-    this.aplicarFiltros();
+    void this.cargarIncidencias();
   }
 
   // Getters de Paginación
@@ -103,7 +114,7 @@ export class StudentIncidentsComponent implements OnInit {
       const matchPeriodo = this.filtroPeriodo ? inc.periodo === this.filtroPeriodo : true;
       const matchEstado = this.filtroEstado ? inc.estado === this.filtroEstado : true;
       const matchGravedad = this.filtroGravedad ? inc.gravedad === this.filtroGravedad : true;
-      
+
       return matchPeriodo && matchEstado && matchGravedad;
     });
 
@@ -131,7 +142,11 @@ export class StudentIncidentsComponent implements OnInit {
 
   // --- MÉTODOS MODAL CREAR ---
   openCreateModal(): void {
-    this.nuevaIncidencia = { descripcion: '', gravedad: GravedadIncidencia.LEVE };
+    this.nuevaIncidencia = {
+      descripcion: '',
+      gravedad: GravedadIncidencia.LEVE,
+      id_habitacion: this.nuevaIncidencia.id_habitacion,
+    };
     this.isCreateModalOpen = true;
   }
 
@@ -145,9 +160,78 @@ export class StudentIncidentsComponent implements OnInit {
       return;
     }
 
-    console.log('Enviando nueva incidencia:', this.nuevaIncidencia);
-    
-    alert('Reporte enviado con éxito.');
-    this.closeCreateModal();
+    if (!this.userRut) {
+      alert('No se encontro sesion activa para reportar incidencia.');
+      return;
+    }
+
+    if (this.nuevaIncidencia.id_habitacion < 1) {
+      alert('Ingresa un ID de habitacion valido.');
+      return;
+    }
+
+    this.studentIncidentsService
+      .createIncidencia({
+        descripcion: this.nuevaIncidencia.descripcion.trim(),
+        gravedad: this.nuevaIncidencia.gravedad,
+        idHabitacion: this.nuevaIncidencia.id_habitacion,
+        rutEstudiante: this.userRut,
+      })
+      .subscribe({
+        next: () => {
+          alert('Reporte enviado con exito.');
+          this.closeCreateModal();
+          void this.cargarIncidencias();
+        },
+        error: () => {
+          alert('No se pudo enviar el reporte. Revisa backend y datos del formulario.');
+        },
+      });
+  }
+
+  private async cargarIncidencias(): Promise<void> {
+    this.studentIncidentsService
+      .getIncidencias({
+        rut: this.userRut || undefined,
+      })
+      .subscribe({
+        next: (rows) => {
+          this.misIncidencias = rows.map((row) => this.mapApiToDto(row));
+          this.periodos = this.resolvePeriods(this.misIncidencias);
+          this.aplicarFiltros();
+        },
+        error: () => {
+          this.misIncidencias = [];
+          this.incidenciasFiltradas = [];
+        },
+      });
+  }
+
+  private mapApiToDto(row: IncidenciaApiResponse): IncidenciaDTO {
+    return {
+      id_incidencia: row.idIncidencia,
+      descripcion: row.descripcion,
+      estado: row.estado,
+      fecha: row.fecha,
+      gravedad: row.gravedad,
+      id_habitacion: row.idHabitacion,
+      nro_habitacion: row.idHabitacion,
+      rut_estudiante: row.rutEstudiante,
+      rut_admin: row.rutAdmin,
+      periodo: this.filtroPeriodo || 'Sin periodo',
+      nombre_edificio: 'Sin edificio',
+    };
+  }
+
+  private resolvePeriods(rows: IncidenciaDTO[]): string[] {
+    const dynamicPeriods = Array.from(
+      new Set(
+        rows
+          .map((row) => row.periodo)
+          .filter((periodo): periodo is string => Boolean(periodo)),
+      ),
+    );
+
+    return dynamicPeriods.length > 0 ? dynamicPeriods : ['2026-1'];
   }
 }
