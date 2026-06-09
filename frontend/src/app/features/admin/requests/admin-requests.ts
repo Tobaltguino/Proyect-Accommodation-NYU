@@ -9,7 +9,9 @@ import {
   HabitacionDTO, 
   IncidenciaDTO,
   GravedadIncidencia,
-  EstadoIncidencia
+  EstadoIncidencia,
+  AsignacionDTO,
+  EstadoAsignacion
 } from '../../../shared/models';
 
 @Component({
@@ -20,18 +22,36 @@ import {
   styleUrl: './admin-requests.scss'
 })
 export class AdminRequestsComponent implements OnInit {
-  // 👇 Exponemos los Enums para que el HTML los pueda leer
   public GravedadEnum = GravedadIncidencia;
   public EstadoEnum = EstadoSolicitud;
 
+  // RUT del administrador que está usando el sistema (simulado)
+  private readonly RUT_ADMIN_ACTUAL = '14.555.666-7'; 
+  private readonly NOMBRE_ADMIN_ACTUAL = 'Cristóbal Administrador';
+
   solicitudes: SolicitudDTO[] = [
     {
-      id_solicitud: 101, estado: EstadoSolicitud.PENDIENTE, fecha_solicitud: '2026-04-25',
-      id_periodo: 1, nombre_periodo: '2026-1', id_usuario: 50, rut_usuario: '21.345.678-9', nombre_usuario: 'Valentina Soto', genero_usuario: Genero.FEMENINO
+      idSolicitud: 101, 
+      estado: EstadoSolicitud.PENDIENTE, 
+      fechaSolicitud: '2026-04-25',
+      idPeriodo: 1, 
+      nombrePeriodo: '2026-1', 
+      rutEstudiante: '21.345.678-9', 
+      nombreEstudiante: 'Valentina Soto', 
+      generoEstudiante: Genero.FEMENINO,
+      rutAdmin: null
     },
     {
-      id_solicitud: 102, estado: EstadoSolicitud.EN_REVISION, fecha_solicitud: '2026-04-22',
-      id_periodo: 1, nombre_periodo: '2026-1', id_usuario: 51, rut_usuario: '20.123.456-7', nombre_usuario: 'Matías Fernández', genero_usuario: Genero.MASCULINO
+      idSolicitud: 102, 
+      estado: EstadoSolicitud.EN_REVISION, 
+      fechaSolicitud: '2026-04-22',
+      idPeriodo: 1, 
+      nombrePeriodo: '2026-1', 
+      rutEstudiante: '20.123.456-7', 
+      nombreEstudiante: 'Matías Fernández', 
+      generoEstudiante: Genero.MASCULINO,
+      rutAdmin: '12.999.888-7',
+      nombreAdmin: 'Admin Previo'
     }
   ];
 
@@ -40,40 +60,33 @@ export class AdminRequestsComponent implements OnInit {
   filtroEstado: EstadoSolicitud | '' = '';
   periodos: string[] = ['2026-1', '2025-2', '2025-1'];
 
+  // Variables de Paginación
+  paginaActual: number = 1;
+  itemsPorPagina: number = 20;
+
   isModalOpen: boolean = false;
   solicitudSeleccionada: SolicitudDTO | null = null;
   incidenciasEstudiante: IncidenciaDTO[] = [];
   
   edificiosDisponibles: EdificioDTO[] = [
     {
-      id_edificio: 1, nombre: 'Residencia Norte', ubicacion: 'Campus Norte', genero: Genero.MIXTO,
+      idEdificio: 1, nombre: 'Residencia Norte', ubicacion: 'Campus Norte', genero: Genero.MIXTO,
       pisos: [
         {
-          id_piso: 1, nro_piso: 1, nombre: 'Piso 1', id_edificio: 1, habitaciones: [
-            { id_habitacion: 10, nro_habitacion: 101, capacidad_actual: 2, capacidad_total: 2, disponibilidad: true, id_piso: 1 },
-            { id_habitacion: 11, nro_habitacion: 102, capacidad_actual: 1, capacidad_total: 2, disponibilidad: true, id_piso: 1 },
-            { id_habitacion: 12, nro_habitacion: 103, capacidad_actual: 0, capacidad_total: 2, disponibilidad: true, id_piso: 1 }
+          idPiso: 1, nroPiso: 1, nombre: 'Piso 1', idEdificio: 1, habitaciones: [
+            { idHabitacion: 10, nroHabitacion: 101, capacidadActual: 2, capacidadTotal: 2, disponibilidad: true, idPiso: 1 },
+            { idHabitacion: 11, nroHabitacion: 102, capacidadActual: 1, capacidadTotal: 2, disponibilidad: true, idPiso: 1 },
+            { idHabitacion: 12, nroHabitacion: 103, capacidadActual: 0, capacidadTotal: 2, disponibilidad: true, idPiso: 1 }
           ]
         }
       ]
     },
     {
-      id_edificio: 2, nombre: 'Pabellón Sur', ubicacion: 'Campus Sur', genero: Genero.FEMENINO,
+      idEdificio: 2, nombre: 'Pabellón Sur', ubicacion: 'Campus Sur', genero: Genero.FEMENINO,
       pisos: [
         {
-          id_piso: 2, nro_piso: 1, nombre: 'Piso 1', id_edificio: 2, habitaciones: [
-            { id_habitacion: 20, nro_habitacion: 201, capacidad_actual: 0, capacidad_total: 4, disponibilidad: true, id_piso: 2 },
-            { id_habitacion: 21, nro_habitacion: 202, capacidad_actual: 1, capacidad_total: 2, disponibilidad: true, id_piso: 2 }
-          ]
-        }
-      ]
-    },
-    {
-      id_edificio: 3, nombre: 'Residencia Este', ubicacion: 'Campus Este', genero: Genero.FEMENINO,
-      pisos: [
-        {
-          id_piso: 3, nro_piso: 1, nombre: 'Piso 1', id_edificio: 3, habitaciones: [
-            { id_habitacion: 30, nro_habitacion: 301, capacidad_actual: 0, capacidad_total: 2, disponibilidad: true, id_piso: 3 }
+          idPiso: 2, nroPiso: 1, nombre: 'Piso 1', idEdificio: 2, habitaciones: [
+            { idHabitacion: 20, nroHabitacion: 201, capacidadActual: 0, capacidadTotal: 4, disponibilidad: true, idPiso: 2 }
           ]
         }
       ]
@@ -91,12 +104,32 @@ export class AdminRequestsComponent implements OnInit {
     this.aplicarFiltros();
   }
 
+  // Getters de Paginación
+  get solicitudesPaginadas(): SolicitudDTO[] {
+    const inicio = (this.paginaActual - 1) * this.itemsPorPagina;
+    const fin = inicio + this.itemsPorPagina;
+    return this.solicitudesFiltradas.slice(inicio, fin);
+  }
+
+  get totalPaginas(): number {
+    return Math.ceil(this.solicitudesFiltradas.length / this.itemsPorPagina) || 1;
+  }
+
+  cambiarPagina(nuevaPagina: number): void {
+    if (nuevaPagina >= 1 && nuevaPagina <= this.totalPaginas) {
+      this.paginaActual = nuevaPagina;
+    }
+  }
+
   aplicarFiltros(): void {
     this.solicitudesFiltradas = this.solicitudes.filter(sol => {
-      const matchPeriodo = this.filtroPeriodo ? sol.nombre_periodo === this.filtroPeriodo : true;
+      const matchPeriodo = this.filtroPeriodo ? sol.nombrePeriodo === this.filtroPeriodo : true;
       const matchEstado = this.filtroEstado ? sol.estado === this.filtroEstado : true;
       return matchPeriodo && matchEstado;
     });
+
+    // Reiniciar paginación al filtrar
+    this.paginaActual = 1;
   }
 
   limpiarFiltros(): void {
@@ -110,19 +143,23 @@ export class AdminRequestsComponent implements OnInit {
     
     if (solicitud.estado === EstadoSolicitud.PENDIENTE) {
       solicitud.estado = EstadoSolicitud.EN_REVISION;
+      // Vinculamos al admin que inició la revisión
+      solicitud.rutAdmin = this.RUT_ADMIN_ACTUAL;
+      solicitud.nombreAdmin = this.NOMBRE_ADMIN_ACTUAL;
     }
 
     this.incidenciasEstudiante = [
       { 
-        id_incidencia: 1, fecha: '2025-10-12', descripcion: 'Ruido excesivo en horario de descanso', 
+        idIncidencia: 1, fecha: '2025-10-12', descripcion: 'Ruido excesivo en horario de descanso', 
         gravedad: GravedadIncidencia.MODERADO, estado: EstadoIncidencia.RESUELTA,
-        nro_habitacion: 101, nombre_edificio: 'Residencia Norte',
-        rut_usuario: solicitud.rut_usuario, nombre_usuario: solicitud.nombre_usuario, periodo: '2025-2'
+        idHabitacion: 10, nroHabitacion: 101, nombreEdificio: 'Residencia Norte',
+        rutEstudiante: solicitud.rutEstudiante, nombreEstudiante: solicitud.nombreEstudiante,
+        rutAdmin: '12.888.777-6', nombreAdmin: 'Admin Guardia', periodo: '2025-2'
       }
     ];
 
     this.edificiosFiltrados = this.edificiosDisponibles.filter(
-      e => e.genero === Genero.MIXTO || e.genero === solicitud.genero_usuario
+      e => e.genero === Genero.MIXTO || e.genero === solicitud.generoEstudiante
     );
 
     this.edificioSeleccionadoMapa = this.edificiosFiltrados.length > 0 ? this.edificiosFiltrados[0] : null;
@@ -136,17 +173,17 @@ export class AdminRequestsComponent implements OnInit {
     this.solicitudSeleccionada = null;
   }
 
-  cambiarEdificioMapa(id_edificio_str: string): void {
-    const id = parseInt(id_edificio_str, 10);
-    this.edificioSeleccionadoMapa = this.edificiosFiltrados.find(e => e.id_edificio === id) || null;
+  cambiarEdificioMapa(idEdificioStr: string): void {
+    const id = parseInt(idEdificioStr, 10);
+    this.edificioSeleccionadoMapa = this.edificiosFiltrados.find(e => e.idEdificio === id) || null;
     this.habitacionSeleccionadaId = null; 
   }
 
   seleccionarHabitacion(habitacion: HabitacionDTO): void {
-    if (habitacion.capacidad_actual >= habitacion.capacidad_total || !habitacion.disponibilidad) {
+    if (habitacion.capacidadActual >= (habitacion.capacidadTotal || 0) || !habitacion.disponibilidad) {
       return; 
     }
-    this.habitacionSeleccionadaId = habitacion.id_habitacion;
+    this.habitacionSeleccionadaId = habitacion.idHabitacion;
   }
 
   esHabitacionSeleccionada(id: number): boolean {
@@ -156,17 +193,22 @@ export class AdminRequestsComponent implements OnInit {
   procesarSolicitud(accion: 'Aprobar' | 'Rechazar'): void {
     if (!this.solicitudSeleccionada) return;
 
+    // Al procesar, aseguramos que el administrador actual quede registrado
+    this.solicitudSeleccionada.rutAdmin = this.RUT_ADMIN_ACTUAL;
+    this.solicitudSeleccionada.nombreAdmin = this.NOMBRE_ADMIN_ACTUAL;
+
     if (accion === 'Rechazar') {
       this.solicitudSeleccionada.estado = EstadoSolicitud.RECHAZADA;
     } else if (accion === 'Aprobar') {
       this.solicitudSeleccionada.estado = EstadoSolicitud.APROBADA;
       
-      const nuevaAsignacion = {
-        fecha_asignacion: new Date().toISOString().split('T')[0],
-        estado: 'Activa',
-        id_habitacion: this.habitacionSeleccionadaId,
-        id_periodo: this.solicitudSeleccionada.id_periodo,
-        id_usuario: this.solicitudSeleccionada.id_usuario
+      const nuevaAsignacion: Partial<AsignacionDTO> = {
+        fechaAsignacion: new Date().toISOString().split('T')[0],
+        estado: EstadoAsignacion.ACTIVA,
+        idHabitacion: this.habitacionSeleccionadaId!,
+        idPeriodo: this.solicitudSeleccionada.idPeriodo,
+        rutEstudiante: this.solicitudSeleccionada.rutEstudiante,
+        rutAdmin: this.RUT_ADMIN_ACTUAL
       };
       console.log('Solicitud Aprobada. Creando Asignación:', nuevaAsignacion);
     }

@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { AuthService } from '../../../core/auth/auth.service';
 import { SessionUser } from '../../../core/auth/auth.models';
-// 👇 Importamos tus nuevos modelos desde el patrón barril
+// Importamos tus nuevos modelos
 import { DietaDTO, TipoDieta } from '../../../shared/models'; 
 
 @Component({
@@ -16,13 +16,14 @@ import { DietaDTO, TipoDieta } from '../../../shared/models';
 export class StudentHomePageComponent implements OnInit {
   currentUser: SessionUser | null = null;
   
-  tieneAsignacion: boolean = true; //Para ver si mostramos habitacion o decir que postule
+  tieneAsignacion: boolean = true; 
 
   miPlanDieta: DietaDTO = {
-    id_plan: 1,
-    tipo_plan: TipoDieta.VEGANO,
-    id_periodo: 1,
-    id_usuario: 0
+    idPlan: 1,
+    tipoPlan: TipoDieta.VEGANO,
+    idPeriodo: 1,
+    rutEstudiante: '', 
+    nombreEstudiante: '' 
   };
 
   miAsignacion = {
@@ -35,14 +36,16 @@ export class StudentHomePageComponent implements OnInit {
   constructor(private authService: AuthService) {
     this.currentUser = this.authService.getCurrentUser();
     
-    // Si hay un usuario logueado, le asignamos su ID al plan de dieta
+    // Si hay un usuario logueado, le asignamos su RUT al plan de dieta
     if (this.currentUser) {
-      this.miPlanDieta.id_usuario = this.currentUser.id;
+      // Nota: Asumo que en tu auth.models.ts agregaste el 'rut' al SessionUser.
+      // Si la variable se llama diferente, cámbialo aquí.
+      this.miPlanDieta.rutEstudiante = (this.currentUser as any).rut || '12.345.678-9';
     }
   }
 
   ngOnInit(): void {
-    // Aquí en el futuro llamaremos al backend:
-    // this.estudianteService.getAsignacion(this.currentUser.id).subscribe(...)
+    // En el futuro, tus llamadas al backend también usarán el RUT:
+    // this.estudianteService.getAsignacionPorRut(this.currentUser.rut).subscribe(...)
   }
 }

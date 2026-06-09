@@ -5,21 +5,22 @@ export enum EstadoAsignacion {
 }
 
 export interface AsignacionDTO {
-  id_asignacion: number;
-  fecha_asignacion: string;
-  fecha_check_in: string | null;
-  fecha_check_out: string | null;
+  idAsignacion: number;
+  fechaAsignacion: string;
+  fechaCheckIn: string | null;
+  fechaCheckOut: string | null;
   estado: EstadoAsignacion;
   
-  id_habitacion: number;
-  id_periodo: number;
-  id_usuario: number;
+  idHabitacion: number;
+  idPeriodo: number;
+  
+  rutEstudiante: string;
+  rutAdmin: string | null;
 
-  // Son los datos "unidos" (JOINs) que necesitamos para mostrar en las tablas
-  numero_habitacion?: string; 
-  id_edificio?: number;
-  nombre_edificio?: string;
-  nombre_periodo?: string;
-  rut_estudiante?: string;
-  nombre_estudiante?: string;
+  numeroHabitacion?: string; 
+  idEdificio?: number;
+  nombreEdificio?: string;
+  nombrePeriodo?: string;
+  nombreEstudiante?: string;
+  nombreAdmin?: string;
 }

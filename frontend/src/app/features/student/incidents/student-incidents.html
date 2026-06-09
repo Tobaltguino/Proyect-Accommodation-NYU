@@ -1,7 +1,6 @@
 <div class="container-fluid p-3 p-lg-4">
   <section class="incidents-shell mx-auto">
     
-    <!-- HEADER CON BOTÓN DE NUEVO REPORTE -->
     <header class="d-flex flex-column flex-md-row justify-content-between align-items-md-start gap-3 mb-4">
       <div>
         <h1 class="page-title m-0">Mis Incidencias</h1>
@@ -12,7 +11,6 @@
       </button>
     </header>
 
-    <!-- BLOQUE DE FILTROS (Sin buscar por RUT) -->
     <section class="filters-block border rounded-4 p-3 p-md-4 mb-4">
       <div class="d-flex justify-content-between align-items-center mb-3">
         <h2 class="m-0 fs-6 fw-bold block-title">Filtros de Búsqueda</h2>
@@ -52,7 +50,6 @@
       </div>
     </section>
 
-    <!-- CONTENEDOR DE LA TABLA -->
     <div class="table-responsive bg-white border rounded-3 custom-table-container">
       @if (incidenciasFiltradas.length === 0) {
         <div class="empty-state d-flex flex-column align-items-center justify-content-center">
@@ -71,14 +68,14 @@
             </tr>
           </thead>
           <tbody>
-            @for (incidencia of incidenciasFiltradas; track incidencia.id_incidencia) {
+            @for (incidencia of incidenciasPaginadas; track incidencia.idIncidencia) {
               <tr>
                 <td><span class="date">{{ incidencia.fecha }}</span></td>
                 
                 <td>
                   <div class="d-flex flex-column">
-                    <span class="building-name">{{ incidencia.nombre_edificio }}</span>
-                    <span class="room-number">Hab. {{ incidencia.nro_habitacion }}</span>
+                    <span class="building-name">{{ incidencia.nombreEdificio }}</span>
+                    <span class="room-number">Hab. {{ incidencia.nroHabitacion }}</span>
                   </div>
                 </td>
 
@@ -107,20 +104,53 @@
             }
           </tbody>
         </table>
+
+        @if (totalPaginas > 1) {
+          <div class="pagination-footer d-flex flex-column flex-sm-row justify-content-between align-items-center p-3 bg-white border-top">
+            
+            <span class="text-muted small mb-3 mb-sm-0">
+              Mostrando {{ incidenciasPaginadas.length }} de {{ incidenciasFiltradas.length }} registros
+            </span>
+
+            <div class="primeng-pagination d-flex align-items-center gap-1">
+              <button type="button" class="page-btn nav-btn" [disabled]="paginaActual === 1" (click)="cambiarPagina(1)" title="Primera página">
+                <i class="pi pi-angle-double-left"></i>
+              </button>
+              
+              <button type="button" class="page-btn nav-btn" [disabled]="paginaActual === 1" (click)="cambiarPagina(paginaActual - 1)" title="Anterior">
+                <i class="pi pi-angle-left"></i>
+              </button>
+
+              @for (i of [].constructor(totalPaginas); track $index) {
+                <button type="button" class="page-btn num-btn" 
+                        [class.active]="paginaActual === ($index + 1)" 
+                        (click)="cambiarPagina($index + 1)">
+                  {{ $index + 1 }}
+                </button>
+              }
+
+              <button type="button" class="page-btn nav-btn" [disabled]="paginaActual === totalPaginas" (click)="cambiarPagina(paginaActual + 1)" title="Siguiente">
+                <i class="pi pi-angle-right"></i>
+              </button>
+              
+              <button type="button" class="page-btn nav-btn" [disabled]="paginaActual === totalPaginas" (click)="cambiarPagina(totalPaginas)" title="Última página">
+                <i class="pi pi-angle-double-right"></i>
+              </button>
+            </div>
+
+          </div>
+        }
       }
     </div>
   </section>
 </div>
 
-<!-- ============================================== -->
-<!-- MODAL DE DESCRIPCIÓN (Solo Lectura) -->
-<!-- ============================================== -->
 @if (isViewModalOpen && selectedIncident) {
   <div class="modal-backdrop position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center z-3 p-3" (click)="closeViewModal()">
     <div class="modal-card bg-white d-flex flex-column" (click)="$event.stopPropagation()">
       
       <header class="modal-header d-flex justify-content-between align-items-center">
-        <h2 class="m-0">Detalles de Incidencia #{{ selectedIncident.id_incidencia }}</h2>
+        <h2 class="m-0">Detalles de Incidencia #{{ selectedIncident.idIncidencia }}</h2>
         <button type="button" class="close-btn border-0" (click)="closeViewModal()">
           <i class="pi pi-times"></i>
         </button>
@@ -130,8 +160,8 @@
         <div class="row g-3 mb-4">
           <div class="col-12 col-sm-6 d-flex flex-column">
             <small class="text-muted text-uppercase" style="font-size: 0.8rem; letter-spacing: 0.02em;">Ubicación</small>
-            <strong class="text-dark">{{ selectedIncident.nombre_edificio }}</strong>
-            <span class="modal-subtitle">Hab. {{ selectedIncident.nro_habitacion }}</span>
+            <strong class="text-dark">{{ selectedIncident.nombreEdificio }}</strong>
+            <span class="modal-subtitle">Hab. {{ selectedIncident.nroHabitacion }}</span>
           </div>
           <div class="col-12 col-sm-6 d-flex flex-column">
             <small class="text-muted text-uppercase" style="font-size: 0.8rem; letter-spacing: 0.02em;">Fecha</small>
@@ -158,9 +188,6 @@
   </div>
 }
 
-<!-- ============================================== -->
-<!-- MODAL DE CREACIÓN (Nuevo Reporte) -->
-<!-- ============================================== -->
 @if (isCreateModalOpen) {
   <div class="modal-backdrop position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center z-3 p-3" (click)="closeCreateModal()">
     <div class="modal-card bg-white d-flex flex-column" (click)="$event.stopPropagation()">

@@ -12,7 +12,7 @@ import {
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './student-incidents.html',
-  styleUrl: './student-incidents.scss' // Asegúrate de copiar aquí el CSS del admin
+  styleUrl: './student-incidents.scss'
 })
 export class StudentIncidentsComponent implements OnInit {
   // Exponemos los Enums a la vista HTML
@@ -22,38 +22,47 @@ export class StudentIncidentsComponent implements OnInit {
   // Simulamos solo las incidencias de ESTE estudiante
   misIncidencias: IncidenciaDTO[] = [
     {
-      id_incidencia: 101,
+      idIncidencia: 101,
       descripcion: 'Fuga de agua en el lavamanos.',
       estado: EstadoIncidencia.PENDIENTE, 
       fecha: '2026-05-02',
-      gravedad: GravedadIncidencia.MODERADO, 
-      nro_habitacion: 204,
-      nombre_edificio: 'Residencia Norte',
-      rut_usuario: '12.345.678-9',
-      nombre_usuario: 'Estudiante Demo',
-      periodo: '2026-1'
+      gravedad: GravedadIncidencia.MODERADO,
+      idHabitacion: 20, 
+      nroHabitacion: 204,
+      nombreEdificio: 'Residencia Norte',
+      rutEstudiante: '12.345.678-9', 
+      nombreEstudiante: 'Estudiante Demo', 
+      periodo: '2026-1',
+      rutAdmin: null 
     },
     {
-      id_incidencia: 102,
+      idIncidencia: 102,
       descripcion: 'Ampolleta principal quemada.',
       estado: EstadoIncidencia.RESUELTA,
       fecha: '2026-04-15',
       gravedad: GravedadIncidencia.LEVE,
-      nro_habitacion: 204,
-      nombre_edificio: 'Residencia Norte',
-      rut_usuario: '12.345.678-9',
-      nombre_usuario: 'Estudiante Demo',
-      periodo: '2026-1'
+      idHabitacion: 20, 
+      nroHabitacion: 204,
+      nombreEdificio: 'Residencia Norte',
+      rutEstudiante: '12.345.678-9', 
+      nombreEstudiante: 'Estudiante Demo', 
+      periodo: '2026-1',
+      rutAdmin: '11.222.333-4', 
+      nombreAdmin: 'Admin Mantenimiento'
     }
   ];
 
   incidenciasFiltradas: IncidenciaDTO[] = [];
 
-  // Filtros (Sin RUT)
+  // Filtros
   filtroPeriodo: string = '';
   filtroEstado: EstadoIncidencia | '' = '';
   filtroGravedad: GravedadIncidencia | '' = '';
   periodos: string[] = ['2026-1', '2025-2'];
+
+  // Variables de Paginación
+  paginaActual: number = 1;
+  itemsPorPagina: number = 20;
 
   // Variables para Modal de Visualización
   isViewModalOpen = false;
@@ -72,6 +81,23 @@ export class StudentIncidentsComponent implements OnInit {
     this.aplicarFiltros();
   }
 
+  // Getters de Paginación
+  get incidenciasPaginadas(): IncidenciaDTO[] {
+    const inicio = (this.paginaActual - 1) * this.itemsPorPagina;
+    const fin = inicio + this.itemsPorPagina;
+    return this.incidenciasFiltradas.slice(inicio, fin);
+  }
+
+  get totalPaginas(): number {
+    return Math.ceil(this.incidenciasFiltradas.length / this.itemsPorPagina) || 1;
+  }
+
+  cambiarPagina(nuevaPagina: number): void {
+    if (nuevaPagina >= 1 && nuevaPagina <= this.totalPaginas) {
+      this.paginaActual = nuevaPagina;
+    }
+  }
+
   aplicarFiltros(): void {
     this.incidenciasFiltradas = this.misIncidencias.filter(inc => {
       const matchPeriodo = this.filtroPeriodo ? inc.periodo === this.filtroPeriodo : true;
@@ -80,6 +106,9 @@ export class StudentIncidentsComponent implements OnInit {
       
       return matchPeriodo && matchEstado && matchGravedad;
     });
+
+    // Reiniciar página al filtrar
+    this.paginaActual = 1;
   }
 
   limpiarFiltros(): void {
@@ -116,10 +145,8 @@ export class StudentIncidentsComponent implements OnInit {
       return;
     }
 
-    // Aquí iría el llamado al backend con el servicio
     console.log('Enviando nueva incidencia:', this.nuevaIncidencia);
     
-    // Simulamos que se agrega exitosamente
     alert('Reporte enviado con éxito.');
     this.closeCreateModal();
   }

@@ -1,7 +1,6 @@
 <div class="container-fluid p-3 p-lg-4">
   <section class="assignments-shell mx-auto">
     
-    <!-- HEADER -->
     <header class="d-flex flex-column flex-md-row justify-content-between align-items-md-start gap-3 mb-4">
       <div>
         <h1 class="page-title m-0">Mi Historial de Estadía</h1>
@@ -9,11 +8,10 @@
       </div>
     </header>
 
-    <!-- BLOQUE DE FILTROS (Simplificado sin barra de búsqueda) -->
     <section class="filters-block border rounded-4 p-3 p-md-4 mb-4">
       <div class="d-flex justify-content-between align-items-center mb-3">
         <h2 class="m-0 fs-6 fw-bold block-title">Filtros de Búsqueda</h2>
-        <button type="button" class="text-btn" (click)="limpiarFiltros()">Limpiar filtros</button>
+        <button type="button" class="text-btn border-0 bg-transparent" (click)="limpiarFiltros()">Limpiar filtros</button>
       </div>
       
       <div class="row g-3">
@@ -39,10 +37,9 @@
       </div>
     </section>
 
-    <!-- CONTENEDOR DE LA TABLA (Sin columna de acciones) -->
     <div class="table-responsive bg-white border rounded-3 custom-table-container">
       @if (historialFiltrado.length === 0) {
-        <div class="empty-state d-flex flex-column align-items-center justify-content-center">
+        <div class="empty-state d-flex flex-column align-items-center justify-content-center p-5">
           <i class="pi pi-folder-open empty-icon mb-2"></i>
           <p class="m-0">No hay registros en tu historial que coincidan con los filtros.</p>
         </div>
@@ -58,30 +55,30 @@
             </tr>
           </thead>
           <tbody>
-            @for (asig of historialFiltrado; track asig.id_asignacion) {
+            @for (asig of historialPaginado; track asig.idAsignacion) {
               <tr [class.bg-light]="asig.estado === EstadoAsignacionEnum.ACTIVA">
                 <td>
-                  <strong class="text-dark">{{ asig.nombre_periodo }}</strong>
+                  <strong class="text-dark">{{ asig.nombrePeriodo }}</strong>
                 </td>
                 
                 <td>
                   <div class="d-flex flex-column">
-                    <span class="room">Hab. {{ asig.numero_habitacion }}</span>
-                    <span class="building"><i class="pi pi-building me-1" style="font-size: 0.8rem;"></i>{{ asig.nombre_edificio }}</span>
+                    <span class="room fw-semibold text-dark">Hab. {{ asig.numeroHabitacion }}</span>
+                    <span class="building text-muted small"><i class="pi pi-building me-1" style="font-size: 0.8rem;"></i>{{ asig.nombreEdificio }}</span>
                   </div>
                 </td>
 
                 <td>
-                  <span class="user-sub">{{ asig.fecha_asignacion }}</span>
+                  <span class="user-sub text-muted small">{{ asig.fechaAsignacion }}</span>
                 </td>
 
                 <td>
-                  <div class="dates-meta d-flex flex-column gap-1">
-                    <span [class.missing]="!asig.fecha_check_in" [title]="!asig.fecha_check_in ? 'Aún no realizas tu ingreso' : 'Fecha de Ingreso'">
-                      <i class="pi pi-sign-in"></i> {{ asig.fecha_check_in || 'Ingreso Pendiente' }}
+                  <div class="dates-meta d-flex flex-column gap-1 text-sm">
+                    <span [class.text-400]="!asig.fechaCheckIn" [title]="!asig.fechaCheckIn ? 'Aún no realizas tu ingreso' : 'Fecha de Ingreso'">
+                      <i class="pi pi-sign-in text-secondary"></i> {{ asig.fechaCheckIn || 'Ingreso Pendiente' }}
                     </span>
-                    <span [class.missing]="!asig.fecha_check_out && asig.estado !== EstadoAsignacionEnum.ACTIVA" [title]="!asig.fecha_check_out ? 'No registra fecha de salida' : 'Fecha de Salida'">
-                      <i class="pi pi-sign-out"></i> {{ asig.fecha_check_out || '--/--/----' }}
+                    <span [class.text-400]="!asig.fechaCheckOut && asig.estado !== EstadoAsignacionEnum.ACTIVA" [title]="!asig.fechaCheckOut ? 'No registra fecha de salida' : 'Fecha de Salida'">
+                      <i class="pi pi-sign-out text-secondary"></i> {{ asig.fechaCheckOut || '--/--/----' }}
                     </span>
                   </div>
                 </td>
@@ -95,6 +92,41 @@
             }
           </tbody>
         </table>
+
+        @if (totalPaginas > 1) {
+          <div class="pagination-footer d-flex flex-column flex-sm-row justify-content-between align-items-center p-3 bg-white border-top">
+            
+            <span class="text-muted small mb-3 mb-sm-0">
+              Mostrando {{ historialPaginado.length }} de {{ historialFiltrado.length }} registros
+            </span>
+
+            <div class="primeng-pagination d-flex align-items-center gap-1">
+              <button type="button" class="page-btn nav-btn" [disabled]="paginaActual === 1" (click)="cambiarPagina(1)" title="Primera página">
+                <i class="pi pi-angle-double-left"></i>
+              </button>
+              
+              <button type="button" class="page-btn nav-btn" [disabled]="paginaActual === 1" (click)="cambiarPagina(paginaActual - 1)" title="Anterior">
+                <i class="pi pi-angle-left"></i>
+              </button>
+
+              @for (i of [].constructor(totalPaginas); track $index) {
+                <button type="button" class="page-btn num-btn" 
+                        [class.active]="paginaActual === ($index + 1)" 
+                        (click)="cambiarPagina($index + 1)">
+                  {{ $index + 1 }}
+                </button>
+              }
+
+              <button type="button" class="page-btn nav-btn" [disabled]="paginaActual === totalPaginas" (click)="cambiarPagina(paginaActual + 1)" title="Siguiente">
+                <i class="pi pi-angle-right"></i>
+              </button>
+              
+              <button type="button" class="page-btn nav-btn" [disabled]="paginaActual === totalPaginas" (click)="cambiarPagina(totalPaginas)" title="Última página">
+                <i class="pi pi-angle-double-right"></i>
+              </button>
+            </div>
+          </div>
+        }
       }
     </div>
   </section>

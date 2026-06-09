@@ -3,17 +3,15 @@ export enum TipoDieta {
   VEGANO = 'Vegano',
   VEGETARIANO = 'Vegetariano',
   PECETARIANO = 'Pecetariano',
-
 }
 
 export interface DietaDTO {
-  id_plan: number;
-  tipo_plan: TipoDieta | string;
-  id_periodo: number;
-  id_usuario: number;
+  idPlan: number;
+  tipoPlan: TipoDieta | string;
+  idPeriodo: number;
+  
+  rutEstudiante: string;
 
-  // 👇 AGREGA ESTOS CAMPOS COMO OPCIONALES 👇
-  nombre_estudiante?: string;
-  rut_estudiante?: string;
-  nombre_periodo?: string;
+  nombreEstudiante?: string;
+  nombrePeriodo?: string;
 }

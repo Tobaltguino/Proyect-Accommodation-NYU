@@ -23,3 +23,47 @@ app-root {
   display: block;
   min-height: 100vh;
 }
+
+/* =========================================
+   PAGINACIÓN ESTILO PRIMENG (CIRCULAR)
+========================================= */
+.primeng-pagination {
+  .page-btn {
+    background: transparent;
+    border: none;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    color: #475569; /* Gris oscuro para los números inactivos */
+    transition: all 0.2s ease;
+    cursor: pointer;
+    font-family: inherit;
+
+    i {
+      font-size: 1.1rem;
+    }
+
+    /* Efecto hover general */
+    &:hover:not(:disabled):not(.active) {
+      background: #f1f5f9;
+      color: #1e3a8a;
+    }
+
+    /* Estilo para los botones deshabilitados */
+    &:disabled {
+      color: #cbd5e1;
+      cursor: not-allowed;
+    }
+
+    /* EL CÍRCULO ACTIVO */
+    &.active {
+      background: #eff6ff; /* Un fondo azul muy suave */
+      color: #1e3a8a;      /* Tu azul principal */
+      font-weight: 700;
+    }
+  }
+}

@@ -11,7 +11,7 @@
     <section class="filters-block border rounded-4 p-3 p-md-4 mb-4">
       <div class="d-flex justify-content-between align-items-center mb-3">
         <h2 class="m-0 fs-6 fw-bold block-title">Filtros de Búsqueda</h2>
-        <button type="button" class="text-btn" (click)="limpiarFiltros()">Limpiar filtros</button>
+        <button type="button" class="text-btn border-0" (click)="limpiarFiltros()">Limpiar filtros</button>
       </div>
       
       <div class="row g-3">
@@ -73,23 +73,23 @@
               <th>Reportado por</th>
               <th>Gravedad</th>
               <th>Estado</th>
-              <th class="actions-col text-center">Acciones</th>
+              <th>Atendido por</th> <th class="actions-col text-center">Acciones</th>
             </tr>
           </thead>
           <tbody>
-            @for (incidencia of incidenciasFiltradas; track incidencia.id_incidencia) {
+            @for (incidencia of incidenciasPaginadas; track incidencia.idIncidencia) {
               <tr>
                 <td>
                   <div class="d-flex flex-column">
-                    <span class="building-name">{{ incidencia.nombre_edificio }}</span>
-                    <span class="room-number">Hab. {{ incidencia.nro_habitacion }}</span>
+                    <span class="building-name">{{ incidencia.nombreEdificio }}</span>
+                    <span class="room-number">Hab. {{ incidencia.nroHabitacion }}</span>
                   </div>
                 </td>
                 
                 <td>
                   <div class="d-flex flex-column">
-                    <span class="user-name">{{ incidencia.nombre_usuario }}</span>
-                    <span class="rut">{{ incidencia.rut_usuario }}</span>
+                    <span class="user-name">{{ incidencia.nombreEstudiante }}</span>
+                    <span class="rut">{{ incidencia.rutEstudiante }}</span>
                     <span class="date">{{ incidencia.fecha }}</span>
                   </div>
                 </td>
@@ -106,10 +106,20 @@
                   </span>
                 </td>
 
+                <td>
+                  @if (incidencia.rutAdmin) {
+                    <div class="d-flex flex-column" style="font-size: 0.85rem;">
+                      <span class="text-dark fw-semibold">{{ incidencia.nombreAdmin }}</span>
+                    </div>
+                  } @else {
+                    <span class="text-muted small">Sin asignar</span>
+                  }
+                </td>
+
                 <td class="text-center">
                   <button 
                     type="button" 
-                    class="ghost small icon-only mx-auto" 
+                    class="ghost small icon-only mx-auto border-0" 
                     title="Revisar Incidencia"
                     (click)="openModal(incidencia)">
                     <i class="pi pi-search"></i>
@@ -119,6 +129,42 @@
             }
           </tbody>
         </table>
+
+        @if (totalPaginas > 1) {
+          <div class="pagination-footer d-flex flex-column flex-sm-row justify-content-between align-items-center p-3 bg-white border-top">
+            
+            <span class="text-muted small mb-3 mb-sm-0">
+              Mostrando {{ incidenciasPaginadas.length }} de {{ incidenciasFiltradas.length }} registros
+            </span>
+
+            <div class="primeng-pagination d-flex align-items-center gap-1">
+              <button type="button" class="page-btn nav-btn" [disabled]="paginaActual === 1" (click)="cambiarPagina(1)" title="Primera página">
+                <i class="pi pi-angle-double-left"></i>
+              </button>
+              
+              <button type="button" class="page-btn nav-btn" [disabled]="paginaActual === 1" (click)="cambiarPagina(paginaActual - 1)" title="Anterior">
+                <i class="pi pi-angle-left"></i>
+              </button>
+
+              @for (i of [].constructor(totalPaginas); track $index) {
+                <button type="button" class="page-btn num-btn" 
+                        [class.active]="paginaActual === ($index + 1)" 
+                        (click)="cambiarPagina($index + 1)">
+                  {{ $index + 1 }}
+                </button>
+              }
+
+              <button type="button" class="page-btn nav-btn" [disabled]="paginaActual === totalPaginas" (click)="cambiarPagina(paginaActual + 1)" title="Siguiente">
+                <i class="pi pi-angle-right"></i>
+              </button>
+              
+              <button type="button" class="page-btn nav-btn" [disabled]="paginaActual === totalPaginas" (click)="cambiarPagina(totalPaginas)" title="Última página">
+                <i class="pi pi-angle-double-right"></i>
+              </button>
+            </div>
+
+          </div>
+        }
       }
     </div>
   </section>
@@ -129,7 +175,7 @@
     <div class="modal-card bg-white d-flex flex-column" (click)="$event.stopPropagation()">
       
       <header class="modal-header d-flex justify-content-between align-items-center">
-        <h2 class="m-0">Detalles de Incidencia #{{ selectedIncident.id_incidencia }}</h2>
+        <h2 class="m-0">Detalles de Incidencia #{{ selectedIncident.idIncidencia }}</h2>
         <button type="button" class="close-btn border-0" (click)="closeModal()">
           <i class="pi pi-times"></i>
         </button>
@@ -139,13 +185,13 @@
         <div class="row g-3 mb-4">
           <div class="col-12 col-sm-6 d-flex flex-column">
             <small class="text-muted text-uppercase" style="font-size: 0.8rem; letter-spacing: 0.02em;">Ubicación</small>
-            <strong class="text-dark">{{ selectedIncident.nombre_edificio }}</strong>
-            <span class="modal-subtitle">Hab. {{ selectedIncident.nro_habitacion }}</span>
+            <strong class="text-dark">{{ selectedIncident.nombreEdificio }}</strong>
+            <span class="modal-subtitle">Hab. {{ selectedIncident.nroHabitacion }}</span>
           </div>
           <div class="col-12 col-sm-6 d-flex flex-column">
             <small class="text-muted text-uppercase" style="font-size: 0.8rem; letter-spacing: 0.02em;">Reportado por</small>
-            <strong class="text-dark">{{ selectedIncident.nombre_usuario }}</strong>
-            <span class="modal-subtitle">RUT: {{ selectedIncident.rut_usuario }}</span>
+            <strong class="text-dark">{{ selectedIncident.nombreEstudiante }}</strong>
+            <span class="modal-subtitle">RUT: {{ selectedIncident.rutEstudiante }}</span>
           </div>
           <div class="col-12 col-sm-6 d-flex flex-column">
             <small class="text-muted text-uppercase" style="font-size: 0.8rem; letter-spacing: 0.02em;">Fecha</small>
@@ -157,6 +203,13 @@
               {{ selectedIncident.estado }}
             </span>
           </div>
+          
+          @if (selectedIncident.rutAdmin) {
+            <div class="col-12 d-flex flex-column mt-2 pt-2 border-top">
+              <small class="text-muted text-uppercase" style="font-size: 0.8rem; letter-spacing: 0.02em;">Atendido Por</small>
+              <strong class="text-primary-custom">{{ selectedIncident.nombreAdmin }}</strong>
+            </div>
+          }
         </div>
 
         <div class="modal-desc-box border rounded-3 p-3 bg-light">

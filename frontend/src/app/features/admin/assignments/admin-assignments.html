@@ -11,15 +11,15 @@
     <section class="filters-block border rounded-4 p-3 p-md-4 mb-4">
       <div class="d-flex justify-content-between align-items-center mb-3">
         <h2 class="m-0 fs-6 fw-bold block-title">Filtros y Búsqueda</h2>
-        <button type="button" class="text-btn" (click)="limpiarFiltros()">Limpiar filtros</button>
+        <button type="button" class="text-btn border-0" (click)="limpiarFiltros()">Limpiar filtros</button>
       </div>
       
       <div class="row g-3">
         <div class="col-12 col-md-6 col-lg-5">
-          <label for="search" class="form-label mb-1">Buscar</label>
+          <label for="searchRut" class="form-label mb-1">Buscar por RUT</label>
           <div class="position-relative d-flex align-items-center">
-            <i class="pi pi-search position-absolute ms-3 text-muted"></i>
-            <input id="search" type="text" class="form-control custom-control ps-5" [(ngModel)]="filtroBusqueda" (keyup)="aplicarFiltros()" placeholder="Nombre, RUT o Habitación...">
+            <i class="pi pi-id-card position-absolute ms-3 text-muted"></i>
+            <input id="searchRut" type="text" class="form-control custom-control ps-5" [(ngModel)]="filtroRut" (keyup)="aplicarFiltros()" placeholder="Ej: 12.345.678-9">
           </div>
         </div>
 
@@ -60,35 +60,36 @@
               <th>Periodo</th>
               <th>Ingreso/Salida</th>
               <th>Estado</th>
+              <th>Última Acción</th> 
               <th class="actions-col text-center">Acciones</th>
             </tr>
           </thead>
           <tbody>
-            @for (asig of asignacionesFiltradas; track asig.id_asignacion) {
+            @for (asig of asignacionesPaginadas; track asig.idAsignacion) {
               <tr>
                 <td>
                   <div class="d-flex flex-column">
-                    <span class="user-name">{{ asig.nombre_estudiante }}</span>
-                    <span class="user-sub">RUT: {{ asig.rut_estudiante }}</span>
+                    <span class="user-name">{{ asig.nombreEstudiante }}</span>
+                    <span class="user-sub">{{ asig.rutEstudiante }}</span>
                   </div>
                 </td>
                 
                 <td>
                   <div class="d-flex flex-column">
-                    <span class="room">Hab {{ asig.numero_habitacion }}</span>
-                    <span class="building">{{ asig.nombre_edificio }}</span>
+                    <span class="room">Hab {{ asig.numeroHabitacion }}</span>
+                    <span class="building">{{ asig.nombreEdificio }}</span>
                   </div>
                 </td>
 
-                <td><strong>{{ asig.nombre_periodo }}</strong></td>
+                <td><strong>{{ asig.nombrePeriodo }}</strong></td>
 
                 <td>
                   <div class="dates-meta d-flex flex-column gap-1">
-                    <span [class.missing]="!asig.fecha_check_in">
-                      <i class="pi pi-sign-in"></i> {{ asig.fecha_check_in || 'Pendiente' }}
+                    <span [class.missing]="!asig.fechaCheckIn">
+                      <i class="pi pi-sign-in"></i> {{ asig.fechaCheckIn || 'Pendiente' }}
                     </span>
-                    <span [class.missing]="!asig.fecha_check_out && asig.estado !== EstadoAsignacionEnum.ACTIVA">
-                      <i class="pi pi-sign-out"></i> {{ asig.fecha_check_out || '--/--/----' }}
+                    <span [class.missing]="!asig.fechaCheckOut && asig.estado !== EstadoAsignacionEnum.ACTIVA">
+                      <i class="pi pi-sign-out"></i> {{ asig.fechaCheckOut || '--/--/----' }}
                     </span>
                   </div>
                 </td>
@@ -99,9 +100,23 @@
                   </span>
                 </td>
 
+                <td>
+                  @if (asig.rutAdmin) {
+                    <div class="d-flex flex-column" style="font-size: 0.85rem;">
+                      <span class="text-uppercase text-muted fw-bold" style="font-size: 0.7rem;">{{ obtenerAccionAdmin(asig) }}</span>
+                      <span class="text-dark fw-semibold" [title]="asig.rutAdmin">{{ asig.nombreAdmin }}</span>
+                    </div>
+                  } @else {
+                    <div class="d-flex flex-column" style="font-size: 0.85rem;">
+                      <span class="text-muted small fw-semibold">Pendiente de ingreso</span>
+                      <span class="text-muted" style="font-size: 0.7rem;">(Sin acciones)</span>
+                    </div>
+                  }
+                </td>
+
                 <td class="text-center">
                   @if (asig.estado === EstadoAsignacionEnum.ACTIVA) {
-                    <button type="button" class="ghost small icon-only danger-text mx-auto" title="Registrar Renuncia" (click)="prepararAccion('RENUNCIA', asig)">
+                    <button type="button" class="ghost small icon-only danger-text mx-auto border-0" title="Registrar Renuncia" (click)="prepararAccion('RENUNCIA', asig)">
                       <i class="pi pi-ban"></i>
                     </button>
                   } @else {
@@ -112,7 +127,43 @@
             }
           </tbody>
         </table>
-      }
+
+        @if (totalPaginas > 1) {
+          <div class="pagination-footer d-flex flex-column flex-sm-row justify-content-between align-items-center p-3 bg-white border-top">
+            
+            <span class="text-muted small mb-3 mb-sm-0">
+              Mostrando {{ asignacionesPaginadas.length }} de {{ asignacionesFiltradas.length }} registros
+            </span>
+
+            <div class="primeng-pagination d-flex align-items-center gap-1">
+              <button type="button" class="page-btn nav-btn" [disabled]="paginaActual === 1" (click)="cambiarPagina(1)" title="Primera página">
+                <i class="pi pi-angle-double-left"></i>
+              </button>
+              
+              <button type="button" class="page-btn nav-btn" [disabled]="paginaActual === 1" (click)="cambiarPagina(paginaActual - 1)" title="Anterior">
+                <i class="pi pi-angle-left"></i>
+              </button>
+
+              @for (i of [].constructor(totalPaginas); track $index) {
+                <button type="button" class="page-btn num-btn" 
+                        [class.active]="paginaActual === ($index + 1)" 
+                        (click)="cambiarPagina($index + 1)">
+                  {{ $index + 1 }}
+                </button>
+              }
+
+              <button type="button" class="page-btn nav-btn" [disabled]="paginaActual === totalPaginas" (click)="cambiarPagina(paginaActual + 1)" title="Siguiente">
+                <i class="pi pi-angle-right"></i>
+              </button>
+              
+              <button type="button" class="page-btn nav-btn" [disabled]="paginaActual === totalPaginas" (click)="cambiarPagina(totalPaginas)" title="Última página">
+                <i class="pi pi-angle-double-right"></i>
+              </button>
+            </div>
+
+          </div>
+        }
+        }
     </div>
   </section>
 </div>
@@ -129,16 +180,16 @@
       <div class="modal-body p-4 d-flex flex-column gap-3">
         <p class="m-0">
           Estás a punto de <strong>registrar la renuncia</strong> 
-          del estudiante <strong class="text-highlight">{{ accionPendiente.asignacion.nombre_estudiante }}</strong> 
-          en la habitación {{ accionPendiente.asignacion.numero_habitacion }}.
+          del estudiante <strong class="text-highlight">{{ accionPendiente.asignacion.nombreEstudiante }}</strong> 
+          en la habitación {{ accionPendiente.asignacion.numeroHabitacion }}.
         </p>
         <p class="warning-text m-0">
-          <i class="pi pi-info-circle mt-1"></i> Esta acción actualizará el estado de la asignación y liberará el cupo en el edificio.
+          <i class="pi pi-info-circle mt-1"></i> Esta acción actualizará el estado de la asignación, liberará el cupo y quedará registrada bajo tu firma: <strong>{{ NOMBRE_ADMIN_ACTUAL }}</strong>.
         </p>
       </div>
 
-      <footer class="modal-footer d-flex justify-content-end gap-2">
-        <button type="button" class="ghost" (click)="cerrarModal()">Cancelar</button>
+      <footer class="modal-footer d-flex justify-content-end gap-2 p-3 bg-light border-top">
+        <button type="button" class="ghost border-0" (click)="cerrarModal()">Cancelar</button>
         <button type="button" class="primary border-0 danger-bg" (click)="ejecutarAccionPendiente()">
           Confirmar Renuncia
         </button>

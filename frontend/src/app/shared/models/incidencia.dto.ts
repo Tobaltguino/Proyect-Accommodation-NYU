@@ -11,14 +11,19 @@ export enum GravedadIncidencia {
 }
 
 export interface IncidenciaDTO {
-  id_incidencia: number;
+  idIncidencia: number;
   descripcion: string;
   estado: EstadoIncidencia;
   fecha: string;
   gravedad: GravedadIncidencia;
-  nro_habitacion: number;
-  nombre_edificio: string;
-  rut_usuario: string;
-  nombre_usuario: string;
-  periodo: string;
+  idHabitacion: number; 
+  
+  rutEstudiante: string;
+  rutAdmin: string | null;
+
+  nroHabitacion?: number; 
+  nombreEdificio?: string;
+  nombreEstudiante?: string;
+  periodo?: string;
+  nombreAdmin?: string;
 }

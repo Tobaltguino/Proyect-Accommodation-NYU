@@ -1,8 +1,10 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { forkJoin } from 'rxjs';
 
-import { EdificioDTO, PisoDTO, HabitacionDTO, Genero} from '../../../shared/models';
+import { EdificioDTO, PisoDTO, HabitacionDTO, Genero } from '../../../shared/models';
+import { InfraestructuraService } from '../../../core/services/infraestructura.service';
 
 type ModalType = 'EDIFICIO' | 'PISO' | 'HABITACION' | 'DELETE' | null;
 type ModalMode = 'CREATE' | 'EDIT';
@@ -14,89 +16,124 @@ type ModalMode = 'CREATE' | 'EDIT';
   templateUrl: './admin-infrastructure.html',
   styleUrl: './admin-infrastructure.scss'
 })
-export class AdminInfrastructureComponent {
-  edificios: EdificioDTO[] = [
-    {
-      id_edificio: 1,
-      nombre: 'Residencia Norte',
-      ubicacion: 'Campus Central - Ala Norte',
-      genero: Genero.MIXTO,
-      pisos: [
-        {
-          id_piso: 10,
-          nro_piso: 1,
-          nombre: 'Planta Baja',
-          id_edificio: 1,
-          habitaciones: [
-            { id_habitacion: 100, nro_habitacion: 101, capacidad_actual: 2, capacidad_total: 2, disponibilidad: true, id_piso: 10 },
-            { id_habitacion: 101, nro_habitacion: 102, capacidad_actual: 1, capacidad_total: 4, disponibilidad: true, id_piso: 10 }
-          ]
-        },
-        {
-          id_piso: 11,
-          nro_piso: 2,
-          nombre: 'Primer Piso',
-          id_edificio: 1,
-          habitaciones: [
-            { id_habitacion: 102, nro_habitacion: 201, capacidad_actual: 0, capacidad_total: 2, disponibilidad: false, id_piso: 11 }
-          ]
-        }
-      ]
-    },
-    {
-      id_edificio: 2,
-      nombre: 'Pabellón Sur',
-      ubicacion: 'Campus Central - Ala Sur',
-      genero: Genero.FEMENINO,
-      pisos: []
-    }
-  ];
+export class AdminInfrastructureComponent implements OnInit {
+  private infraestructuraService = inject(InfraestructuraService);
+  private cdr = inject(ChangeDetectorRef); // 👈 Inyectamos el detector de cambios
 
-  edificioSeleccionado: EdificioDTO | null = this.edificios[0];
+  edificios: EdificioDTO[] = [];
+  edificioSeleccionado: EdificioDTO | null = null;
 
   activeModal: ModalType = null;
   modalMode: ModalMode = 'CREATE';
   
   targetIdPiso: number | null = null;
   targetIdHabitacion: number | null = null;
-  itemToDelete: { type: 'EDIFICIO' | 'PISO' | 'HABITACION', data: any, parentData?: any } | null = null;
+  itemToDelete: { type: 'PISO' | 'HABITACION', data: any, parentData?: any } | null = null;
 
-  edificioForm = { id_edificio: 0, nombre: '', ubicacion: '', genero: Genero.MIXTO };
-  pisoForm = { id_piso: 0, nro_piso: 1, nombre: '' };
-  habitacionForm = { id_habitacion: 0, nro_habitacion: 1, capacidad_actual: 0, capacidad_total: 1 };
+  edificioForm = { idEdificio: 0, nombre: '', ubicacion: '', genero: Genero.MIXTO };
+  pisoForm = { idPiso: 0, nroPiso: 1, nombre: '' };
+  habitacionForm = { idHabitacion: 0, nroHabitacion: 1, capacidadActual: 0, capacidadTotal: 1 };
+
+  ngOnInit(): void {
+    this.cargarEdificios();
+  }
+
+  // --- LÓGICA DE CARGA DE DATOS ---
+  cargarEdificios(): void {
+    this.infraestructuraService.obtenerTodosLosEdificios().subscribe({
+      next: (data) => {
+        this.edificios = data;
+        this.cdr.detectChanges(); // 👈 Obligamos a Angular a dibujar la barra lateral
+
+        if (this.edificios.length > 0) {
+          // 1. Si ya estábamos viendo un edificio
+          if (this.edificioSeleccionado) {
+            const actualizado = this.edificios.find(e => e.idEdificio === this.edificioSeleccionado!.idEdificio);
+            if (actualizado) {
+              this.seleccionarEdificio(actualizado);
+              return;
+            }
+          }
+          
+          // 2. Si venimos de otra pestaña o se recargó la página (F5)
+          const idGuardado = localStorage.getItem('id_edificio_actual');
+          if (idGuardado) {
+            const guardado = this.edificios.find(e => e.idEdificio === Number(idGuardado));
+            if (guardado) {
+              this.seleccionarEdificio(guardado);
+              return;
+            }
+          }
+
+          // 3. Por defecto, seleccionamos el primero si no hay historial
+          this.seleccionarEdificio(this.edificios[0]);
+        }
+      },
+      error: (err) => console.error('Error al cargar edificios:', err)
+    });
+  }
 
   seleccionarEdificio(edificio: EdificioDTO): void {
     this.edificioSeleccionado = edificio;
+    localStorage.setItem('id_edificio_actual', edificio.idEdificio.toString());
+    this.cargarDetallesEdificio(edificio.idEdificio);
+  }
+
+  cargarDetallesEdificio(idEdificio: number): void {
+    forkJoin({
+      pisos: this.infraestructuraService.obtenerPisosPorEdificio(idEdificio),
+      habitaciones: this.infraestructuraService.obtenerHabitacionesPorEdificio(idEdificio)
+    }).subscribe({
+      next: ({ pisos, habitaciones }) => {
+        if (this.edificioSeleccionado && this.edificioSeleccionado.idEdificio === idEdificio) {
+          
+          // 1. Ordenamos los pisos de menor a mayor (Piso 1, Piso 2...)
+          const pisosOrdenados = pisos.sort((a, b) => a.nroPiso - b.nroPiso);
+
+          this.edificioSeleccionado = {
+            ...this.edificioSeleccionado,
+            pisos: pisosOrdenados.map(piso => {
+              
+              // 2. Filtramos las habitaciones de este piso específico
+              const habitacionesDelPiso = habitaciones.filter(h => h.idPiso === piso.idPiso);
+              
+              // 3. Ordenamos esas habitaciones de menor a mayor (Hab 101, Hab 102...)
+              const habitacionesOrdenadas = habitacionesDelPiso.sort((a, b) => a.nroHabitacion - b.nroHabitacion);
+
+              return {
+                ...piso,
+                habitaciones: habitacionesOrdenadas
+              };
+            })
+          };
+          
+          this.cdr.detectChanges(); 
+        }
+      },
+      error: (err) => console.error('Error al cargar los detalles del edificio:', err)
+    });
   }
 
   cerrarModal(): void {
     this.activeModal = null;
+    this.cdr.detectChanges(); // Previene tirones gráficos al cerrar modales
   }
 
   // --- LÓGICA DE EDIFICIOS ---
-  abrirModalEdificio(mode: ModalMode, edificio?: EdificioDTO): void {
-    this.modalMode = mode;
+  abrirModalEdificio(edificio: EdificioDTO): void {
     this.activeModal = 'EDIFICIO';
-    if (mode === 'EDIT' && edificio) {
-      this.edificioForm = { ...edificio };
-    } else {
-      this.edificioForm = { id_edificio: Date.now(), nombre: '', ubicacion: '', genero: Genero.MIXTO };
-    }
+    this.edificioForm = { ...edificio };
   }
 
   guardarEdificio(): void {
-    if (this.modalMode === 'CREATE') {
-      this.edificios.push({ ...this.edificioForm, pisos: [] });
-      this.edificioSeleccionado = this.edificios[this.edificios.length - 1];
-    } else {
-      const idx = this.edificios.findIndex(e => e.id_edificio === this.edificioForm.id_edificio);
-      if (idx !== -1) {
-        this.edificios[idx].nombre = this.edificioForm.nombre;
-        this.edificios[idx].ubicacion = this.edificioForm.ubicacion;
-        this.edificios[idx].genero = this.edificioForm.genero;
-      }
-    }
-    this.cerrarModal();
+    const { idEdificio, nombre, ubicacion, genero } = this.edificioForm;
+    this.infraestructuraService.modificarEdificio(idEdificio, { nombre, ubicacion, genero }).subscribe({
+      next: () => {
+        this.cargarEdificios();
+        this.cerrarModal();
+      },
+      error: (err) => console.error('Error al modificar edificio', err)
+    });
   }
 
   // --- LÓGICA DE PISOS ---
@@ -104,11 +141,13 @@ export class AdminInfrastructureComponent {
     this.modalMode = mode;
     this.activeModal = 'PISO';
     if (mode === 'EDIT' && piso) {
-      this.pisoForm = { id_piso: piso.id_piso, nro_piso: piso.nro_piso, nombre: piso.nombre };
-      this.targetIdPiso = piso.id_piso;
+      this.pisoForm = { idPiso: piso.idPiso, nroPiso: piso.nroPiso, nombre: piso.nombre };
+      this.targetIdPiso = piso.idPiso;
     } else {
-      const nextNro = this.edificioSeleccionado?.pisos.length ? Math.max(...this.edificioSeleccionado.pisos.map(p => p.nro_piso)) + 1 : 1;
-      this.pisoForm = { id_piso: Date.now(), nro_piso: nextNro, nombre: `Piso ${nextNro}` };
+      const nextNro = (this.edificioSeleccionado?.pisos && this.edificioSeleccionado.pisos.length > 0) 
+        ? Math.max(...this.edificioSeleccionado.pisos.map(p => p.nroPiso)) + 1 
+        : 1;
+      this.pisoForm = { idPiso: 0, nroPiso: nextNro, nombre: `Piso ${nextNro}` };
     }
   }
 
@@ -116,94 +155,103 @@ export class AdminInfrastructureComponent {
     if (!this.edificioSeleccionado) return;
 
     if (this.modalMode === 'CREATE') {
-      this.edificioSeleccionado.pisos.push({
-        id_piso: this.pisoForm.id_piso,
-        nro_piso: this.pisoForm.nro_piso,
-        nombre: this.pisoForm.nombre,
-        id_edificio: this.edificioSeleccionado.id_edificio,
-        habitaciones: []
+      this.infraestructuraService.crearPiso(this.pisoForm.nroPiso, this.pisoForm.nombre, this.edificioSeleccionado.idEdificio).subscribe({
+        next: () => {
+          this.cargarDetallesEdificio(this.edificioSeleccionado!.idEdificio);
+          this.cerrarModal();
+        },
+        error: (err) => console.error('Error al crear piso', err)
       });
-      this.edificioSeleccionado.pisos.sort((a, b) => a.nro_piso - b.nro_piso);
     } else {
-      const piso = this.edificioSeleccionado.pisos.find(p => p.id_piso === this.targetIdPiso);
-      if (piso) {
-        piso.nro_piso = this.pisoForm.nro_piso;
-        piso.nombre = this.pisoForm.nombre;
-      }
+      this.infraestructuraService.modificarPiso(this.targetIdPiso!, { nroPiso: this.pisoForm.nroPiso, nombre: this.pisoForm.nombre }).subscribe({
+        next: () => {
+          this.cargarDetallesEdificio(this.edificioSeleccionado!.idEdificio);
+          this.cerrarModal();
+        },
+        error: (err) => console.error('Error al modificar piso', err)
+      });
     }
-    this.cerrarModal();
   }
 
   // --- LÓGICA DE HABITACIONES ---
   abrirModalHabitacion(mode: ModalMode, piso: PisoDTO, habitacion?: HabitacionDTO): void {
     this.modalMode = mode;
     this.activeModal = 'HABITACION';
-    this.targetIdPiso = piso.id_piso;
+    this.targetIdPiso = piso.idPiso;
 
     if (mode === 'EDIT' && habitacion) {
       this.habitacionForm = { 
-        id_habitacion: habitacion.id_habitacion, 
-        nro_habitacion: habitacion.nro_habitacion, 
-        capacidad_actual: habitacion.capacidad_actual,
-        capacidad_total: habitacion.capacidad_total
+        idHabitacion: habitacion.idHabitacion, 
+        nroHabitacion: habitacion.nroHabitacion, 
+        capacidadActual: habitacion.capacidadActual,
+        capacidadTotal: habitacion.capacidadTotal || 1 
       };
-      this.targetIdHabitacion = habitacion.id_habitacion;
+      this.targetIdHabitacion = habitacion.idHabitacion;
     } else {
-      this.habitacionForm = { id_habitacion: Date.now(), nro_habitacion: 0, capacidad_actual: 0, capacidad_total: 2 };
+      this.habitacionForm = { idHabitacion: 0, nroHabitacion: 0, capacidadActual: 0, capacidadTotal: 2 };
     }
   }
 
   guardarHabitacion(): void {
-    if (!this.edificioSeleccionado || this.targetIdPiso === null) return;
-    const piso = this.edificioSeleccionado.pisos.find(p => p.id_piso === this.targetIdPiso);
-    if (!piso) return;
-
     if (this.modalMode === 'CREATE') {
-      piso.habitaciones.push({
-        id_habitacion: this.habitacionForm.id_habitacion,
-        nro_habitacion: this.habitacionForm.nro_habitacion,
-        capacidad_actual: 0, 
-        capacidad_total: this.habitacionForm.capacidad_total,
-        disponibilidad: true,
-        id_piso: piso.id_piso
+      this.infraestructuraService.crearHabitacion(this.habitacionForm.nroHabitacion, this.habitacionForm.capacidadActual, true, this.targetIdPiso!).subscribe({
+        next: () => {
+          this.cargarDetallesEdificio(this.edificioSeleccionado!.idEdificio);
+          this.cerrarModal();
+        },
+        error: (err) => console.error('Error al crear habitación', err)
       });
     } else {
-      const hab = piso.habitaciones.find(h => h.id_habitacion === this.targetIdHabitacion);
-      if (hab) {
-        hab.nro_habitacion = this.habitacionForm.nro_habitacion;
-        hab.capacidad_actual = this.habitacionForm.capacidad_actual;
-        hab.capacidad_total = this.habitacionForm.capacidad_total;
-      }
+      this.infraestructuraService.modificarHabitacion(this.targetIdHabitacion!, {
+        nroHabitacion: this.habitacionForm.nroHabitacion,
+        capacidadActual: this.habitacionForm.capacidadActual
+      }).subscribe({
+        next: () => {
+          this.cargarDetallesEdificio(this.edificioSeleccionado!.idEdificio);
+          this.cerrarModal();
+        },
+        error: (err) => console.error('Error al modificar habitación', err)
+      });
     }
-    this.cerrarModal();
   }
 
   toggleDisponibilidad(habitacion: HabitacionDTO): void {
-    habitacion.disponibilidad = !habitacion.disponibilidad;
+    const nuevoEstado = !habitacion.disponibilidad;
+    this.infraestructuraService.modificarHabitacion(habitacion.idHabitacion, { disponibilidad: nuevoEstado }).subscribe({
+      next: () => {
+        habitacion.disponibilidad = nuevoEstado;
+        this.cdr.detectChanges(); // 👈 Actualizamos la vista local del candado
+      },
+      error: (err) => console.error('Error al cambiar disponibilidad', err)
+    });
   }
 
-  confirmarEliminacion(type: 'EDIFICIO' | 'PISO' | 'HABITACION', data: any, parentData?: any): void {
+  // --- LÓGICA DE ELIMINACIÓN ---
+  confirmarEliminacion(type: 'PISO' | 'HABITACION', data: any, parentData?: any): void {
     this.itemToDelete = { type, data, parentData };
     this.activeModal = 'DELETE';
   }
 
   ejecutarEliminacion(): void {
-    if (!this.itemToDelete) return;
-    const { type, data, parentData } = this.itemToDelete;
+    if (!this.itemToDelete || !this.edificioSeleccionado) return;
+    const { type, data } = this.itemToDelete;
 
-    if (type === 'EDIFICIO') {
-      this.edificios = this.edificios.filter(e => e.id_edificio !== data.id_edificio);
-      if (this.edificioSeleccionado?.id_edificio === data.id_edificio) {
-        this.edificioSeleccionado = this.edificios.length > 0 ? this.edificios[0] : null;
-      }
-    } else if (type === 'PISO') {
-      if (this.edificioSeleccionado) {
-        this.edificioSeleccionado.pisos = this.edificioSeleccionado.pisos.filter(p => p.id_piso !== data.id_piso);
-      }
+    if (type === 'PISO') {
+      this.infraestructuraService.eliminarPiso(data.idPiso).subscribe({
+        next: () => {
+          this.cargarDetallesEdificio(this.edificioSeleccionado!.idEdificio);
+          this.cerrarModal();
+        },
+        error: (err) => console.error('Error al eliminar piso', err)
+      });
     } else if (type === 'HABITACION') {
-      const piso = parentData as PisoDTO;
-      piso.habitaciones = piso.habitaciones.filter(h => h.id_habitacion !== data.id_habitacion);
+      this.infraestructuraService.eliminarHabitacion(data.idHabitacion).subscribe({
+        next: () => {
+          this.cargarDetallesEdificio(this.edificioSeleccionado!.idEdificio);
+          this.cerrarModal();
+        },
+        error: (err) => console.error('Error al eliminar habitación', err)
+      });
     }
-    this.cerrarModal();
   }
 }

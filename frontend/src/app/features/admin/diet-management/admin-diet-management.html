@@ -62,26 +62,62 @@
             </tr>
           </thead>
           <tbody>
-            @for (plan of planesFiltrados; track plan.id_plan) {
+            @for (plan of planesPaginados; track plan.idPlan) {
               <tr>
                 <td>
                   <div class="d-flex flex-column">
-                    <span class="user-name">{{ plan.nombre_estudiante }}</span>
-                    <span class="user-sub">RUT: {{ plan.rut_estudiante }}</span>
+                    <span class="user-name">{{ plan.nombreEstudiante }}</span>
+                    <span class="user-sub">{{ plan.rutEstudiante }}</span>
                   </div>
                 </td>
                 
-                <td><strong>{{ plan.nombre_periodo }}</strong></td>
+                <td><strong>{{ plan.nombrePeriodo }}</strong></td>
 
                 <td>
-                  <span class="badge rounded-pill dieta-badge" [ngClass]="getClassForDieta(plan.tipo_plan)">
-                    {{ plan.tipo_plan }}
+                  <span class="badge rounded-pill dieta-badge" [ngClass]="getClassForDieta(plan.tipoPlan)">
+                    {{ plan.tipoPlan }}
                   </span>
                 </td>
               </tr>
             }
           </tbody>
         </table>
+
+        @if (totalPaginas > 1) {
+          <div class="pagination-footer d-flex flex-column flex-sm-row justify-content-between align-items-center p-3 bg-white border-top">
+            
+            <span class="text-muted small mb-3 mb-sm-0">
+              Mostrando {{ planesPaginados.length }} de {{ planesFiltrados.length }} registros
+            </span>
+
+            <div class="primeng-pagination d-flex align-items-center gap-1">
+              <button type="button" class="page-btn nav-btn" [disabled]="paginaActual === 1" (click)="cambiarPagina(1)" title="Primera página">
+                <i class="pi pi-angle-double-left"></i>
+              </button>
+              
+              <button type="button" class="page-btn nav-btn" [disabled]="paginaActual === 1" (click)="cambiarPagina(paginaActual - 1)" title="Anterior">
+                <i class="pi pi-angle-left"></i>
+              </button>
+
+              @for (i of [].constructor(totalPaginas); track $index) {
+                <button type="button" class="page-btn num-btn" 
+                        [class.active]="paginaActual === ($index + 1)" 
+                        (click)="cambiarPagina($index + 1)">
+                  {{ $index + 1 }}
+                </button>
+              }
+
+              <button type="button" class="page-btn nav-btn" [disabled]="paginaActual === totalPaginas" (click)="cambiarPagina(paginaActual + 1)" title="Siguiente">
+                <i class="pi pi-angle-right"></i>
+              </button>
+              
+              <button type="button" class="page-btn nav-btn" [disabled]="paginaActual === totalPaginas" (click)="cambiarPagina(totalPaginas)" title="Última página">
+                <i class="pi pi-angle-double-right"></i>
+              </button>
+            </div>
+
+          </div>
+        }
       }
     </div>
   </section>
@@ -99,7 +135,7 @@
       <div class="modal-body p-4 d-flex flex-column gap-3">
         <div class="bg-light p-3 rounded-3 border mb-2">
           <span class="d-block text-secondary small fw-semibold text-uppercase mb-1">Estudiante</span>
-          <strong class="text-dark fs-6">{{ planSeleccionado.nombre_estudiante }}</strong>
+          <strong class="text-dark fs-6">{{ planSeleccionado.nombreEstudiante }}</strong>
         </div>
 
         <div>

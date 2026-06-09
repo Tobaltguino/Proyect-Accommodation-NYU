@@ -8,13 +8,16 @@ export enum EstadoSolicitud {
 }
 
 export interface SolicitudDTO {
-  id_solicitud: number;
+  idSolicitud: number;
   estado: EstadoSolicitud;
-  fecha_solicitud: string;
-  id_periodo: number;
-  nombre_periodo: string;
-  id_usuario: number;
-  rut_usuario: string;
-  nombre_usuario: string;
-  genero_usuario: Genero; 
+  fechaSolicitud: string;
+  idPeriodo: number;
+  
+  rutEstudiante: string;
+  rutAdmin: string | null;
+
+  nombrePeriodo?: string;
+  nombreEstudiante?: string; 
+  generoEstudiante?: Genero; 
+  nombreAdmin?: string;
 }
