@@ -7,10 +7,8 @@ import { finalize } from 'rxjs';
 import { AuthService } from '../../../core/auth/auth.service';
 import { SessionUser } from '../../../core/auth/auth.models';
 import {
-  BuildingAvailability,
   Gender,
   MealPlan,
-  RoomAvailability,
   SolicitudResponse,
   StudentPostulationService,
 } from './student-postulation.service';
@@ -30,19 +28,13 @@ export class StudentPostulationPageComponent {
   readonly postulationForm = this.formBuilder.nonNullable.group({
     fullName: [{ value: '', disabled: true }, [Validators.required]],
     rut: [{ value: '', disabled: true }, [Validators.required]],
-    career: ['', [Validators.required]],
     semester: [{ value: this.activeSemester, disabled: true }, [Validators.required]],
-    gender: ['MUJER' as Gender, [Validators.required]],
-    phone: ['', [Validators.required]],
-    city: ['', [Validators.required]],
+    career: [{ value: '', disabled: true }, [Validators.required]],
+    gender: [{ value: 'MUJER' as Gender, disabled: true }, [Validators.required]],
     mealPlan: ['OMNIVORA' as MealPlan, [Validators.required]],
-    roomCode: ['', [Validators.required]],
-    motivation: ['', [Validators.required, Validators.minLength(15)]],
     declaration: [false, [Validators.requiredTrue]],
   });
 
-  selectedBuilding: BuildingAvailability | null = null;
-  isLoadingAvailability = false;
   isLoadingSolicitud = false;
   isSubmitting = false;
   formMessage = '';
@@ -53,20 +45,17 @@ export class StudentPostulationPageComponent {
     private readonly postulationService: StudentPostulationService,
   ) {
     this.currentUser = this.authService.getCurrentUser();
+    const user = this.currentUser as any; 
+
     this.postulationForm.patchValue({
-      fullName: this.currentUser?.fullName ?? '',
-      rut: this.currentUser?.rut ?? '',
+      fullName: user?.fullName ?? '',
+      rut: user?.rut ?? '',
+      career: user?.career ?? 'No especificada', 
+      gender: user?.gender ?? 'MUJER',
       semester: this.activeSemester,
     });
 
-    this.postulationForm.controls.gender.valueChanges.subscribe((gender) => {
-      this.postulationForm.controls.roomCode.setValue('');
-      this.loadAvailability(gender);
-      this.formMessage = '';
-    });
-
     this.loadMySolicitud();
-    this.loadAvailability(this.postulationForm.controls.gender.value);
   }
 
   saveDraft(): void {
@@ -76,8 +65,7 @@ export class StudentPostulationPageComponent {
       return;
     }
 
-    const { roomCode } = this.postulationForm.getRawValue();
-    this.formMessage = `Borrador local listo. Habitacion seleccionada: ${roomCode}.`;
+    this.formMessage = `Borrador local guardado exitosamente.`;
   }
 
   submitPostulation(): void {
@@ -95,12 +83,14 @@ export class StudentPostulationPageComponent {
       .createSolicitud({
         career: payload.career,
         gender: payload.gender,
-        phone: payload.phone,
-        city: payload.city,
         mealPlan: payload.mealPlan,
-        roomCode: payload.roomCode,
-        motivation: payload.motivation,
         semester: this.activeSemester,
+        
+        // Datos genéricos para satisfacer al backend:
+        roomCode: '000', // El backend exige 3 números
+        phone: 'No especificado',
+        city: 'No especificada',
+        motivation: 'No aplica por el momento',
       })
       .pipe(finalize(() => (this.isSubmitting = false)))
       .subscribe({
@@ -128,37 +118,6 @@ export class StudentPostulationPageComponent {
 
   goBack(): void {
     void this.router.navigate(['/student/home']);
-  }
-
-  selectRoom(room: RoomAvailability): void {
-    if (room.occupiedBeds >= room.totalBeds) {
-      return;
-    }
-
-    this.postulationForm.controls.roomCode.setValue(room.code);
-    this.postulationForm.controls.roomCode.markAsTouched();
-    this.formMessage = '';
-  }
-
-  isSelectedRoom(roomCode: string): boolean {
-    return this.postulationForm.controls.roomCode.value === roomCode;
-  }
-
-  private loadAvailability(gender: Gender): void {
-    this.isLoadingAvailability = true;
-
-    this.postulationService
-      .getAvailability(gender, this.activeSemester)
-      .pipe(finalize(() => (this.isLoadingAvailability = false)))
-      .subscribe({
-        next: (response) => {
-          this.selectedBuilding = response.building;
-        },
-        error: () => {
-          this.selectedBuilding = null;
-          this.formMessage = 'No se pudo cargar disponibilidad de habitaciones.';
-        },
-      });
   }
 
   private loadMySolicitud(): void {
@@ -194,11 +153,7 @@ export class StudentPostulationPageComponent {
     this.postulationForm.patchValue({
       career: solicitud.career,
       gender: solicitud.gender,
-      phone: solicitud.phone,
-      city: solicitud.city,
       mealPlan: solicitud.mealPlan,
-      roomCode: solicitud.roomCode,
-      motivation: solicitud.motivation,
     });
   }
 }

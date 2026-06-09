@@ -9,9 +9,9 @@ import { SolicitudEntity } from '../solicitudes/entities';
 import { EdificioEntity } from '../residencias/entities';
 import { PisoEntity } from '../residencias/entities';
 import { AuthModule } from '../auth/auth.module';
-
+import { PlanAlimenticioEntity } from '../solicitudes/entities';
 @Module({
-  imports: [TypeOrmModule.forFeature([AsignacionEntity, HabitacionEntity, SolicitudEntity, EdificioEntity, PisoEntity]),
+  imports: [TypeOrmModule.forFeature([AsignacionEntity,PlanAlimenticioEntity ,HabitacionEntity, SolicitudEntity, EdificioEntity, PisoEntity]),
     AuthModule],
   controllers: [AsignacionesController],
   providers: [AsignacionesService],

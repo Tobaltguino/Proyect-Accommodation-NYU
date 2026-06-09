@@ -3,20 +3,21 @@ export enum StudentGender {
   HOMBRE = 'HOMBRE',
 }
 
-export enum MealPlan {
-  VEGANA = 'VEGANA',
-  VEGETARIANA = 'VEGETARIANA',
-  OMNIVORA = 'OMNIVORA',
-}
 
 export enum BuildingId {
   FEMENINO = 'FEMENINO',
   MASCULINO = 'MASCULINO',
 }
+export enum MealPlan {
+  SIN_PREFERENCIA = 'Sin preferencia',
+  VEGETARIANO = 'Vegetariano',
+  VEGANO = 'Vegano',
+  PESCETARIANO = 'Pescetariano',
+}
 
 export enum SolicitudStatus {
-  EN_REVISION = 'EN_REVISION',
-  APROBADA = 'APROBADA',
-  RECHAZADA = 'RECHAZADA',
-  EXPIRADA = 'EXPIRADA',
+  EN_REVISION = 'En Revision',
+  APROBADA = 'Aprobada',
+  RECHAZADA = 'Rechazada',
+  PENDIENTE = 'Pendiente',
 }

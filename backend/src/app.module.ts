@@ -22,6 +22,7 @@ import { UsersModule } from './modules/users/users.module';
 
 import { AppService } from './app.service';
 import { AppController } from './app.controller';
+import { PlanAlimenticioModule } from './modules/plan-alimenticio/plan-alimenticio.module';
 
 @Module({
   imports: [
@@ -49,7 +50,8 @@ import { AppController } from './app.controller';
     PisosModule,
     HabitacionesModule,
     PeriodosModule,
-    EdificiosModule
+    EdificiosModule,
+    PlanAlimenticioModule
 
 
 

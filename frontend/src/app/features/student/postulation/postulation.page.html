@@ -3,7 +3,7 @@
     <header class="postulation-header">
       <div>
         <h1>Postulacion de Alojamiento</h1>
-        <p>Completa tus datos y selecciona tu habitacion segun disponibilidad.</p>
+        <p>Completa tus datos y selecciona tu plan alimenticio.</p>
       </div>
 
       <button type="button" class="back-btn" (click)="goBack()">Volver al panel</button>
@@ -31,54 +31,15 @@
             <label for="semester">Semestre de postulacion</label>
             <input id="semester" type="text" formControlName="semester" readonly />
           </div>
-        </div>
-      </section>
 
-      <section class="block">
-        <div class="block-title">
-          <h2>Datos de postulacion</h2>
-          <span>Informacion editable por el estudiante</span>
-        </div>
-
-        <div class="form-grid">
           <div class="form-group">
             <label for="career">Carrera</label>
-            <input
-              id="career"
-              type="text"
-              formControlName="career"
-              placeholder="Ej: Ingenieria Civil"
-            />
-            @if (postulationForm.controls.career.touched && postulationForm.controls.career.invalid) {
-              <small class="error">La carrera es requerida.</small>
-            }
+            <input id="career" type="text" formControlName="career" readonly />
           </div>
 
           <div class="form-group">
             <label for="gender">Genero</label>
-            <select id="gender" formControlName="gender">
-              <option value="MUJER">Mujer</option>
-              <option value="HOMBRE">Hombre</option>
-            </select>
-            @if (postulationForm.controls.gender.touched && postulationForm.controls.gender.invalid) {
-              <small class="error">Debes seleccionar genero.</small>
-            }
-          </div>
-
-          <div class="form-group">
-            <label for="phone">Telefono</label>
-            <input id="phone" type="text" formControlName="phone" placeholder="+56 9 1234 5678" />
-            @if (postulationForm.controls.phone.touched && postulationForm.controls.phone.invalid) {
-              <small class="error">El telefono es requerido.</small>
-            }
-          </div>
-
-          <div class="form-group">
-            <label for="city">Ciudad de origen</label>
-            <input id="city" type="text" formControlName="city" placeholder="Ej: Arica" />
-            @if (postulationForm.controls.city.touched && postulationForm.controls.city.invalid) {
-              <small class="error">La ciudad es requerida.</small>
-            }
+            <input id="gender" type="text" formControlName="gender" readonly />
           </div>
         </div>
       </section>
@@ -95,72 +56,6 @@
             <small class="error">Debes seleccionar un plan alimenticio.</small>
           }
         </div>
-
-        <div class="form-group">
-          <label for="motivation">Motivo de la postulacion</label>
-          <textarea
-            id="motivation"
-            rows="4"
-            formControlName="motivation"
-            placeholder="Explica brevemente por que necesitas alojamiento."
-          ></textarea>
-          @if (postulationForm.controls.motivation.touched && postulationForm.controls.motivation.invalid) {
-            <small class="error">El motivo debe tener al menos 15 caracteres.</small>
-          }
-        </div>
-      </section>
-
-      <section class="block building-block">
-        <div class="block-title">
-          <h2>Seleccion de habitacion</h2>
-          <span>{{ selectedBuilding?.label ?? 'Sin edificio asignado' }}</span>
-        </div>
-
-        @if (isLoadingAvailability) {
-          <p class="loading-hint">Cargando disponibilidad real desde backend...</p>
-        }
-
-        <div class="map-legend">
-          <span class="legend available">Disponible</span>
-          <span class="legend partial">Parcial</span>
-          <span class="legend full">Completa</span>
-        </div>
-
-        <section class="building-map">
-          @for (floor of selectedBuilding?.floors ?? []; track floor.level) {
-            <article class="floor-card">
-              <h3>Piso {{ floor.level }}</h3>
-              <div class="room-grid">
-                @for (room of floor.rooms; track room.code) {
-                  <button
-                    type="button"
-                    class="room-chip"
-                    [class.selected]="isSelectedRoom(room.code)"
-                    [class.full]="room.occupiedBeds === room.totalBeds"
-                    [class.partial]="room.occupiedBeds === 1"
-                    [class.available]="room.occupiedBeds === 0"
-                    [disabled]="room.occupiedBeds === room.totalBeds"
-                    (click)="selectRoom(room)"
-                  >
-                    <strong>Hab {{ room.code }}</strong>
-                    <small>{{ room.occupiedBeds }}/{{ room.totalBeds }} camas ocupadas</small>
-                  </button>
-                }
-              </div>
-            </article>
-          }
-        </section>
-
-        @if (postulationForm.controls.roomCode.value) {
-          <p class="selected-room">
-            Seleccion actual: {{ selectedBuilding?.label }} - Habitacion
-            {{ postulationForm.controls.roomCode.value }}.
-          </p>
-        }
-
-        @if (postulationForm.controls.roomCode.touched && postulationForm.controls.roomCode.invalid) {
-          <small class="error">Debes seleccionar una habitacion disponible.</small>
-        }
       </section>
 
       <section class="extra-block">
