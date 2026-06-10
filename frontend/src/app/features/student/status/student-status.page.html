@@ -1,0 +1,65 @@
+<main class="student-status-page">
+  <section class="status-shell">
+    <header class="status-header">
+      <div>
+        <h1>Estado de tu postulacion</h1>
+        <p>Consulta el avance y resultado de tu solicitud de residencia.</p>
+      </div>
+
+      <button type="button" class="back-btn" (click)="goBack()">Volver al panel</button>
+    </header>
+
+    @if (isLoading) {
+      <section class="status-card loading">
+        <p>Cargando estado de postulacion...</p>
+      </section>
+    } @else if (loadError) {
+      <section class="status-card error">
+        <h2>No se pudo cargar el estado</h2>
+        <p>{{ loadError }}</p>
+        <div class="actions">
+          <button type="button" class="ghost" (click)="retry()">Reintentar</button>
+        </div>
+      </section>
+    } @else {
+      <section class="status-card">
+        <div class="status-top">
+          <div>
+            <span class="label">Estudiante</span>
+            <strong>{{ currentUser?.fullName ?? 'Estudiante' }}</strong>
+            <small>RUT: {{ currentUser?.rut ?? '-' }}</small>
+          </div>
+
+          <div class="chip" [class.pending]="statusClass === 'pending'" [class.approved]="statusClass === 'approved'" [class.rejected]="statusClass === 'rejected'" [class.neutral]="statusClass === 'neutral'">
+            {{ statusLabel }}
+          </div>
+        </div>
+
+        <p class="description">{{ statusDescription }}</p>
+
+        @if (solicitud) {
+          <div class="detail-grid">
+            <article>
+              <span>Semestre</span>
+              <strong>{{ solicitud.semester }}</strong>
+            </article>
+            <article>
+              <span>Habitacion</span>
+              <strong>{{ solicitud.roomCode }} ({{ solicitud.buildingId }})</strong>
+            </article>
+            <article>
+              <span>Ultima actualizacion</span>
+              <strong>{{ formatTimestamp(solicitud.updatedAt) }}</strong>
+            </article>
+          </div>
+        } @else {
+          <div class="actions">
+            <button type="button" class="primary" (click)="goToPostulation()">
+              Ir a postular
+            </button>
+          </div>
+        }
+      </section>
+    }
+  </section>
+</main>

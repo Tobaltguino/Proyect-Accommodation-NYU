@@ -1,0 +1,23 @@
+import { Genero } from './infraestructura.dto';
+
+export enum EstadoSolicitud {
+  PENDIENTE = 'Pendiente',
+  EN_REVISION = 'En Revision',
+  APROBADA = 'Aprobada',
+  RECHAZADA = 'Rechazada'
+}
+
+export interface SolicitudDTO {
+  idSolicitud: number;
+  estado: EstadoSolicitud;
+  fechaSolicitud: string;
+  idPeriodo: number;
+  
+  rutEstudiante: string;
+  rutAdmin: string | null;
+
+  nombrePeriodo?: string;
+  nombreEstudiante?: string; 
+  generoEstudiante?: Genero; 
+  nombreAdmin?: string;
+}

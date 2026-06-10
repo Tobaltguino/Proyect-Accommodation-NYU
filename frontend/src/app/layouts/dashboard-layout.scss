@@ -1,0 +1,131 @@
+:host {
+  --primary-deep: #322659;
+  --primary-royal: #553c9a;
+  --accent-soft: #e9d8fd;
+  --app-bg: #f9fafb;
+  --border: #e2e8f0;
+  --text-main: #1a202c;
+  --text-muted: #4a5568;
+}
+
+.dashboard-sidebar {
+  background: var(--primary-deep);
+  color: #ffffff;
+}
+
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+
+  img {
+    width: 42px;
+    height: 42px;
+    object-fit: contain;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.12);
+    padding: 0.2rem;
+  }
+
+  div {
+    display: grid;
+    gap: 0.1rem;
+  }
+
+  strong {
+    font-size: 0.98rem;
+    letter-spacing: 0.01em;
+  }
+
+  span {
+    font-size: 0.76rem;
+    color: #ddd6f5; 
+  }
+}
+
+.sidebar-profile {
+  border: 1px solid rgba(233, 216, 253, 0.25);
+  background: rgba(233, 216, 253, 0.08);
+  border-radius: 12px;
+  padding: 0.8rem;
+  display: grid;
+  gap: 0.25rem;
+
+  strong {
+    font-size: 0.94rem;
+  }
+
+  /* ¡Aquí regresan tus textos y RUT en morado! */
+  span,
+  small {
+    color: var(--accent-soft);
+    font-size: 0.78rem;
+  }
+}
+
+.sidebar-nav {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.nav-item {
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: #f7fafc;
+  text-align: left;
+  font-weight: 600;
+  padding: 0.62rem 0.7rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  transition: background-color 0.2s ease;
+
+  &:hover {
+    background: rgba(233, 216, 253, 0.15);
+    color: #ffffff;
+  }
+
+  &.active {
+    background: rgba(233, 216, 253, 0.24);
+    border-color: rgba(233, 216, 253, 0.35);
+    color: #ffffff;
+  }
+
+  i {
+    font-size: 1.1rem;
+  }
+}
+
+.sidebar-footer {
+  margin-top: auto;
+}
+
+.logout-btn {
+  width: 100%;
+  border: 1px solid rgba(233, 216, 253, 0.45);
+  border-radius: 8px;
+  padding: 0.55rem 0.7rem;
+  background: transparent;
+  color: #ffffff;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background: rgba(233, 216, 253, 0.15);
+  }
+
+  i {
+    font-size: 1.1rem;
+  }
+}
+
+.dashboard-main-container {
+  background: var(--app-bg);
+}

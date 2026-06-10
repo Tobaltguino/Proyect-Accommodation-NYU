@@ -1,0 +1,50 @@
+<main class="container-fluid overflow-hidden vh-100 p-0">
+  <div class="row h-100 m-0">
+    
+    <!-- SIDEBAR COLUMNA IZQUIERDA (Grilla de Bootstrap + Tu clase de fondo) -->
+    <aside class="col-12 col-md-3 col-lg-2 p-3 d-flex flex-column h-100 dashboard-sidebar">
+      
+      <!-- Marca / Logo Original -->
+      <section class="sidebar-brand mb-4">
+        <img src="/assets/NYU-Logo.png" alt="Logo Universidad de New York" />
+        <div>
+          <strong>Housing Portal</strong>
+          <span>{{ currentUser?.role === 'ADMIN' ? 'Admin Management' : 'Student Portal' }}</span>
+        </div>
+      </section>
+
+      <!-- Perfil Original (Aquí vuelve tu color morado) -->
+      <section class="sidebar-profile mb-4">
+        <strong>{{ currentUser?.fullName ?? 'Usuario' }}</strong>
+        <span>RUT {{ currentUser?.rut ?? 'Sin RUT' }}</span>
+        <small>{{ currentUser?.role === 'ADMIN' ? 'Panel de Control' : 'Panel de Estudiante' }}</small>
+      </section>
+
+      <!-- Menú de Navegación Original -->
+      <nav class="sidebar-nav mb-auto" aria-label="Navegacion principal">
+        <a *ngFor="let item of menuItems" 
+           [routerLink]="item.route" 
+           routerLinkActive="active" 
+           class="nav-item text-decoration-none">
+          <i [class]="item.icon"></i>
+          <span>{{ item.label }}</span>
+        </a>
+      </nav>
+
+      <!-- Botón Logout Original -->
+      <div class="sidebar-footer mt-auto">
+        <button type="button" class="logout-btn" (click)="logout()">
+          <i class="pi pi-sign-out"></i>
+          <span>Cerrar sesión</span>
+        </button>
+      </div>
+
+    </aside>
+
+    <!-- CONTENEDOR PRINCIPAL DERECHA -->
+    <section class="col-12 col-md-9 col-lg-10 h-100 p-0 overflow-auto dashboard-main-container">
+      <router-outlet></router-outlet>
+    </section>
+
+  </div>
+</main>

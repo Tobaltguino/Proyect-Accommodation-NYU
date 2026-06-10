@@ -1,0 +1,201 @@
+/* =========================================
+   CONTENEDORES PRINCIPALES
+========================================= */
+.infrastructure-shell {
+  max-width: 1400px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.05);
+  padding: 2rem;
+}
+
+.page-title { color: #1e3a8a; font-size: 1.45rem; }
+.page-subtitle { color: #64748b; }
+.block-title { color: #1e3a8a; }
+
+/* Controles de Formulario Personalizados */
+.custom-control {
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 0.6rem 0.8rem;
+  font-size: 0.95rem;
+  color: #0f172a;
+
+  &:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.14);
+  }
+}
+
+/* =========================================
+   LISTA DE EDIFICIOS (IZQUIERDA)
+========================================= */
+.building-card {
+  cursor: pointer; 
+  transition: all 0.2s ease; 
+  
+  &:hover { 
+    border-color: #cbd5e1 !important; 
+    background: #f8fafc !important; 
+  } 
+  
+  &.active { 
+    border-color: #1d4ed8 !important; 
+    box-shadow: 0 0 0 2px rgba(29, 78, 216, 0.15); 
+    background: #eff6ff !important; 
+  }
+}
+
+/* Badges para Género del Edificio */
+.status-badge { 
+  font-size: 0.7rem; 
+  padding: 0.2rem 0.5rem; 
+  border-radius: 999px; 
+  font-weight: 700; 
+  text-transform: uppercase; 
+  
+  &.mixto { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+  &.femenino { background: #fce7f3; color: #9d174d; border: 1px solid #fbcfe8; }
+  &.masculino { background: #e0f2fe; color: #075985; border: 1px solid #bae6fd; }
+}
+
+/* =========================================
+   MAPA Y HABITACIONES (DERECHA)
+========================================= */
+.floor-card { 
+  border: 1px solid #dbeafe; 
+  border-radius: 12px; 
+  background: #ffffff; 
+  padding: 1.2rem; 
+}
+
+/* ¡Mantenemos CSS Grid aquí por su flexibilidad extrema con auto-fill! */
+.room-grid { 
+  display: grid; 
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); 
+  gap: 0.8rem; 
+}
+
+.room-chip.config-mode {
+  border: 1px solid #cbd5e1; 
+  border-radius: 10px; 
+  background: #f8fafc; 
+  padding: 0.7rem; 
+  display: flex; 
+  flex-direction: column;
+  gap: 0.4rem; 
+  position: relative; 
+  transition: all 0.2s ease;
+
+  .room-status { 
+    font-size: 0.65rem; 
+    padding: 0.15rem 0.4rem; 
+    border-radius: 4px; 
+    font-weight: 700; 
+    text-transform: uppercase; 
+    
+    &.libre { background: #dcfce7; color: #16a34a; } 
+    &.ocupado { background: #fee2e2; color: #dc2626; } 
+  }
+
+  .beds-info { 
+    color: #475569; 
+    font-size: 0.8rem; 
+    display: flex; 
+    align-items: center; 
+    gap: 0.3rem; 
+    font-weight: 500; 
+    i { font-size: 0.85rem; color: #94a3b8; } 
+  }
+
+  .room-actions { 
+    margin-top: 0.2rem; 
+    display: flex; 
+    gap: 0.4rem; 
+    border-top: 1px solid #e2e8f0; 
+    padding-top: 0.5rem; 
+  }
+  
+  /* ESTADO DE HABITACIÓN DESHABILITADA (isLocked) */
+  &.locked {
+    background: #f1f5f9; border-color: #cbd5e1; opacity: 0.8;
+    strong { color: #64748b !important; text-decoration: line-through; }
+    .room-status { filter: grayscale(100%); opacity: 0.7; }
+    .icon-action.warning { color: #d97706; background: #fef3c7; }
+  }
+}
+
+/* =========================================
+   BOTONES Y ACCIONES
+========================================= */
+button { transition: all 0.2s ease; font-family: inherit; }
+.primary { 
+  background: #1e3a8a; color: #ffffff; font-weight: 600; padding: 0.7rem 1.1rem; border-radius: 10px;
+  &:disabled { opacity: 0.5; cursor: not-allowed; filter: grayscale(100%); }
+  &.danger-bg { background: #dc2626; &:hover { background: #b91c1c; } }
+}
+
+.ghost { 
+  background: #e2e8f0; color: #0f172a; font-weight: 600; padding: 0.6rem 1rem; border-radius: 8px; 
+  &.small { padding: 0.4rem 0.8rem; font-size: 0.85rem; } 
+  &:hover:not(:disabled) { background: #cbd5e1; }
+}
+
+.text-btn { 
+  background: transparent; color: #3b82f6; font-weight: 600; font-size: 0.85rem; padding: 0; display: flex; align-items: center; gap: 0.3rem; 
+  &:hover { text-decoration: underline; } 
+}
+
+.icon-action { 
+  background: transparent; padding: 0.3rem; border-radius: 4px; color: #475569; display: flex; align-items: center; justify-content: center; 
+  &:hover { background: #e2e8f0; color: #0f172a; } 
+  &.warning:hover { background: #fef3c7; color: #d97706; } 
+  &.danger:hover { background: #fee2e2; color: #dc2626; } 
+}
+
+.icon-only.small-ghost { 
+  background: transparent; color: #64748b; padding: 0.3rem; border-radius: 6px; display: flex; align-items: center; justify-content: center; 
+  &:hover { background: #f1f5f9; color: #1e3a8a; } 
+  &.danger-text:hover { background: #fef2f2; color: #dc2626; } 
+}
+
+/* =========================================
+   ESTADOS VACÍOS
+========================================= */
+.empty-state { 
+  padding: 3rem 1rem; color: #64748b; background: #f8fafc; border-radius: 10px; border: 1px dashed #cbd5e1; 
+}
+.empty-icon { font-size: 2.5rem; color: #cbd5e1; }
+
+/* =========================================
+   MODALES
+========================================= */
+.modal-overlay { 
+  background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); 
+}
+
+.modal-box { 
+  max-width: 450px; border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); 
+  animation: slideUp 0.2s ease-out forwards; 
+}
+
+@keyframes slideUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+
+.modal-header { 
+  padding: 1.2rem 1.5rem; border-bottom: 1px solid #e2e8f0; 
+  h2 { font-size: 1.15rem; color: #1e3a8a; } 
+  &.danger-header h2 { color: #dc2626; } 
+}
+
+.close-btn { 
+  background: transparent; color: #64748b; font-size: 1.2rem; padding: 0.4rem; border-radius: 8px; 
+  display: flex; justify-content: center; align-items: center;
+  &:hover { background: #f1f5f9; color: #0f172a; } 
+}
+
+/* RESPONSIVE AJUSTES MENORES */
+@media (max-width: 820px) { 
+  .infrastructure-shell { padding: 1.2rem; } 
+  .modal-box { margin: 1rem; width: auto; } 
+}

@@ -1,0 +1,92 @@
+<div class="admin-home-page container-fluid">
+  
+  <!-- Header Principal -->
+  <header class="main-header d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+    <div class="header-copy">
+      <h1>Panel de control</h1>
+      <p>Aquí tienes un resumen del estado actual de la residencia universitaria.</p>
+    </div>
+  </header>
+
+  <!-- Grilla de Estadísticas -->
+  <section class="row g-3 mb-4">
+    <div class="col-12 col-sm-6 col-xl-3">
+      <article class="card stat-card h-100 d-flex flex-row align-items-center p-3">
+        <div class="stat-icon requests me-3">
+          <i class="pi pi-inbox"></i>
+        </div>
+        <div class="stat-info">
+          <h3>{{ stats.pendingRequests }}</h3>
+          <p>Solicitudes Pendientes</p>
+        </div>
+      </article>
+    </div>
+
+    <div class="col-12 col-sm-6 col-xl-3">
+      <article class="card stat-card h-100 d-flex flex-row align-items-center p-3">
+        <div class="stat-icon incidents me-3">
+          <i class="pi pi-exclamation-triangle"></i>
+        </div>
+        <div class="stat-info">
+          <h3>{{ stats.activeIncidents }}</h3>
+          <p>Incidencias Activas</p>
+        </div>
+      </article>
+    </div>
+
+    <div class="col-12 col-sm-6 col-xl-3">
+      <article class="card stat-card h-100 d-flex flex-row align-items-center p-3">
+        <div class="stat-icon students me-3">
+          <i class="pi pi-users"></i>
+        </div>
+        <div class="stat-info">
+          <h3>{{ stats.totalStudents }}</h3>
+          <p>Estudiantes Residentes</p>
+        </div>
+      </article>
+    </div>
+
+    <div class="col-12 col-sm-6 col-xl-3">
+      <article class="card stat-card h-100 d-flex flex-row align-items-center p-3">
+        <div class="stat-icon rooms me-3">
+          <i class="pi pi-key"></i>
+        </div>
+        <div class="stat-info">
+          <h3>{{ stats.availableRooms }}</h3>
+          <p>Habitaciones Disponibles</p>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <!-- Módulos de Acción -->
+  <section class="row g-3">
+    <div class="col-12 col-lg-6">
+      <article class="card module-box h-100 p-4 d-flex flex-column">
+        <h3>Gestión de Solicitudes</h3>
+        <p>Revisa, aprueba o rechaza las postulaciones de alojamiento más recientes.</p>
+        <ul class="mb-4">
+          <li>Requiere revisión de antecedentes</li>
+          <li>Notificación automática al estudiante</li>
+        </ul>
+        <button type="button" class="module-btn mt-auto" (click)="goTo('requests')">
+          Ir a Solicitudes <i class="pi pi-arrow-right"></i>
+        </button>
+      </article>
+    </div>
+
+    <div class="col-12 col-lg-6">
+      <article class="card module-box h-100 p-4 d-flex flex-column">
+        <h3>Control de Infraestructura</h3>
+        <p>Administra edificios, habitaciones y revisa el reporte de incidencias técnicas.</p>
+        <ul class="mb-4">
+          <li>Asignación de camas</li>
+          <li>Bloqueo por mantenimiento</li>
+        </ul>
+        <button type="button" class="module-btn alt mt-auto" (click)="goTo('infrastructure')">
+          Ver Infraestructura <i class="pi pi-arrow-right"></i>
+        </button>
+      </article>
+    </div>
+  </section>
+</div>

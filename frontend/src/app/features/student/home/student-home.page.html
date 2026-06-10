@@ -1,0 +1,85 @@
+<div class="admin-home-page"> 
+  
+  <header class="main-header mb-4 d-flex justify-content-between align-items-center">
+    <div class="header-copy">
+      <h1>¡Hola, {{ currentUser?.fullName || 'Estudiante' }}!</h1>
+      <p>Bienvenido a tu portal de alojamiento estudiantil.</p>
+    </div>
+  </header>
+
+  @if (tieneAsignacion) {
+    
+    <div class="row g-4">
+      <div class="col-12 col-lg-8">
+        <section class="card module-box p-4 h-100 assignment-card">
+          <div class="d-flex align-items-center gap-3 mb-4">
+            <div class="stat-icon rooms">
+              <i class="pi pi-key"></i>
+            </div>
+            <div>
+              <h2 class="m-0 fs-5" style="color: #1e3a8a; font-weight: 700;">Tu Asignación Actual</h2>
+              <p class="m-0 text-muted" style="font-size: 0.9rem;">Periodo 2026-1</p>
+            </div>
+          </div>
+
+          <div class="info-grid">
+            <div class="info-item">
+              <span class="label">Edificio</span>
+              <strong class="value">{{ miAsignacion.edificio }}</strong>
+            </div>
+            <div class="info-item">
+              <span class="label">Piso</span>
+              <strong class="value">{{ miAsignacion.piso }}</strong>
+            </div>
+            <div class="info-item">
+              <span class="label">Habitación</span>
+              <strong class="value highlight">Nº {{ miAsignacion.habitacion }}</strong>
+            </div>
+            <div class="info-item">
+              <span class="label">Plan de Dieta</span>
+              <strong class="value">{{ miPlanDieta.tipoPlan }}</strong>
+            </div>
+          </div>
+
+          <div class="mt-4 pt-3 border-top d-flex gap-3">
+            <button class="module-btn" routerLink="/student/incidents">
+              <i class="pi pi-wrench"></i> Reportar Problema
+            </button>
+            <button class="module-btn alt" routerLink="/student/stay-history">
+              <i class="pi pi-history"></i> Ver Historial
+            </button>
+          </div>
+        </section>
+      </div>
+
+      <div class="col-12 col-lg-4">
+        <section class="card module-box p-4 h-100">
+          <h3>Reglamento y Horarios</h3>
+          <p class="mb-3">Recuerda cumplir con la normativa de convivencia de la residencia.</p>
+          <ul class="mb-0">
+            <li>Horario de silencio: 23:00 hrs.</li>
+            <li>Visitas permitidas hasta las 20:00 hrs.</li>
+            <li>Prohibido el uso de cocinillas eléctricas.</li>
+          </ul>
+        </section>
+      </div>
+    </div>
+
+  } @else {
+    
+    <div class="card module-box empty-state-card text-center p-5">
+      <div class="empty-icon mx-auto mb-3">
+        <i class="pi pi-home"></i>
+      </div>
+      <h2 style="color: #0f172a; font-weight: 700; margin-bottom: 0.5rem;">No tienes alojamiento asignado</h2>
+      <p class="text-muted mx-auto mb-4" style="max-width: 500px;">
+        Actualmente no cuentas con una habitación para el periodo en curso. Si cumples con los requisitos, puedes iniciar tu proceso de solicitud ahora mismo.
+      </p>
+      
+      <button class="module-btn mx-auto" routerLink="/student/postulation" style="padding: 0.8rem 1.5rem; font-size: 1.05rem;">
+        <i class="pi pi-file-edit"></i> Postular a Residencia
+      </button>
+    </div>
+
+  }
+</div>
