@@ -16,7 +16,7 @@ export interface IncidenciaDTO {
   estado: EstadoIncidencia;
   fecha: string;
   gravedad: GravedadIncidencia;
-  id_habitacion: number; // Base de datos real
+  idHabitacion: number; // Base de datos real
 
   rutEstudiante: string;
   rutAdmin: string | null;
