@@ -33,6 +33,7 @@
             <option [value]="EstadoEnum.EN_REVISION">En Revisión</option>
             <option [value]="EstadoEnum.APROBADA">Aprobada</option>
             <option [value]="EstadoEnum.RECHAZADA">Rechazada</option>
+            <option [value]="EstadoEnum.FINALIZADA">Finalizada</option>
           </select>
         </div>
       </div>
@@ -165,6 +166,29 @@
           </div>
         </div>
 
+        @if (evaluacionResidencial) {
+          <div class="incidencias-section bg-white border rounded-3 p-3">
+            <div class="d-flex flex-column flex-sm-row justify-content-between gap-2 align-items-sm-center">
+              <div>
+                <h4 class="fs-6 fw-bold mb-1">Reputacion residencial</h4>
+                <p class="text-muted m-0" style="font-size: 0.9rem;">
+                  {{ evaluacionResidencial.recomendacion }}
+                </p>
+              </div>
+              <div class="d-flex align-items-center gap-2">
+                <span class="badge rounded-pill" [ngClass]="getClassForRiesgo(evaluacionResidencial.nivel)">
+                  Riesgo {{ evaluacionResidencial.nivel }}
+                </span>
+                <span class="text-muted small">{{ evaluacionResidencial.puntaje }} pts</span>
+              </div>
+            </div>
+            <div class="d-flex flex-wrap gap-3 mt-3 text-muted" style="font-size: 0.85rem;">
+              <span>Total incidencias: {{ evaluacionResidencial.totalIncidencias }}</span>
+              <span>Graves: {{ evaluacionResidencial.incidenciasGraves }}</span>
+            </div>
+          </div>
+        }
+
         <div class="incidencias-section">
           <h4 class="fs-6 fw-bold mb-3 border-bottom pb-2">Historial de Incidencias</h4>
           @if (incidenciasEstudiante.length === 0) {
@@ -176,7 +200,9 @@
                   <span class="inc-date text-muted" style="font-size: 0.8rem; min-width: 80px;">{{ inc.fecha }}</span>
                   <div class="flex-grow-1">
                     <span class="inc-desc d-block text-dark" style="font-size: 0.9rem;">{{ inc.descripcion }}</span>
-                    <small class="text-muted">Por: {{ inc.nombreAdmin }}</small>
+                    <small class="text-muted">
+                      {{ inc.nombreEdificio || 'Sin edificio' }} · Piso {{ inc.nroPiso || '-' }} · Hab. {{ inc.nroHabitacion || inc.idHabitacion }}
+                    </small>
                   </div>
                   <span class="badge rounded-pill" 
                     [ngClass]="{'bg-red': inc.gravedad === GravedadEnum.GRAVE, 'bg-yellow': inc.gravedad === GravedadEnum.MODERADO, 'bg-green': inc.gravedad === GravedadEnum.LEVE}">

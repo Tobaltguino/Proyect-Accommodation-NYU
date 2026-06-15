@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { AuthService } from '../../../core/auth/auth.service';
 import {
   CreateIncidenciaRequest,
+  EvaluacionResidencialDTO,
   IncidenciaApiResponse,
   IncidenciaFilters,
 } from '../../../shared/models';
@@ -42,6 +43,13 @@ export class StudentIncidentsService {
       headers: this.getAuthHeaders(),
       params,
     });
+  }
+
+  getEvaluacionResidencial(rutEstudiante: string): Observable<EvaluacionResidencialDTO> {
+    return this.http.get<EvaluacionResidencialDTO>(
+      `${this.apiBaseUrl}/incidencias/evaluacion/${encodeURIComponent(rutEstudiante)}`,
+      { headers: this.getAuthHeaders() },
+    );
   }
 
   private getAuthHeaders(): HttpHeaders {

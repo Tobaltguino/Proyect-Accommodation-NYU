@@ -2,6 +2,7 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { 
+  EvaluacionResidencialDTO,
   SolicitudDTO, 
   EstadoSolicitud, 
   Genero, 
@@ -13,6 +14,7 @@ import {
 import { SolicitudesService } from '../../../core/services/solicitudes.service';
 import { InfraestructuraService } from '../../../core/services/infraestructura.service';
 import { AsignacionesService } from '../../../core/services/asignaciones.service';
+import { AdminIncidentsService } from '../incidents/admin-incidents.service';
 
 @Component({
   selector: 'app-admin-requests',
@@ -28,6 +30,7 @@ export class AdminRequestsComponent implements OnInit {
   private solicitudesService = inject(SolicitudesService);
   private infraestructuraService = inject(InfraestructuraService);
   private asignacionesService = inject(AsignacionesService);
+  private adminIncidentsService = inject(AdminIncidentsService);
 
   // RUT del administrador que está usando el sistema (simulado)
   private readonly RUT_ADMIN_ACTUAL = '14.555.666-7'; 
@@ -47,6 +50,7 @@ export class AdminRequestsComponent implements OnInit {
   isModalOpen: boolean = false;
   solicitudSeleccionada: SolicitudDTO | null = null;
   incidenciasEstudiante: IncidenciaDTO[] = [];
+  evaluacionResidencial: EvaluacionResidencialDTO | null = null;
   
   edificiosDisponibles: EdificioDTO[] = [];
 
@@ -116,16 +120,10 @@ export class AdminRequestsComponent implements OnInit {
 
   abrirModal(solicitud: SolicitudDTO): void {
     this.solicitudSeleccionada = solicitud;
-
-    this.incidenciasEstudiante = [
-      { 
-        idIncidencia: 1, fecha: '2025-10-12', descripcion: 'Ruido excesivo en horario de descanso', 
-        gravedad: GravedadIncidencia.MODERADO,
-        idHabitacion: 10, nroHabitacion: 101, nombreEdificio: 'Residencia Norte',
-        rutEstudiante: solicitud.rutEstudiante, nombreEstudiante: solicitud.nombreEstudiante,
-        rutAdmin: '12.888.777-6', nombreAdmin: 'Admin Guardia', periodo: '2025-2'
-      }
-    ];
+    this.incidenciasEstudiante = [];
+    this.evaluacionResidencial = null;
+    this.cargarIncidenciasEstudiante(solicitud.rutEstudiante);
+    this.cargarEvaluacionResidencial(solicitud.rutEstudiante);
 
     this.edificiosFiltrados = this.filtrarEdificiosPorSolicitud(solicitud);
 
@@ -189,6 +187,7 @@ export class AdminRequestsComponent implements OnInit {
       case EstadoSolicitud.EN_REVISION: return 'rev';
       case EstadoSolicitud.APROBADA: return 'apr';
       case EstadoSolicitud.RECHAZADA: return 'rec';
+      case EstadoSolicitud.FINALIZADA: return 'fin';
       default: return '';
     }
   }
@@ -197,6 +196,49 @@ export class AdminRequestsComponent implements OnInit {
     this.cerrarModal();
     this.cargarSolicitudes();
     this.cargarInfraestructura();
+  }
+
+  getClassForRiesgo(nivel: EvaluacionResidencialDTO['nivel']): string {
+    switch (nivel) {
+      case 'ALTO': return 'bg-red';
+      case 'MEDIO': return 'bg-yellow';
+      default: return 'bg-green';
+    }
+  }
+
+  private cargarIncidenciasEstudiante(rutEstudiante: string): void {
+    this.adminIncidentsService.getIncidencias({ rut: rutEstudiante }).subscribe({
+      next: (rows) => {
+        this.incidenciasEstudiante = rows.map((row) => ({
+          idIncidencia: row.idIncidencia,
+          fecha: row.fecha,
+          descripcion: row.descripcion,
+          gravedad: row.gravedad,
+          idHabitacion: row.idHabitacion,
+          nroHabitacion: row.nroHabitacion,
+          idPiso: row.idPiso,
+          nroPiso: row.nroPiso,
+          nombreEdificio: row.nombreEdificio,
+          ubicacion: row.ubicacion,
+          rutEstudiante: row.rutEstudiante,
+          rutAdmin: row.rutAdmin,
+        }));
+      },
+      error: () => {
+        this.incidenciasEstudiante = [];
+      },
+    });
+  }
+
+  private cargarEvaluacionResidencial(rutEstudiante: string): void {
+    this.adminIncidentsService.getEvaluacionResidencial(rutEstudiante).subscribe({
+      next: (evaluacion) => {
+        this.evaluacionResidencial = evaluacion;
+      },
+      error: () => {
+        this.evaluacionResidencial = null;
+      },
+    });
   }
 
   private filtrarEdificiosPorSolicitud(solicitud: SolicitudDTO): EdificioDTO[] {

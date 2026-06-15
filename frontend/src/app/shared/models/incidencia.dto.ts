@@ -15,7 +15,10 @@ export interface IncidenciaDTO {
   rutAdmin: string | null;
 
   nroHabitacion?: number;
+  idPiso?: number;
+  nroPiso?: number;
   nombreEdificio?: string;
+  ubicacion?: string;
   nombreEstudiante?: string;
   periodo?: string;
   nombreAdmin?: string;
@@ -35,8 +38,22 @@ export interface IncidenciaApiResponse {
   fecha: string;
   gravedad: GravedadIncidencia;
   idHabitacion: number;
+  nroHabitacion?: number;
+  idPiso?: number;
+  nroPiso?: number;
+  nombreEdificio?: string;
+  ubicacion?: string;
   rutEstudiante: string;
   rutAdmin: string | null;
+}
+
+export interface EvaluacionResidencialDTO {
+  rutEstudiante: string;
+  puntaje: number;
+  nivel: 'BAJO' | 'MEDIO' | 'ALTO';
+  totalIncidencias: number;
+  incidenciasGraves: number;
+  recomendacion: string;
 }
 
 export interface IncidenciaFilters {

@@ -49,8 +49,8 @@ export interface SolicitudResponse {
   buildingId: 'FEMENINO' | 'MASCULINO';
   roomCode: string;
   motivation: string;
-  status: 'EN_REVISION' | 'APROBADA' | 'RECHAZADA' | 'EXPIRADA' | 'En Revision' | 'Pendiente' | 'Aprobada' | 'Rechazada';
-  estado?: 'EN_REVISION' | 'APROBADA' | 'RECHAZADA' | 'EXPIRADA' | 'En Revision' | 'Pendiente' | 'Aprobada' | 'Rechazada';
+  status: 'EN_REVISION' | 'APROBADA' | 'RECHAZADA' | 'EXPIRADA' | 'FINALIZADA' | 'En Revision' | 'Pendiente' | 'Aprobada' | 'Rechazada' | 'Finalizada';
+  estado?: 'EN_REVISION' | 'APROBADA' | 'RECHAZADA' | 'EXPIRADA' | 'FINALIZADA' | 'En Revision' | 'Pendiente' | 'Aprobada' | 'Rechazada' | 'Finalizada';
   fechaSolicitud?: string;
   idPeriodo?: number;
   idAsignacion?: number | null;

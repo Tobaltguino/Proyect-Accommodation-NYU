@@ -121,11 +121,14 @@ export class StudentIncidentsComponent implements OnInit {
       fecha: row.fecha,
       gravedad: row.gravedad,
       idHabitacion: row.idHabitacion,
-      nroHabitacion: row.idHabitacion,
+      nroHabitacion: row.nroHabitacion,
+      idPiso: row.idPiso,
+      nroPiso: row.nroPiso,
       rutEstudiante: row.rutEstudiante,
       rutAdmin: row.rutAdmin,
       periodo: this.filtroPeriodo || 'Sin periodo',
-      nombreEdificio: 'Sin edificio',
+      nombreEdificio: row.nombreEdificio,
+      ubicacion: row.ubicacion,
     };
   }
 

@@ -1,4 +1,11 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
+import { HabitacionEntity } from 'src/modules/residencias/entities';
 
 @Entity({ name: 'incidencia_estancia', schema: 'public' })
 export class IncidenciaEstanciaEntity {
@@ -22,4 +29,8 @@ export class IncidenciaEstanciaEntity {
 
   @Column({ name: 'rut_admin', type: 'varchar', nullable: true })
   rutAdmin!: string | null;
+
+  @ManyToOne(() => HabitacionEntity)
+  @JoinColumn({ name: 'id_habitacion' })
+  habitacion!: HabitacionEntity;
 }

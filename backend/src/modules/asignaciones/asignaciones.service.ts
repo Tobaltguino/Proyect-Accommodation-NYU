@@ -459,6 +459,19 @@ export class AsignacionesService {
     asignacion.rutAdmin = rutAdmin;
 
     const asignacionGuardada = await this.asignacionRepo.save(asignacion);
+
+    const solicitud = await this.solicitudRepo.findOne({
+      where: {
+        idAsignacion: asignacion.idAsignacion,
+        rutEstudiante: asignacion.rutEstudiante,
+      },
+    });
+
+    if (solicitud) {
+      solicitud.estado = 'Finalizada';
+      await this.solicitudRepo.save(solicitud);
+    }
+
     await this.historialService.registrarMovimiento({
       tipoMovimiento: 'CHECK_OUT',
       rutEstudiante: asignacion.rutEstudiante,

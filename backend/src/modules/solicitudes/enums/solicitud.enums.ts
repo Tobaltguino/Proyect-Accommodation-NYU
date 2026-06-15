@@ -19,4 +19,5 @@ export enum SolicitudStatus {
   APROBADA = 'Aprobada',
   RECHAZADA = 'Rechazada',
   PENDIENTE = 'Pendiente',
+  FINALIZADA = 'Finalizada',
 }

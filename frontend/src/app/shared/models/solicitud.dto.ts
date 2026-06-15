@@ -4,7 +4,8 @@ export enum EstadoSolicitud {
   PENDIENTE = 'Pendiente',
   EN_REVISION = 'En Revision',
   APROBADA = 'Aprobada',
-  RECHAZADA = 'Rechazada'
+  RECHAZADA = 'Rechazada',
+  FINALIZADA = 'Finalizada'
 }
 
 export interface SolicitudDTO {

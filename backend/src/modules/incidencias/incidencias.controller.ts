@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
 import { IncidenciasService } from './incidencias.service';
 import { CreateIncidenciaDto, IncidenciaQueryDto } from './dto';
 
@@ -19,5 +19,10 @@ export class IncidenciasController {
   @Get()
   findAll(@Query() query: IncidenciaQueryDto) {
     return this.incidenciasService.getIncidencias(query);
+  }
+
+  @Get('evaluacion/:rutEstudiante')
+  getEvaluacion(@Param('rutEstudiante') rutEstudiante: string) {
+    return this.incidenciasService.getEvaluacionResidencial(rutEstudiante);
   }
 }

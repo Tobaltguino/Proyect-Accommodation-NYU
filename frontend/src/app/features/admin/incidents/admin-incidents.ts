@@ -2,9 +2,13 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AdminIncidentsService } from './admin-incidents.service';
+import { InfraestructuraService } from '../../../core/services/infraestructura.service';
 import { 
+  EdificioDTO,
+  HabitacionDTO,
   IncidenciaApiResponse,
   IncidenciaDTO, 
+  PisoDTO,
   GravedadIncidencia 
 } from '../../../shared/models';
 
@@ -39,6 +43,10 @@ export class AdminIncidentsComponent implements OnInit {
   isModalOpen = false;
   selectedIncident: IncidenciaDTO | null = null; 
 
+  edificios: EdificioDTO[] = [];
+  edificioSeleccionadoId: number | null = null;
+  pisoSeleccionadoId: number | null = null;
+
   isCreateModalOpen = false;
   nuevaIncidencia = {
     descripcion: '',
@@ -47,11 +55,23 @@ export class AdminIncidentsComponent implements OnInit {
     rutEstudiante: '',
   };
 
-  constructor(private readonly adminIncidentsService: AdminIncidentsService) {}
+  constructor(
+    private readonly adminIncidentsService: AdminIncidentsService,
+    private readonly infraestructuraService: InfraestructuraService,
+  ) {}
 
   ngOnInit(): void {
     this.filtroPeriodo = '2026-1';
     this.cargarIncidencias();
+    this.cargarInfraestructura();
+  }
+
+  get pisosDisponibles(): PisoDTO[] {
+    return this.edificios.find((edificio) => edificio.idEdificio === this.edificioSeleccionadoId)?.pisos ?? [];
+  }
+
+  get habitacionesDisponibles(): HabitacionDTO[] {
+    return this.pisosDisponibles.find((piso) => piso.idPiso === this.pisoSeleccionadoId)?.habitaciones ?? [];
   }
 
   // Getters de Paginación
@@ -109,9 +129,12 @@ export class AdminIncidentsComponent implements OnInit {
     this.nuevaIncidencia = {
       descripcion: '',
       gravedad: GravedadIncidencia.LEVE,
-      idHabitacion: this.nuevaIncidencia.idHabitacion,
+      idHabitacion: 0,
       rutEstudiante: '',
     };
+    this.edificioSeleccionadoId = this.edificios[0]?.idEdificio ?? null;
+    this.pisoSeleccionadoId = this.pisosDisponibles[0]?.idPiso ?? null;
+    this.nuevaIncidencia.idHabitacion = this.habitacionesDisponibles[0]?.idHabitacion ?? 0;
     this.isCreateModalOpen = true;
     document.body.style.overflow = 'hidden';
   }
@@ -136,7 +159,7 @@ export class AdminIncidentsComponent implements OnInit {
     }
 
     if (this.nuevaIncidencia.idHabitacion < 1) {
-      alert('Ingresa un ID de habitacion valido.');
+      alert('Selecciona una habitacion valida.');
       return;
     }
 
@@ -160,6 +183,17 @@ export class AdminIncidentsComponent implements OnInit {
       });
   }
 
+  cambiarEdificio(idEdificio: number | string): void {
+    this.edificioSeleccionadoId = Number(idEdificio) || null;
+    this.pisoSeleccionadoId = this.pisosDisponibles[0]?.idPiso ?? null;
+    this.nuevaIncidencia.idHabitacion = this.habitacionesDisponibles[0]?.idHabitacion ?? 0;
+  }
+
+  cambiarPiso(idPiso: number | string): void {
+    this.pisoSeleccionadoId = Number(idPiso) || null;
+    this.nuevaIncidencia.idHabitacion = this.habitacionesDisponibles[0]?.idHabitacion ?? 0;
+  }
+
   private cargarIncidencias(): void {
     this.adminIncidentsService.getIncidencias().subscribe({
       next: (rows) => {
@@ -174,6 +208,17 @@ export class AdminIncidentsComponent implements OnInit {
     });
   }
 
+  private cargarInfraestructura(): void {
+    this.infraestructuraService.obtenerInfraestructuraCompleta().subscribe({
+      next: (edificios) => {
+        this.edificios = edificios;
+      },
+      error: () => {
+        this.edificios = [];
+      },
+    });
+  }
+
   private mapApiToDto(row: IncidenciaApiResponse): IncidenciaDTO {
     return {
       idIncidencia: row.idIncidencia,
@@ -181,11 +226,14 @@ export class AdminIncidentsComponent implements OnInit {
       fecha: row.fecha,
       gravedad: row.gravedad,
       idHabitacion: row.idHabitacion,
-      nroHabitacion: row.idHabitacion,
+      nroHabitacion: row.nroHabitacion,
+      idPiso: row.idPiso,
+      nroPiso: row.nroPiso,
       rutEstudiante: row.rutEstudiante,
       rutAdmin: row.rutAdmin,
       periodo: this.filtroPeriodo || 'Sin periodo',
-      nombreEdificio: 'Sin edificio',
+      nombreEdificio: row.nombreEdificio,
+      ubicacion: row.ubicacion,
     };
   }
 

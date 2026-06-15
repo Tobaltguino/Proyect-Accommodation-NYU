@@ -4,7 +4,7 @@ import {
   Injectable,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { AsignacionEntity } from '../asignaciones/entities/asignacion.entity';
 import { JwtPayload } from '../auth/types/auth.types';
 import { PeriodosService } from '../periodos/periodos.service';
@@ -40,6 +40,7 @@ export class SolicitudesService {
         where: {
           rutEstudiante: user.rut,
           idPeriodo: periodoActual.idPeriodo,
+          estado: In(['Pendiente', 'En Revision', 'Aprobada']),
         },
       });
 
@@ -78,11 +79,21 @@ export class SolicitudesService {
     const periodoActual = await this.periodosService.obtenerActual();
     if (!periodoActual) return null;
 
-    const solicitud = await this.solicitudRepository.findOne({
+    let solicitud = await this.solicitudRepository.findOne({
+      where: {
+        rutEstudiante: user.rut,
+        idPeriodo: periodoActual.idPeriodo,
+        estado: In(['Pendiente', 'En Revision', 'Aprobada']),
+      },
+      order: { fechaSolicitud: 'DESC', idSolicitud: 'DESC' },
+    });
+
+    solicitud ??= await this.solicitudRepository.findOne({
       where: {
         rutEstudiante: user.rut,
         idPeriodo: periodoActual.idPeriodo,
       },
+      order: { fechaSolicitud: 'DESC', idSolicitud: 'DESC' },
     });
 
     if (!solicitud) return null;
@@ -95,7 +106,11 @@ export class SolicitudesService {
       asignacion = null;
     }
 
-    return this.mapSolicitudResponse(solicitud, asignacion, periodoActual.nombre);
+    return this.mapSolicitudResponse(
+      solicitud,
+      asignacion,
+      periodoActual.nombre,
+    );
   }
 
   private async findSolicitudAsignacion(solicitud: SolicitudEntity) {
@@ -150,7 +165,9 @@ export class SolicitudesService {
       planAlimenticio: solicitud.planAlimenticio,
       mealPlan: solicitud.planAlimenticio,
       semester:
-        asignacion?.periodo?.nombre ?? nombrePeriodo ?? solicitud.idPeriodo.toString(),
+        asignacion?.periodo?.nombre ??
+        nombrePeriodo ??
+        solicitud.idPeriodo.toString(),
       nombrePeriodo: asignacion?.periodo?.nombre ?? nombrePeriodo,
       asignacion: asignacion ? this.mapAsignacionResponse(asignacion) : null,
       reservationExpiresAt: null,
