@@ -11,7 +11,9 @@ describe('SolicitudesAdminController', () => {
       providers: [SolicitudesAdminService],
     }).compile();
 
-    controller = module.get<SolicitudesAdminController>(SolicitudesAdminController);
+    controller = module.get<SolicitudesAdminController>(
+      SolicitudesAdminController,
+    );
   });
 
   it('should be defined', () => {

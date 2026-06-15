@@ -45,6 +45,10 @@ export class AsignacionesService {
     return this.http.patch(`${this.apiUrl}/${idAsignacion}/renunciar`, {}, { headers: this.getHeaders() });
   }
 
+  finalizarAsignacion(idAsignacion: number): Observable<any> {
+    return this.http.patch(`${this.apiUrl}/${idAsignacion}/checkout`, {}, { headers: this.getHeaders() });
+  }
+
   /* ESTUDIANTE ========================================= */
 
   obtenerMiAsignacion(): Observable<any> {

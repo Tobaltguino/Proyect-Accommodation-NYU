@@ -8,9 +8,6 @@ export class IncidenciaEstanciaEntity {
   @Column({ name: 'descripcion', type: 'varchar', length: 500 })
   descripcion!: string;
 
-  @Column({ name: 'estado', type: 'varchar', length: 20 })
-  estado!: string;
-
   @Column({ name: 'fecha', type: 'date' })
   fecha!: string;
 

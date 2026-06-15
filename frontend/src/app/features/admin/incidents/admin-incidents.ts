@@ -5,7 +5,6 @@ import { AdminIncidentsService } from './admin-incidents.service';
 import { 
   IncidenciaApiResponse,
   IncidenciaDTO, 
-  EstadoIncidencia, 
   GravedadIncidencia 
 } from '../../../shared/models';
 
@@ -17,12 +16,10 @@ import {
   styleUrl: './admin-incidents.scss'
 })
 export class AdminIncidentsComponent implements OnInit {
-  public EstadoEnum = EstadoIncidencia;
   public GravedadEnum = GravedadIncidencia;
 
   // RUT del administrador simulado
   private readonly RUT_ADMIN_ACTUAL = '14.555.666-7'; 
-  private readonly nombreAdmin_ACTUAL = 'Cristóbal Administrador';
 
   incidencias: IncidenciaDTO[] = [];
 
@@ -30,7 +27,6 @@ export class AdminIncidentsComponent implements OnInit {
 
   // Filtros
   filtroPeriodo: string = '';
-  filtroEstado: EstadoIncidencia | '' = '';
   filtroGravedad: GravedadIncidencia | '' = '';
   filtroRut: string = '';
   periodos: string[] = ['2026-1', '2025-2', '2025-1'];
@@ -42,6 +38,14 @@ export class AdminIncidentsComponent implements OnInit {
   // Modal
   isModalOpen = false;
   selectedIncident: IncidenciaDTO | null = null; 
+
+  isCreateModalOpen = false;
+  nuevaIncidencia = {
+    descripcion: '',
+    gravedad: GravedadIncidencia.LEVE,
+    idHabitacion: 1,
+    rutEstudiante: '',
+  };
 
   constructor(private readonly adminIncidentsService: AdminIncidentsService) {}
 
@@ -72,11 +76,10 @@ export class AdminIncidentsComponent implements OnInit {
 
     this.incidenciasFiltradas = this.incidencias.filter(inc => {
       const matchPeriodo = this.filtroPeriodo ? inc.periodo === this.filtroPeriodo : true;
-      const matchEstado = this.filtroEstado ? inc.estado === this.filtroEstado : true;
       const matchGravedad = this.filtroGravedad ? inc.gravedad === this.filtroGravedad : true;
       const matchRut = rutBuscado ? inc.rutEstudiante.toLowerCase().includes(rutBuscado) : true;
       
-      return matchPeriodo && matchEstado && matchGravedad && matchRut;
+      return matchPeriodo && matchGravedad && matchRut;
     });
 
     // Reiniciar página al filtrar
@@ -85,7 +88,6 @@ export class AdminIncidentsComponent implements OnInit {
 
   limpiarFiltros(): void {
     this.filtroPeriodo = '';
-    this.filtroEstado = '';
     this.filtroGravedad = '';
     this.filtroRut = '';
     this.aplicarFiltros();
@@ -93,25 +95,6 @@ export class AdminIncidentsComponent implements OnInit {
 
   openModal(incidencia: IncidenciaDTO): void {
     this.selectedIncident = incidencia;
-    
-    // Si está PENDIENTE y el admin la abre, asume la responsabilidad (pasa a EN_PROCESO)
-    if (this.selectedIncident.estado === EstadoIncidencia.PENDIENTE) {
-      this.adminIncidentsService
-        .updateEstadoIncidencia(this.selectedIncident.idIncidencia, {
-          estado: EstadoIncidencia.EN_PROCESO,
-          rutAdmin: this.RUT_ADMIN_ACTUAL,
-        })
-        .subscribe({
-          next: (updated) => {
-            this.syncIncidentFromApi(updated);
-            this.aplicarFiltros();
-          },
-          error: () => {
-            alert('No se pudo marcar la incidencia en proceso.');
-          },
-        });
-    }
-
     this.isModalOpen = true;
     document.body.style.overflow = 'hidden'; 
   }
@@ -122,27 +105,59 @@ export class AdminIncidentsComponent implements OnInit {
     document.body.style.overflow = 'auto'; 
   }
 
-  marcarComoResuelta(): void {
-    if (this.selectedIncident) {
-      const incidenciaId = this.selectedIncident.idIncidencia;
+  openCreateModal(): void {
+    this.nuevaIncidencia = {
+      descripcion: '',
+      gravedad: GravedadIncidencia.LEVE,
+      idHabitacion: this.nuevaIncidencia.idHabitacion,
+      rutEstudiante: '',
+    };
+    this.isCreateModalOpen = true;
+    document.body.style.overflow = 'hidden';
+  }
 
-      this.adminIncidentsService
-        .updateEstadoIncidencia(incidenciaId, {
-          estado: EstadoIncidencia.RESUELTA,
-          rutAdmin: this.RUT_ADMIN_ACTUAL,
-        })
-        .subscribe({
-          next: (updated) => {
-            this.syncIncidentFromApi(updated);
-            this.aplicarFiltros();
-            this.closeModal();
-            console.log(`Incidencia ${incidenciaId} resuelta por ${this.nombreAdmin_ACTUAL}`);
-          },
-          error: () => {
-            alert('No se pudo marcar la incidencia como resuelta.');
-          },
-        });
+  closeCreateModal(): void {
+    this.isCreateModalOpen = false;
+    document.body.style.overflow = 'auto';
+  }
+
+  enviarReporte(): void {
+    const descripcion = this.nuevaIncidencia.descripcion.trim();
+    const rutEstudiante = this.nuevaIncidencia.rutEstudiante.trim();
+
+    if (descripcion.length < 10) {
+      alert('La descripcion debe tener al menos 10 caracteres.');
+      return;
     }
+
+    if (!rutEstudiante) {
+      alert('Ingresa el RUT del estudiante.');
+      return;
+    }
+
+    if (this.nuevaIncidencia.idHabitacion < 1) {
+      alert('Ingresa un ID de habitacion valido.');
+      return;
+    }
+
+    this.adminIncidentsService
+      .createIncidencia({
+        descripcion,
+        gravedad: this.nuevaIncidencia.gravedad,
+        idHabitacion: this.nuevaIncidencia.idHabitacion,
+        rutEstudiante,
+        rutAdmin: this.RUT_ADMIN_ACTUAL,
+      })
+      .subscribe({
+        next: () => {
+          alert('Reporte creado con exito.');
+          this.closeCreateModal();
+          this.cargarIncidencias();
+        },
+        error: () => {
+          alert('No se pudo crear el reporte. Revisa backend y datos del formulario.');
+        },
+      });
   }
 
   private cargarIncidencias(): void {
@@ -163,7 +178,6 @@ export class AdminIncidentsComponent implements OnInit {
     return {
       idIncidencia: row.idIncidencia,
       descripcion: row.descripcion,
-      estado: row.estado,
       fecha: row.fecha,
       gravedad: row.gravedad,
       idHabitacion: row.idHabitacion,
@@ -187,22 +201,4 @@ export class AdminIncidentsComponent implements OnInit {
     return dynamicPeriods.length > 0 ? dynamicPeriods : ['2026-1'];
   }
 
-  private syncIncidentFromApi(row: IncidenciaApiResponse): void {
-    const index = this.incidencias.findIndex((item) => item.idIncidencia === row.idIncidencia);
-
-    if (index === -1) {
-      return;
-    }
-
-    this.incidencias[index] = {
-      ...this.incidencias[index],
-      estado: row.estado,
-      rutAdmin: row.rutAdmin,
-      nombreAdmin: row.rutAdmin ? this.nombreAdmin_ACTUAL : this.incidencias[index].nombreAdmin,
-    };
-
-    if (this.selectedIncident && this.selectedIncident.idIncidencia === row.idIncidencia) {
-      this.selectedIncident = this.incidencias[index];
-    }
-  }
 }

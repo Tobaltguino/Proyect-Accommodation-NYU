@@ -3,8 +3,8 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { AuthService } from '../../../core/auth/auth.service';
 import { SessionUser } from '../../../core/auth/auth.models';
-// Importamos tus nuevos modelos
-import { DietaDTO, TipoDieta } from '../../../shared/models'; 
+import { AsignacionDTO } from '../../../shared/models';
+import { SolicitudResponse, StudentPostulationService } from '../postulation/student-postulation.service';
 
 @Component({
   selector: 'app-student-home',
@@ -14,38 +14,70 @@ import { DietaDTO, TipoDieta } from '../../../shared/models';
   styleUrl: './student-home.page.scss'
 })
 export class StudentHomePageComponent implements OnInit {
+  private readonly activeSemester = '2026-1';
+
   currentUser: SessionUser | null = null;
-  
-  tieneAsignacion: boolean = true; 
+  solicitud: SolicitudResponse | null = null;
+  asignacion: AsignacionDTO | null = null;
+  isLoading = true;
+  loadError = '';
 
-  miPlanDieta: DietaDTO = {
-    idPlan: 1,
-    tipoPlan: TipoDieta.VEGANO,
-    idPeriodo: 1,
-    rutEstudiante: '', 
-    nombreEstudiante: '' 
+  tieneAsignacion = false;
+  periodoLabel = '-';
+  planAlimenticioLabel = '-';
+
+  miAsignacion: {
+    edificio: string;
+    piso: string;
+    habitacion: string;
+  } = {
+    edificio: '-',
+    piso: '-',
+    habitacion: '-'
   };
 
-  miAsignacion = {
-    edificio: 'Residencia Norte',
-    piso: 2,
-    habitacion: 204,
-    fechaIngreso: '2026-03-01'
-  };
-
-  constructor(private authService: AuthService) {
+  constructor(
+    private authService: AuthService,
+    private readonly postulationService: StudentPostulationService,
+  ) {
     this.currentUser = this.authService.getCurrentUser();
-    
-    // Si hay un usuario logueado, le asignamos su RUT al plan de dieta
-    if (this.currentUser) {
-      // Nota: Asumo que en tu auth.models.ts agregaste el 'rut' al SessionUser.
-      // Si la variable se llama diferente, cámbialo aquí.
-      this.miPlanDieta.rutEstudiante = (this.currentUser as any).rut || '12.345.678-9';
-    }
   }
 
   ngOnInit(): void {
-    // En el futuro, tus llamadas al backend también usarán el RUT:
-    // this.estudianteService.getAsignacionPorRut(this.currentUser.rut).subscribe(...)
+    this.loadMyAssignment();
+  }
+
+  private loadMyAssignment(): void {
+    this.isLoading = true;
+    this.loadError = '';
+
+    this.postulationService.getMySolicitud(this.activeSemester).subscribe({
+      next: (solicitud) => {
+        this.solicitud = solicitud;
+        this.asignacion = solicitud?.asignacion ?? null;
+        this.tieneAsignacion = Boolean(this.asignacion);
+        this.periodoLabel =
+          this.asignacion?.nombrePeriodo ??
+          solicitud?.nombrePeriodo ??
+          solicitud?.semester ??
+          solicitud?.idPeriodo?.toString() ??
+          '-';
+        this.planAlimenticioLabel =
+          solicitud?.mealPlan ?? solicitud?.planAlimenticio ?? solicitud?.plan_alimenticio ?? '-';
+        this.miAsignacion = {
+          edificio: this.asignacion?.nombreEdificio ?? '-',
+          piso: this.asignacion?.nombrePiso ?? this.asignacion?.numeroPiso?.toString() ?? '-',
+          habitacion: this.asignacion?.numeroHabitacion ?? '-',
+        };
+        this.isLoading = false;
+      },
+      error: () => {
+        this.solicitud = null;
+        this.asignacion = null;
+        this.tieneAsignacion = false;
+        this.loadError = 'No se pudo cargar tu asignacion actual.';
+        this.isLoading = false;
+      },
+    });
   }
 }

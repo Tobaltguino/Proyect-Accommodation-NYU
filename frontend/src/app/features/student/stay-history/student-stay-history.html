@@ -4,7 +4,7 @@
     <header class="d-flex flex-column flex-md-row justify-content-between align-items-md-start gap-3 mb-4">
       <div>
         <h1 class="page-title m-0">Mi Historial de Estadía</h1>
-        <p class="page-subtitle mt-1 mb-0">Revisa tus asignaciones de alojamiento actuales y pasadas.</p>
+        <p class="page-subtitle mt-1 mb-0">Revisa tus estadías, asignaciones y movimientos anteriores.</p>
       </div>
     </header>
 
@@ -26,12 +26,14 @@
         </div>
 
         <div class="col-12 col-md-6">
-          <label for="estado" class="form-label mb-1">Estado de Asignación</label>
-          <select id="estado" class="form-select custom-control" [(ngModel)]="filtroEstado" (change)="aplicarFiltros()">
-            <option value="">Todos los estados</option>
-            <option [value]="EstadoAsignacionEnum.ACTIVA">Activa</option>
-            <option [value]="EstadoAsignacionEnum.FINALIZADA">Finalizada</option>
-            <option [value]="EstadoAsignacionEnum.RENUNCIADA">Renunciada</option>
+          <label for="movimiento" class="form-label mb-1">Tipo de Movimiento</label>
+          <select id="movimiento" class="form-select custom-control" [(ngModel)]="filtroMovimiento" (change)="aplicarFiltros()">
+            <option value="">Todos los movimientos</option>
+            <option value="ASIGNACION">Asignación</option>
+            <option value="CHECK_IN">Check-in</option>
+            <option value="REASIGNACION">Reasignación</option>
+            <option value="CHECK_OUT">Check-out</option>
+            <option value="RENUNCIA">Renuncia</option>
           </select>
         </div>
       </div>
@@ -48,45 +50,40 @@
           <thead>
             <tr>
               <th>Periodo</th>
-              <th>Ubicación Asignada</th>
-              <th>Fecha de Asignación</th>
-              <th>Fechas (Ingreso - Salida)</th>
-              <th>Estado</th>
+              <th>Movimiento</th>
+              <th>Ubicación</th>
+              <th>Fecha</th>
+              <th>Responsable</th>
+              <th>Detalle</th>
             </tr>
           </thead>
           <tbody>
-            @for (asig of historialPaginado; track asig.idAsignacion) {
-              <tr [class.bg-light]="asig.estado === EstadoAsignacionEnum.ACTIVA">
+            @for (asig of historialPaginado; track asig.idHistorial) {
+              <tr>
                 <td>
                   <strong class="text-dark">{{ asig.nombrePeriodo }}</strong>
                 </td>
-                
-                <td>
-                  <div class="d-flex flex-column">
-                    <span class="room fw-semibold text-dark">Hab. {{ asig.numeroHabitacion }}</span>
-                    <span class="building text-muted small"><i class="pi pi-building me-1" style="font-size: 0.8rem;"></i>{{ asig.nombreEdificio }}</span>
-                  </div>
-                </td>
 
                 <td>
-                  <span class="user-sub text-muted small">{{ asig.fechaAsignacion }}</span>
-                </td>
-
-                <td>
-                  <div class="dates-meta d-flex flex-column gap-1 text-sm">
-                    <span [class.text-400]="!asig.fechaCheckIn" [title]="!asig.fechaCheckIn ? 'Aún no realizas tu ingreso' : 'Fecha de Ingreso'">
-                      <i class="pi pi-sign-in text-secondary"></i> {{ asig.fechaCheckIn || 'Ingreso Pendiente' }}
-                    </span>
-                    <span [class.text-400]="!asig.fechaCheckOut && asig.estado !== EstadoAsignacionEnum.ACTIVA" [title]="!asig.fechaCheckOut ? 'No registra fecha de salida' : 'Fecha de Salida'">
-                      <i class="pi pi-sign-out text-secondary"></i> {{ asig.fechaCheckOut || '--/--/----' }}
-                    </span>
-                  </div>
-                </td>
-
-                <td>
-                  <span class="badge rounded-pill" [ngClass]="getClassForEstado(asig.estado)">
-                    {{ asig.estado }}
+                  <span class="badge rounded-pill" [ngClass]="getClassForMovimiento(asig.tipoMovimiento)">
+                    {{ getLabelMovimiento(asig.tipoMovimiento) }}
                   </span>
+                </td>
+
+                <td>
+                  <span class="room fw-semibold text-dark">{{ getUbicacion(asig) }}</span>
+                </td>
+
+                <td>
+                  <span class="user-sub text-muted small">{{ asig.fechaMovimiento | date:'yyyy-MM-dd HH:mm' }}</span>
+                </td>
+
+                <td>
+                  <span class="user-sub text-muted small">{{ asig.rutAdmin || 'Sistema' }}</span>
+                </td>
+
+                <td>
+                  <span class="user-sub text-muted small">{{ asig.observacion || '-' }}</span>
                 </td>
               </tr>
             }

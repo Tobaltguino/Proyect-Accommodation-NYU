@@ -20,6 +20,10 @@ export interface AsignacionDTO {
   numeroHabitacion?: string; 
   idEdificio?: number;
   nombreEdificio?: string;
+  ubicacionEdificio?: string;
+  idPiso?: number;
+  numeroPiso?: number;
+  nombrePiso?: string;
   nombrePeriodo?: string;
   nombreEstudiante?: string;
   nombreAdmin?: string;

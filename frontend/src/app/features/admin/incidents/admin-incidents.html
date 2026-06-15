@@ -6,6 +6,9 @@
         <h1 class="page-title m-0">Reporte de Incidencias</h1>
         <p class="page-subtitle mt-1 mb-0">Gestiona los reportes de mantenimiento y problemas en las habitaciones.</p>
       </div>
+      <button type="button" class="primary" (click)="openCreateModal()">
+        <i class="pi pi-plus"></i> Nuevo Reporte
+      </button>
     </header>
 
     <section class="filters-block border rounded-4 p-3 p-md-4 mb-4">
@@ -14,14 +17,14 @@
         <button type="button" class="text-btn border-0" (click)="limpiarFiltros()">Limpiar filtros</button>
       </div>
       
-      <div class="row g-3">
+      <div class="row g-3 justify-content-center">
         <div class="col-12 col-md-6 col-lg-3">
           <label for="rut" class="form-label mb-1">Buscar por RUT</label>
           <input 
             type="text" 
             id="rut" 
             class="form-control custom-control" 
-            placeholder="Ej: 12.345.678-9" 
+            placeholder="Ej: 12345678-9" 
             [(ngModel)]="filtroRut" 
             (input)="aplicarFiltros()"
           />
@@ -34,16 +37,6 @@
             @for (p of periodos; track p) {
               <option [value]="p">{{ p }}</option>
             }
-          </select>
-        </div>
-
-        <div class="col-12 col-md-6 col-lg-3">
-          <label for="estado" class="form-label mb-1">Estado</label>
-          <select id="estado" class="form-select custom-control" [(ngModel)]="filtroEstado" (change)="aplicarFiltros()">
-            <option value="">Todos los estados</option>
-            <option [value]="EstadoEnum.PENDIENTE">Pendiente</option>
-            <option [value]="EstadoEnum.EN_PROCESO">En Proceso</option>
-            <option [value]="EstadoEnum.RESUELTA">Resuelta</option>
           </select>
         </div>
 
@@ -72,8 +65,7 @@
               <th>Ubicación</th>
               <th>Reportado por</th>
               <th>Gravedad</th>
-              <th>Estado</th>
-              <th>Atendido por</th> <th class="actions-col text-center">Acciones</th>
+              <th class="actions-col text-center">Acciones</th>
             </tr>
           </thead>
           <tbody>
@@ -98,22 +90,6 @@
                   <span class="badge rounded-pill severity" [ngClass]="incidencia.gravedad | lowercase">
                     {{ incidencia.gravedad }}
                   </span>
-                </td>
-
-                <td>
-                  <span class="badge rounded-pill status" [ngClass]="incidencia.estado | lowercase | slice:0:3">
-                    {{ incidencia.estado }}
-                  </span>
-                </td>
-
-                <td>
-                  @if (incidencia.rutAdmin) {
-                    <div class="d-flex flex-column" style="font-size: 0.85rem;">
-                      <span class="text-dark fw-semibold">{{ incidencia.nombreAdmin }}</span>
-                    </div>
-                  } @else {
-                    <span class="text-muted small">Sin asignar</span>
-                  }
                 </td>
 
                 <td class="text-center">
@@ -197,13 +173,6 @@
             <small class="text-muted text-uppercase" style="font-size: 0.8rem; letter-spacing: 0.02em;">Fecha</small>
             <strong class="text-dark">{{ selectedIncident.fecha }}</strong>
           </div>
-          <div class="col-12 col-sm-6 d-flex flex-column align-items-start">
-            <small class="text-muted text-uppercase" style="font-size: 0.8rem; letter-spacing: 0.02em;">Estado Actual</small>
-            <span class="badge rounded-pill mt-1 status" [ngClass]="selectedIncident.estado | lowercase | slice:0:3">
-              {{ selectedIncident.estado }}
-            </span>
-          </div>
-          
           @if (selectedIncident.rutAdmin) {
             <div class="col-12 d-flex flex-column mt-2 pt-2 border-top">
               <small class="text-muted text-uppercase" style="font-size: 0.8rem; letter-spacing: 0.02em;">Atendido Por</small>
@@ -220,12 +189,73 @@
       
       <footer class="modal-footer d-flex justify-content-end p-3 bg-light border-top rounded-bottom-4 gap-2">
         <button type="button" class="ghost border-0" (click)="closeModal()">Cerrar</button>
-        
-        @if (selectedIncident.estado !== EstadoEnum.RESUELTA) {
-          <button type="button" class="primary border-0" style="background-color: #16a34a;" (click)="marcarComoResuelta()">
-            <i class="pi pi-check me-1"></i> Marcar como Resuelta
-          </button>
-        }
+      </footer>
+    </div>
+  </div>
+}
+
+@if (isCreateModalOpen) {
+  <div class="modal-backdrop position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center z-3 p-3" (click)="closeCreateModal()">
+    <div class="modal-card bg-white d-flex flex-column" (click)="$event.stopPropagation()">
+      
+      <header class="modal-header d-flex justify-content-between align-items-center">
+        <h2 class="m-0">Generar Nuevo Reporte</h2>
+        <button type="button" class="close-btn border-0" (click)="closeCreateModal()">
+          <i class="pi pi-times"></i>
+        </button>
+      </header>
+      
+      <div class="modal-body p-4">
+        <p class="text-muted mb-4" style="font-size: 0.95rem;">
+          Registra una incidencia para el estudiante, indicando la habitacion afectada y la gravedad del problema.
+        </p>
+
+        <div class="form-group mb-4">
+          <label class="form-label fw-bold">RUT del estudiante</label>
+          <input
+            type="text"
+            class="form-control custom-control"
+            placeholder="Ejemplo: 12.345.678-9"
+            [(ngModel)]="nuevaIncidencia.rutEstudiante"
+          />
+        </div>
+
+        <div class="form-group mb-4">
+          <label class="form-label fw-bold">ID de habitacion</label>
+          <input
+            type="number"
+            min="1"
+            class="form-control custom-control"
+            placeholder="Ejemplo: 1"
+            [(ngModel)]="nuevaIncidencia.idHabitacion"
+          />
+        </div>
+
+        <div class="form-group mb-4">
+          <label class="form-label fw-bold">Gravedad del problema</label>
+          <select class="form-select custom-control" [(ngModel)]="nuevaIncidencia.gravedad">
+            <option [value]="GravedadEnum.LEVE">Leve (Ej: ampolleta quemada, bisagra suelta)</option>
+            <option [value]="GravedadEnum.MODERADO">Moderado (Ej: filtracion leve, toma corriente no funciona)</option>
+            <option [value]="GravedadEnum.GRAVE">Grave (Ej: fuga de agua, cortocircuito, ventana rota)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label fw-bold">Descripcion detallada</label>
+          <textarea 
+            class="form-control custom-control" 
+            rows="5" 
+            placeholder="Describe exactamente que ocurrio y en que sector de la habitacion..."
+            [(ngModel)]="nuevaIncidencia.descripcion">
+          </textarea>
+        </div>
+      </div>
+      
+      <footer class="modal-footer d-flex justify-content-end p-3 bg-light border-top rounded-bottom-4 gap-2">
+        <button type="button" class="ghost border-0 danger-text" (click)="closeCreateModal()">Cancelar</button>
+        <button type="button" class="primary border-0" (click)="enviarReporte()">
+          <i class="pi pi-send"></i> Crear Reporte
+        </button>
       </footer>
     </div>
   </div>

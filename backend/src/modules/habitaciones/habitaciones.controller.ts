@@ -1,15 +1,25 @@
-import { Controller, Post, Patch, Delete, Body, Param, ParseIntPipe, Get, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Patch,
+  Delete,
+  Body,
+  Param,
+  ParseIntPipe,
+  Get,
+  UseGuards,
+} from '@nestjs/common';
 import { HabitacionesService } from './habitaciones.service';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { Role } from '../auth/enums/role.enum';
-// Si tienes un DTO, lo ideal es usarlo en el @Body() del Patch, 
+// Si tienes un DTO, lo ideal es usarlo en el @Body() del Patch,
 // pero usaremos 'any' o un objeto para mantenerlo funcional rápidamente.
 
 @Controller('habitaciones')
 export class HabitacionesController {
-  constructor(private readonly habitacionesService: HabitacionesService) { }
+  constructor(private readonly habitacionesService: HabitacionesService) {}
 
   // POST http://localhost:3000/habitaciones
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -21,7 +31,12 @@ export class HabitacionesController {
     @Body('disponibilidad') disponibilidad: boolean,
     @Body('idPiso') idPiso: number,
   ) {
-    return this.habitacionesService.crearHabitacion(nroHabitacion, capacidadActual, disponibilidad, idPiso);
+    return this.habitacionesService.crearHabitacion(
+      nroHabitacion,
+      capacidadActual,
+      disponibilidad,
+      idPiso,
+    );
   }
 
   // GET http://localhost:3000/habitaciones
@@ -62,7 +77,7 @@ export class HabitacionesController {
   @Patch(':id')
   modificarHabitacion(
     @Param('id', ParseIntPipe) id: number,
-    @Body() datosActualizados: any // Recibe cualquier campo de HabitacionEntity
+    @Body() datosActualizados: any, // Recibe cualquier campo de HabitacionEntity
   ) {
     return this.habitacionesService.modificarHabitacion(id, datosActualizados);
   }
@@ -74,5 +89,4 @@ export class HabitacionesController {
   eliminarHabitacion(@Param('id', ParseIntPipe) id: number) {
     return this.habitacionesService.eliminarHabitacion(id);
   }
-
 }

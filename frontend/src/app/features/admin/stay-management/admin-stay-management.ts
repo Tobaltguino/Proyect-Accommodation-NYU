@@ -1,7 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AsignacionDTO, EstadoAsignacion } from '../../../shared/models';
+import { AsignacionesService } from '../../../core/services/asignaciones.service';
+import { CheckInOutService } from '../../../core/services/checkInOut.service';
 
 @Component({
   selector: 'app-admin-stay-management',
@@ -13,35 +15,14 @@ import { AsignacionDTO, EstadoAsignacion } from '../../../shared/models';
 export class AdminStayManagementComponent implements OnInit {
   public EstadoAsignacionEnum = EstadoAsignacion;
 
+  private asignacionesService = inject(AsignacionesService);
+  private checkInOutService = inject(CheckInOutService);
+
   // Variables del Administrador simulado
   public readonly RUT_ADMIN_ACTUAL = '14.555.666-7'; 
   public readonly NOMBRE_ADMIN_ACTUAL = 'Cristóbal Administrador';
 
-  // Datos simulados
-  asignaciones: AsignacionDTO[] = [
-    {
-      idAsignacion: 1,
-      fechaAsignacion: '2026-04-20',
-      fechaCheckIn: null, 
-      fechaCheckOut: null,
-      estado: EstadoAsignacion.ACTIVA,
-      idHabitacion: 10, idPeriodo: 1,
-      nombreEstudiante: 'Valentina Soto', rutEstudiante: '21.345.678-9',
-      nombrePeriodo: '2026-1', numeroHabitacion: '101', nombreEdificio: 'Residencia Norte',
-      rutAdmin: null 
-    },
-    {
-      idAsignacion: 2,
-      fechaAsignacion: '2026-03-01',
-      fechaCheckIn: '2026-03-05',
-      fechaCheckOut: null,
-      estado: EstadoAsignacion.ACTIVA,
-      idHabitacion: 20, idPeriodo: 1,
-      nombreEstudiante: 'Matías Fernández', rutEstudiante: '20.123.456-7',
-      nombrePeriodo: '2026-1', numeroHabitacion: '201', nombreEdificio: 'Pabellón Sur',
-      rutAdmin: '11.222.333-4', nombreAdmin: 'Admin Recepción' 
-    }
-  ];
+  asignaciones: AsignacionDTO[] = [];
 
   rutBusqueda: string = '';
   resultadoBusqueda: AsignacionDTO | null = null;
@@ -52,6 +33,16 @@ export class AdminStayManagementComponent implements OnInit {
   accionPendiente: { tipo: 'CHECKOUT' | 'RENUNCIA', asignacion: AsignacionDTO } | null = null;
 
   ngOnInit(): void {
+    this.cargarAsignaciones();
+  }
+
+  cargarAsignaciones(): void {
+    this.asignacionesService.obtenerTodas().subscribe({
+      next: (data: AsignacionDTO[]) => {
+        this.asignaciones = data;
+      },
+      error: (err: any) => console.error('Error al cargar asignaciones activas', err)
+    });
   }
 
   buscarEstudiante(): void {
@@ -80,13 +71,15 @@ export class AdminStayManagementComponent implements OnInit {
 
   marcarCheckIn(asignacion: AsignacionDTO): void {
     const hoy = new Date().toISOString().split('T')[0];
-    asignacion.fechaCheckIn = hoy;
-    
-    // Vinculamos al admin que hace el Check-in
-    asignacion.rutAdmin = this.RUT_ADMIN_ACTUAL;
-    asignacion.nombreAdmin = this.NOMBRE_ADMIN_ACTUAL;
 
-    console.log(`Check-In registrado para ${asignacion.nombreEstudiante} el ${hoy} por ${this.NOMBRE_ADMIN_ACTUAL}`);
+    this.checkInOutService.registrarCheckIn(asignacion.idAsignacion, hoy).subscribe({
+      next: () => {
+        asignacion.fechaCheckIn = hoy;
+        asignacion.rutAdmin = this.RUT_ADMIN_ACTUAL;
+        asignacion.nombreAdmin = this.NOMBRE_ADMIN_ACTUAL;
+      },
+      error: (err: any) => console.error('Error al registrar check-in', err)
+    });
   }
 
   prepararAccion(tipo: 'CHECKOUT' | 'RENUNCIA', asignacion: AsignacionDTO): void {
@@ -100,24 +93,25 @@ export class AdminStayManagementComponent implements OnInit {
     const { tipo, asignacion } = this.accionPendiente;
     const hoy = new Date().toISOString().split('T')[0];
 
-    if (tipo === 'CHECKOUT') {
-      asignacion.estado = EstadoAsignacion.FINALIZADA;
-      asignacion.fechaCheckOut = hoy;
-    } else if (tipo === 'RENUNCIA') {
-      asignacion.estado = EstadoAsignacion.RENUNCIADA;
-      if (!asignacion.fechaCheckOut) {
-        asignacion.fechaCheckOut = hoy; 
-      }
-    }
+    const accion$ = tipo === 'CHECKOUT'
+      ? this.asignacionesService.finalizarAsignacion(asignacion.idAsignacion)
+      : this.asignacionesService.renunciarAsignacion(asignacion.idAsignacion);
 
-    // Vinculamos al admin que procesa la salida definitiva o renuncia
-    asignacion.rutAdmin = this.RUT_ADMIN_ACTUAL;
-    asignacion.nombreAdmin = this.NOMBRE_ADMIN_ACTUAL;
+    accion$.subscribe({
+      next: () => {
+        asignacion.estado = tipo === 'CHECKOUT'
+          ? EstadoAsignacion.FINALIZADA
+          : EstadoAsignacion.RENUNCIADA;
+        asignacion.fechaCheckOut = hoy;
+        asignacion.rutAdmin = this.RUT_ADMIN_ACTUAL;
+        asignacion.nombreAdmin = this.NOMBRE_ADMIN_ACTUAL;
 
-    console.log(`${tipo} registrado por ${this.NOMBRE_ADMIN_ACTUAL}`);
-
-    this.cerrarModal();
-    this.limpiarBusqueda(); 
+        this.cerrarModal();
+        this.limpiarBusqueda();
+        this.cargarAsignaciones();
+      },
+      error: (err: any) => console.error(`Error al procesar ${tipo}`, err)
+    });
   }
 
   cerrarModal(): void {

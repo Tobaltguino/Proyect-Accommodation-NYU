@@ -10,24 +10,29 @@ export class SolicitudesAdminService {
   constructor(
     @InjectRepository(SolicitudEntity)
     private readonly solicitudRepo: Repository<SolicitudEntity>,
-  ) { }
-
+  ) {}
 
   async obtenerPorPeriodo(idPeriodo: number) {
     return await this.solicitudRepo.find({
       where: { idPeriodo: idPeriodo },
-      order: { fechaSolicitud: 'DESC' }
+      order: { fechaSolicitud: 'DESC' },
     });
   }
-  async obtenerTodas(){
+  async obtenerTodas() {
     return await this.solicitudRepo.find();
   }
-  async cambioEstadoYAdminSolicitud(idSolicitud: number, cambios: UpdateSolicitudesAdminDto, rutAdmin: string){
+  async cambioEstadoYAdminSolicitud(
+    idSolicitud: number,
+    cambios: UpdateSolicitudesAdminDto,
+    rutAdmin: string,
+  ) {
     const solicitud = await this.solicitudRepo.findOne({
-      where: {idSolicitud: idSolicitud}
-    })
-    if(!solicitud){
-      throw new NotFoundException('throw new NotFoundException(`La solicitud con ID ${idSolicitud} no existe.`');
+      where: { idSolicitud: idSolicitud },
+    });
+    if (!solicitud) {
+      throw new NotFoundException(
+        'throw new NotFoundException(`La solicitud con ID ${idSolicitud} no existe.`',
+      );
     }
     solicitud.estado = cambios.estado;
     solicitud.rutAdmin = rutAdmin;

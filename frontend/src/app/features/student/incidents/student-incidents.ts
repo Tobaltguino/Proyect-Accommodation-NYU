@@ -6,7 +6,6 @@ import { StudentIncidentsService } from './student-incidents.service';
 import { 
   IncidenciaApiResponse,
   IncidenciaDTO, 
-  EstadoIncidencia, 
   GravedadIncidencia 
 } from '../../../shared/models';
 
@@ -19,7 +18,6 @@ import {
 })
 export class StudentIncidentsComponent implements OnInit {
   // Exponemos los Enums a la vista HTML
-  public EstadoEnum = EstadoIncidencia;
   public GravedadEnum = GravedadIncidencia;
 
   misIncidencias: IncidenciaDTO[] = [];
@@ -28,7 +26,6 @@ export class StudentIncidentsComponent implements OnInit {
 
   // Filtros
   filtroPeriodo: string = '';
-  filtroEstado: EstadoIncidencia | '' = '';
   filtroGravedad: GravedadIncidencia | '' = '';
   periodos: string[] = ['2026-1', '2025-2'];
 
@@ -39,14 +36,6 @@ export class StudentIncidentsComponent implements OnInit {
   // Variables para Modal de Visualización
   isViewModalOpen = false;
   selectedIncident: IncidenciaDTO | null = null; 
-
-  // Variables para Modal de Creación
-  isCreateModalOpen = false;
-  nuevaIncidencia = {
-    descripcion: '',
-    gravedad: GravedadIncidencia.LEVE,
-    id_habitacion: 1,
-  };
 
   private userRut = '';
 
@@ -81,10 +70,9 @@ export class StudentIncidentsComponent implements OnInit {
   aplicarFiltros(): void {
     this.incidenciasFiltradas = this.misIncidencias.filter(inc => {
       const matchPeriodo = this.filtroPeriodo ? inc.periodo === this.filtroPeriodo : true;
-      const matchEstado = this.filtroEstado ? inc.estado === this.filtroEstado : true;
       const matchGravedad = this.filtroGravedad ? inc.gravedad === this.filtroGravedad : true;
       
-      return matchPeriodo && matchEstado && matchGravedad;
+      return matchPeriodo && matchGravedad;
     });
 
     // Reiniciar página al filtrar
@@ -93,7 +81,6 @@ export class StudentIncidentsComponent implements OnInit {
 
   limpiarFiltros(): void {
     this.filtroPeriodo = '';
-    this.filtroEstado = '';
     this.filtroGravedad = '';
     this.aplicarFiltros();
   }
@@ -107,55 +94,6 @@ export class StudentIncidentsComponent implements OnInit {
   closeViewModal(): void {
     this.isViewModalOpen = false;
     this.selectedIncident = null;
-  }
-
-  // --- MÉTODOS MODAL CREAR ---
-  openCreateModal(): void {
-    this.nuevaIncidencia = {
-      descripcion: '',
-      gravedad: GravedadIncidencia.LEVE,
-      id_habitacion: this.nuevaIncidencia.id_habitacion,
-    };
-    this.isCreateModalOpen = true;
-  }
-
-  closeCreateModal(): void {
-    this.isCreateModalOpen = false;
-  }
-
-  enviarReporte(): void {
-    if (!this.nuevaIncidencia.descripcion.trim()) {
-      alert('La descripción no puede estar vacía');
-      return;
-    }
-
-    if (!this.userRut) {
-      alert('No se encontro sesion activa para reportar incidencia.');
-      return;
-    }
-
-    if (this.nuevaIncidencia.id_habitacion < 1) {
-      alert('Ingresa un ID de habitacion valido.');
-      return;
-    }
-
-    this.studentIncidentsService
-      .createIncidencia({
-        descripcion: this.nuevaIncidencia.descripcion.trim(),
-        gravedad: this.nuevaIncidencia.gravedad,
-        idHabitacion: this.nuevaIncidencia.id_habitacion,
-        rutEstudiante: this.userRut,
-      })
-      .subscribe({
-        next: () => {
-          alert('Reporte enviado con exito.');
-          this.closeCreateModal();
-          void this.cargarIncidencias();
-        },
-        error: () => {
-          alert('No se pudo enviar el reporte. Revisa backend y datos del formulario.');
-        },
-      });
   }
 
   private async cargarIncidencias(): Promise<void> {
@@ -180,7 +118,6 @@ export class StudentIncidentsComponent implements OnInit {
     return {
       idIncidencia: row.idIncidencia,
       descripcion: row.descripcion,
-      estado: row.estado,
       fecha: row.fecha,
       gravedad: row.gravedad,
       idHabitacion: row.idHabitacion,

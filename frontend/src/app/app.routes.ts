@@ -12,6 +12,7 @@ import { AdminIncidentsComponent } from './features/admin/incidents/admin-incide
 import { AdminInfrastructureComponent } from './features/admin/infrastructure/admin-infrastructure';
 import {AdminStayManagementComponent} from './features/admin/stay-management/admin-stay-management';
 import { AdminDietManagementComponent } from './features/admin/diet-management/admin-diet-management';
+import { AdminResidenceHistoryComponent } from './features/admin/residence-history/admin-residence-history';
 
 // Estudiante 
 import { StudentHomePageComponent } from './features/student/home/student-home.page';
@@ -49,6 +50,7 @@ export const routes: Routes = [
       { path: 'infrastructure', component: AdminInfrastructureComponent },
       { path: 'stay-management', component: AdminStayManagementComponent },
       { path: 'diet-management', component: AdminDietManagementComponent },
+      { path: 'residence-history', component: AdminResidenceHistoryComponent },
     ]
   },
 

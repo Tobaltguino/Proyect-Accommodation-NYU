@@ -30,10 +30,6 @@ export class StudentIncidentsService {
       params = params.set('semester', filters.semester);
     }
 
-    if (filters.estado) {
-      params = params.set('estado', filters.estado);
-    }
-
     if (filters.gravedad) {
       params = params.set('gravedad', filters.gravedad);
     }

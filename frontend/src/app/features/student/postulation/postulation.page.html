@@ -10,6 +10,13 @@
     </header>
 
     <form [formGroup]="postulationForm" novalidate>
+      @if (hasPendingSolicitud) {
+        <section class="extra-block">
+          <h2>{{ solicitudBlockTitle }}</h2>
+          <p>{{ solicitudBlockMessage }}</p>
+          <button type="button" class="primary" (click)="goToStatus()">Ver estado de solicitud</button>
+        </section>
+      } @else {
       <section class="block">
         <div class="block-title">
           <h2>Perfil del estudiante</h2>
@@ -48,9 +55,9 @@
         <div class="form-group">
           <label for="mealPlan">Plan alimenticio</label>
           <select id="mealPlan" formControlName="mealPlan">
-            <option value="VEGANA">Dieta vegana</option>
-            <option value="VEGETARIANA">Dieta vegetariana</option>
-            <option value="OMNIVORA">Dieta omnivora</option>
+            <option value="Sin preferencia">Sin preferencia</option>
+            <option value="Vegetariano">Dieta vegetariana</option>
+            <option value="Vegano">Dieta vegana</option>
           </select>
           @if (postulationForm.controls.mealPlan.touched && postulationForm.controls.mealPlan.invalid) {
             <small class="error">Debes seleccionar un plan alimenticio.</small>
@@ -78,6 +85,7 @@
           {{ isSubmitting ? 'Enviando...' : 'Enviar postulacion' }}
         </button>
       </footer>
+      }
     </form>
   </section>
 </main>

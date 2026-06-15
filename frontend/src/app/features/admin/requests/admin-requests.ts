@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { 
@@ -8,11 +8,11 @@ import {
   EdificioDTO, 
   HabitacionDTO, 
   IncidenciaDTO,
-  GravedadIncidencia,
-  EstadoIncidencia,
-  AsignacionDTO,
-  EstadoAsignacion
+  GravedadIncidencia
 } from '../../../shared/models';
+import { SolicitudesService } from '../../../core/services/solicitudes.service';
+import { InfraestructuraService } from '../../../core/services/infraestructura.service';
+import { AsignacionesService } from '../../../core/services/asignaciones.service';
 
 @Component({
   selector: 'app-admin-requests',
@@ -25,40 +25,20 @@ export class AdminRequestsComponent implements OnInit {
   public GravedadEnum = GravedadIncidencia;
   public EstadoEnum = EstadoSolicitud;
 
+  private solicitudesService = inject(SolicitudesService);
+  private infraestructuraService = inject(InfraestructuraService);
+  private asignacionesService = inject(AsignacionesService);
+
   // RUT del administrador que está usando el sistema (simulado)
   private readonly RUT_ADMIN_ACTUAL = '14.555.666-7'; 
   private readonly NOMBRE_ADMIN_ACTUAL = 'Cristóbal Administrador';
 
-  solicitudes: SolicitudDTO[] = [
-    {
-      idSolicitud: 101, 
-      estado: EstadoSolicitud.PENDIENTE, 
-      fechaSolicitud: '2026-04-25',
-      idPeriodo: 1, 
-      nombrePeriodo: '2026-1', 
-      rutEstudiante: '21.345.678-9', 
-      nombreEstudiante: 'Valentina Soto', 
-      generoEstudiante: Genero.FEMENINO,
-      rutAdmin: null
-    },
-    {
-      idSolicitud: 102, 
-      estado: EstadoSolicitud.EN_REVISION, 
-      fechaSolicitud: '2026-04-22',
-      idPeriodo: 1, 
-      nombrePeriodo: '2026-1', 
-      rutEstudiante: '20.123.456-7', 
-      nombreEstudiante: 'Matías Fernández', 
-      generoEstudiante: Genero.MASCULINO,
-      rutAdmin: '12.999.888-7',
-      nombreAdmin: 'Admin Previo'
-    }
-  ];
+  solicitudes: SolicitudDTO[] = [];
 
   solicitudesFiltradas: SolicitudDTO[] = [];
   filtroPeriodo: string = '';
   filtroEstado: EstadoSolicitud | '' = '';
-  periodos: string[] = ['2026-1', '2025-2', '2025-1'];
+  periodos: string[] = [];
 
   // Variables de Paginación
   paginaActual: number = 1;
@@ -68,30 +48,7 @@ export class AdminRequestsComponent implements OnInit {
   solicitudSeleccionada: SolicitudDTO | null = null;
   incidenciasEstudiante: IncidenciaDTO[] = [];
   
-  edificiosDisponibles: EdificioDTO[] = [
-    {
-      idEdificio: 1, nombre: 'Residencia Norte', ubicacion: 'Campus Norte', genero: Genero.MIXTO,
-      pisos: [
-        {
-          idPiso: 1, nroPiso: 1, nombre: 'Piso 1', idEdificio: 1, habitaciones: [
-            { idHabitacion: 10, nroHabitacion: 101, capacidadActual: 2, capacidadTotal: 2, disponibilidad: true, idPiso: 1 },
-            { idHabitacion: 11, nroHabitacion: 102, capacidadActual: 1, capacidadTotal: 2, disponibilidad: true, idPiso: 1 },
-            { idHabitacion: 12, nroHabitacion: 103, capacidadActual: 0, capacidadTotal: 2, disponibilidad: true, idPiso: 1 }
-          ]
-        }
-      ]
-    },
-    {
-      idEdificio: 2, nombre: 'Pabellón Sur', ubicacion: 'Campus Sur', genero: Genero.FEMENINO,
-      pisos: [
-        {
-          idPiso: 2, nroPiso: 1, nombre: 'Piso 1', idEdificio: 2, habitaciones: [
-            { idHabitacion: 20, nroHabitacion: 201, capacidadActual: 0, capacidadTotal: 4, disponibilidad: true, idPiso: 2 }
-          ]
-        }
-      ]
-    }
-  ];
+  edificiosDisponibles: EdificioDTO[] = [];
 
   edificiosFiltrados: EdificioDTO[] = [];
   edificioSeleccionadoMapa: EdificioDTO | null = null;
@@ -99,9 +56,28 @@ export class AdminRequestsComponent implements OnInit {
   habitacionSeleccionadaId: number | null = null;
 
   ngOnInit(): void {
-    this.solicitudesFiltradas = [...this.solicitudes];
-    this.filtroPeriodo = '2026-1';
-    this.aplicarFiltros();
+    this.cargarSolicitudes();
+    this.cargarInfraestructura();
+  }
+
+  cargarSolicitudes(): void {
+    this.solicitudesService.obtenerTodasAdmin().subscribe({
+      next: (data: SolicitudDTO[]) => {
+        this.solicitudes = data.map(solicitud => this.normalizarSolicitud(solicitud));
+        this.periodos = Array.from(new Set(this.solicitudes.map(sol => sol.nombrePeriodo || String(sol.idPeriodo))));
+        this.aplicarFiltros();
+      },
+      error: (err: any) => console.error('Error al cargar solicitudes', err)
+    });
+  }
+
+  cargarInfraestructura(): void {
+    this.infraestructuraService.obtenerInfraestructuraCompleta().subscribe({
+      next: (data: EdificioDTO[]) => {
+        this.edificiosDisponibles = data;
+      },
+      error: (err: any) => console.error('Error al cargar infraestructura', err)
+    });
   }
 
   // Getters de Paginación
@@ -140,27 +116,18 @@ export class AdminRequestsComponent implements OnInit {
 
   abrirModal(solicitud: SolicitudDTO): void {
     this.solicitudSeleccionada = solicitud;
-    
-    if (solicitud.estado === EstadoSolicitud.PENDIENTE) {
-      solicitud.estado = EstadoSolicitud.EN_REVISION;
-      // Vinculamos al admin que inició la revisión
-      solicitud.rutAdmin = this.RUT_ADMIN_ACTUAL;
-      solicitud.nombreAdmin = this.NOMBRE_ADMIN_ACTUAL;
-    }
 
     this.incidenciasEstudiante = [
       { 
         idIncidencia: 1, fecha: '2025-10-12', descripcion: 'Ruido excesivo en horario de descanso', 
-        gravedad: GravedadIncidencia.MODERADO, estado: EstadoIncidencia.RESUELTA,
+        gravedad: GravedadIncidencia.MODERADO,
         idHabitacion: 10, nroHabitacion: 101, nombreEdificio: 'Residencia Norte',
         rutEstudiante: solicitud.rutEstudiante, nombreEstudiante: solicitud.nombreEstudiante,
         rutAdmin: '12.888.777-6', nombreAdmin: 'Admin Guardia', periodo: '2025-2'
       }
     ];
 
-    this.edificiosFiltrados = this.edificiosDisponibles.filter(
-      e => e.genero === Genero.MIXTO || e.genero === solicitud.generoEstudiante
-    );
+    this.edificiosFiltrados = this.filtrarEdificiosPorSolicitud(solicitud);
 
     this.edificioSeleccionadoMapa = this.edificiosFiltrados.length > 0 ? this.edificiosFiltrados[0] : null;
     this.matriculaActiva = false;
@@ -193,28 +160,27 @@ export class AdminRequestsComponent implements OnInit {
   procesarSolicitud(accion: 'Aprobar' | 'Rechazar'): void {
     if (!this.solicitudSeleccionada) return;
 
-    // Al procesar, aseguramos que el administrador actual quede registrado
-    this.solicitudSeleccionada.rutAdmin = this.RUT_ADMIN_ACTUAL;
-    this.solicitudSeleccionada.nombreAdmin = this.NOMBRE_ADMIN_ACTUAL;
-
     if (accion === 'Rechazar') {
-      this.solicitudSeleccionada.estado = EstadoSolicitud.RECHAZADA;
-    } else if (accion === 'Aprobar') {
-      this.solicitudSeleccionada.estado = EstadoSolicitud.APROBADA;
-      
-      const nuevaAsignacion: Partial<AsignacionDTO> = {
-        fechaAsignacion: new Date().toISOString().split('T')[0],
-        estado: EstadoAsignacion.ACTIVA,
-        idHabitacion: this.habitacionSeleccionadaId!,
-        idPeriodo: this.solicitudSeleccionada.idPeriodo,
-        rutEstudiante: this.solicitudSeleccionada.rutEstudiante,
-        rutAdmin: this.RUT_ADMIN_ACTUAL
-      };
-      console.log('Solicitud Aprobada. Creando Asignación:', nuevaAsignacion);
+      this.solicitudesService
+        .cambiarEstadoAdmin(this.solicitudSeleccionada.idSolicitud, EstadoSolicitud.RECHAZADA)
+        .subscribe({
+          next: () => this.finalizarProcesamiento(),
+          error: (err: any) => console.error('Error al rechazar solicitud', err)
+        });
+
+      return;
     }
 
-    this.aplicarFiltros();
-    this.cerrarModal();
+    if (!this.habitacionSeleccionadaId) {
+      return;
+    }
+
+    this.asignacionesService
+      .crearAsignacion(this.solicitudSeleccionada.idSolicitud, this.habitacionSeleccionadaId)
+      .subscribe({
+        next: () => this.finalizarProcesamiento(),
+        error: (err: any) => console.error('Error al aprobar y asignar solicitud', err)
+      });
   }
 
   getClassForEstado(estado: string): string {
@@ -225,5 +191,40 @@ export class AdminRequestsComponent implements OnInit {
       case EstadoSolicitud.RECHAZADA: return 'rec';
       default: return '';
     }
+  }
+
+  private finalizarProcesamiento(): void {
+    this.cerrarModal();
+    this.cargarSolicitudes();
+    this.cargarInfraestructura();
+  }
+
+  private filtrarEdificiosPorSolicitud(solicitud: SolicitudDTO): EdificioDTO[] {
+    if (!solicitud.generoEstudiante) {
+      return this.edificiosDisponibles;
+    }
+
+    return this.edificiosDisponibles.filter(
+      e => e.genero === Genero.MIXTO || e.genero === solicitud.generoEstudiante
+    );
+  }
+
+  private normalizarSolicitud(solicitud: any): SolicitudDTO {
+    const idPeriodo = solicitud.idPeriodo ?? solicitud.id_periodo;
+    const rutEstudiante = solicitud.rutEstudiante ?? solicitud.rut_estudiante;
+
+    return {
+      idSolicitud: solicitud.idSolicitud ?? solicitud.id_solicitud,
+      estado: solicitud.estado,
+      fechaSolicitud: solicitud.fechaSolicitud ?? solicitud.fecha_solicitud,
+      idPeriodo,
+      idAsignacion: solicitud.idAsignacion ?? solicitud.id_asignacion ?? null,
+      rutEstudiante,
+      rutAdmin: solicitud.rutAdmin ?? solicitud.rut_admin ?? null,
+      nombrePeriodo: solicitud.nombrePeriodo ?? solicitud.periodo?.nombre ?? String(idPeriodo),
+      nombreEstudiante: solicitud.nombreEstudiante ?? solicitud.usuario?.nombre ?? rutEstudiante,
+      generoEstudiante: solicitud.generoEstudiante ?? solicitud.usuario?.genero,
+      nombreAdmin: solicitud.nombreAdmin,
+    };
   }
 }

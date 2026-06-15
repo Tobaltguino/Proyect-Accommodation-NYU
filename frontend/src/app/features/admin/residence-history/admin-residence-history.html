@@ -1,0 +1,135 @@
+<div class="container-fluid p-3 p-lg-4">
+  <section class="assignments-shell mx-auto">
+    <header class="d-flex flex-column flex-md-row justify-content-between align-items-md-start gap-3 mb-4">
+      <div>
+        <h1 class="page-title m-0">Historial de Residencia</h1>
+        <p class="page-subtitle mt-1 mb-0">Consulta la trazabilidad completa de asignaciones, movimientos y estadias de los estudiantes.</p>
+      </div>
+    </header>
+
+    <section class="filters-block border rounded-4 p-3 p-md-4 mb-4">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="m-0 fs-6 fw-bold block-title">Filtros y busqueda</h2>
+        <button type="button" class="text-btn border-0" (click)="limpiarFiltros()">Limpiar filtros</button>
+      </div>
+
+      <div class="row g-3 align-items-end">
+        <div class="col-12 col-md-3">
+          <label for="searchRut" class="form-label mb-1">RUT estudiante</label>
+          <input id="searchRut" type="text" class="form-control custom-control" [(ngModel)]="filtroRut" (keyup.enter)="cargarHistorial()" placeholder="Ej: 33444555-6">
+        </div>
+
+        <div class="col-12 col-md-3">
+          <label for="movimiento" class="form-label mb-1">Movimiento</label>
+          <select id="movimiento" class="form-select custom-control" [(ngModel)]="filtroMovimiento" (change)="cargarHistorial()">
+            <option value="">Todos</option>
+            @for (movimiento of movimientos; track movimiento) {
+              <option [value]="movimiento">{{ getLabelMovimiento(movimiento) }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="col-12 col-md-2">
+          <label for="fechaDesde" class="form-label mb-1">Desde</label>
+          <input id="fechaDesde" type="date" class="form-control custom-control" [(ngModel)]="fechaDesde">
+        </div>
+
+        <div class="col-12 col-md-2">
+          <label for="fechaHasta" class="form-label mb-1">Hasta</label>
+          <input id="fechaHasta" type="date" class="form-control custom-control" [(ngModel)]="fechaHasta">
+        </div>
+
+        <div class="col-12 col-md-2">
+          <button type="button" class="primary border-0 w-100 d-flex justify-content-center align-items-center gap-2" style="height: 42px; border-radius: 8px;" (click)="cargarHistorial()">
+            <i class="pi pi-search"></i> Buscar
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <div class="table-responsive bg-white border rounded-3 custom-table-container">
+      @if (isLoading) {
+        <div class="empty-state d-flex flex-column align-items-center justify-content-center">
+          <i class="pi pi-spin pi-spinner empty-icon mb-2"></i>
+          <p class="m-0">Cargando historial...</p>
+        </div>
+      } @else if (loadError) {
+        <div class="empty-state d-flex flex-column align-items-center justify-content-center">
+          <i class="pi pi-exclamation-triangle empty-icon mb-2"></i>
+          <p class="m-0">{{ loadError }}</p>
+        </div>
+      } @else if (historial.length === 0) {
+        <div class="empty-state d-flex flex-column align-items-center justify-content-center">
+          <i class="pi pi-folder-open empty-icon mb-2"></i>
+          <p class="m-0">No hay movimientos que coincidan con los filtros.</p>
+        </div>
+      } @else {
+        <table class="table custom-table align-middle mb-0">
+          <thead>
+            <tr>
+              <th>Estudiante</th>
+              <th>Movimiento</th>
+              <th>Fecha</th>
+              <th>Periodo</th>
+              <th>Ubicacion</th>
+              <th>Estados</th>
+              <th>Responsable</th>
+              <th>Observacion</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (movimiento of historialPaginado; track movimiento.idHistorial) {
+              <tr>
+                <td><strong>{{ movimiento.rutEstudiante }}</strong></td>
+                <td>
+                  <span class="badge rounded-pill" [ngClass]="getClassForMovimiento(movimiento.tipoMovimiento)">
+                    {{ getLabelMovimiento(movimiento.tipoMovimiento) }}
+                  </span>
+                </td>
+                <td>{{ formatTimestamp(movimiento.fechaMovimiento) }}</td>
+                <td><strong>{{ movimiento.nombrePeriodo }}</strong></td>
+                <td>{{ getUbicacion(movimiento) }}</td>
+                <td>
+                  <div class="dates-meta d-flex flex-column gap-1">
+                    <span>Anterior: {{ movimiento.estadoAnterior || '-' }}</span>
+                    <span>Nuevo: {{ movimiento.estadoNuevo || '-' }}</span>
+                  </div>
+                </td>
+                <td>{{ movimiento.rutAdmin || 'Sistema' }}</td>
+                <td>{{ movimiento.observacion || '-' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+
+        @if (totalPaginas > 1) {
+          <div class="pagination-footer d-flex flex-column flex-sm-row justify-content-between align-items-center p-3 bg-white border-top">
+            <span class="text-muted small mb-3 mb-sm-0">
+              Mostrando {{ historialPaginado.length }} de {{ historial.length }} registros
+            </span>
+
+            <div class="primeng-pagination d-flex align-items-center gap-1">
+              <button type="button" class="page-btn nav-btn" [disabled]="paginaActual === 1" (click)="cambiarPagina(1)">
+                <i class="pi pi-angle-double-left"></i>
+              </button>
+              <button type="button" class="page-btn nav-btn" [disabled]="paginaActual === 1" (click)="cambiarPagina(paginaActual - 1)">
+                <i class="pi pi-angle-left"></i>
+              </button>
+              @for (i of [].constructor(totalPaginas); track $index) {
+                <button type="button" class="page-btn num-btn" [class.active]="paginaActual === ($index + 1)" (click)="cambiarPagina($index + 1)">
+                  {{ $index + 1 }}
+                </button>
+              }
+              <button type="button" class="page-btn nav-btn" [disabled]="paginaActual === totalPaginas" (click)="cambiarPagina(paginaActual + 1)">
+                <i class="pi pi-angle-right"></i>
+              </button>
+              <button type="button" class="page-btn nav-btn" [disabled]="paginaActual === totalPaginas" (click)="cambiarPagina(totalPaginas)">
+                <i class="pi pi-angle-double-right"></i>
+              </button>
+            </div>
+          </div>
+        }
+      }
+    </div>
+  </section>
+</div>

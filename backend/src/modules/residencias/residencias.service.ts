@@ -106,9 +106,12 @@ export class ResidenciasService implements OnModuleInit {
       return null;
     }
 
-    const genero = buildingId === BuildingId.FEMENINO ? 'Femenino' : 'Masculino';
+    const genero =
+      buildingId === BuildingId.FEMENINO ? 'Femenino' : 'Masculino';
 
-    const building = await this.edificioRepository.findOne({ where: { genero } });
+    const building = await this.edificioRepository.findOne({
+      where: { genero },
+    });
     if (!building) {
       return null;
     }
@@ -138,7 +141,10 @@ export class ResidenciasService implements OnModuleInit {
     return {
       id: room.idHabitacion,
       buildingId,
-      allowedGender: buildingId === BuildingId.FEMENINO ? StudentGender.MUJER : StudentGender.HOMBRE,
+      allowedGender:
+        buildingId === BuildingId.FEMENINO
+          ? StudentGender.MUJER
+          : StudentGender.HOMBRE,
       floor: parsed.floor,
       roomCode: this.toRoomCode(parsed.floor, parsed.room),
       bedCapacity: room.capacidadActual,
@@ -219,7 +225,10 @@ export class ResidenciasService implements OnModuleInit {
     return {
       roomCode: this.toRoomCode(floor.nroPiso, room.nroHabitacion),
       buildingId,
-      gender: buildingId === BuildingId.FEMENINO ? StudentGender.MUJER : StudentGender.HOMBRE,
+      gender:
+        buildingId === BuildingId.FEMENINO
+          ? StudentGender.MUJER
+          : StudentGender.HOMBRE,
     };
   }
 
@@ -294,7 +303,9 @@ export class ResidenciasService implements OnModuleInit {
     );
   }
 
-  private async getOccupiedBedsByRoom(periodId: number): Promise<Map<number, number>> {
+  private async getOccupiedBedsByRoom(
+    periodId: number,
+  ): Promise<Map<number, number>> {
     const activeStatuses = ['En Revision', 'Aprobada'];
 
     const activeSolicitudes = await this.solicitudRepository.find({
@@ -339,7 +350,9 @@ export class ResidenciasService implements OnModuleInit {
     return genero === 'Femenino' ? 'Edificio Femenino' : 'Edificio Masculino';
   }
 
-  private parseRoomCode(roomCode: string): { floor: number; room: number } | null {
+  private parseRoomCode(
+    roomCode: string,
+  ): { floor: number; room: number } | null {
     const clean = roomCode.trim();
     if (!/^\d{3}$/.test(clean)) {
       return null;

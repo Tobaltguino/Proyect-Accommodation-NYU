@@ -1,6 +1,6 @@
-import { Body, Controller, Get, Param, Patch, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query } from '@nestjs/common';
 import { IncidenciasService } from './incidencias.service';
-import { CreateIncidenciaDto, IncidenciaQueryDto, UpdateIncidenciaEstadoDto } from './dto';
+import { CreateIncidenciaDto, IncidenciaQueryDto } from './dto';
 
 @Controller('incidencias')
 export class IncidenciasController {
@@ -19,10 +19,5 @@ export class IncidenciasController {
   @Get()
   findAll(@Query() query: IncidenciaQueryDto) {
     return this.incidenciasService.getIncidencias(query);
-  }
-
-  @Patch(':id/estado')
-  updateEstado(@Param('id') id: string, @Body() body: UpdateIncidenciaEstadoDto) {
-    return this.incidenciasService.updateEstadoIncidencia(Number(id), body);
   }
 }

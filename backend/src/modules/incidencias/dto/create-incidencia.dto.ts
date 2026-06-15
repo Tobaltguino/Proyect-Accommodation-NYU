@@ -18,7 +18,9 @@ export enum GravedadIncidencia {
 export class CreateIncidenciaDto {
   @IsString({ message: 'La descripcion debe ser texto' })
   @IsNotEmpty({ message: 'La descripcion es requerida' })
-  @MinLength(10, { message: 'La descripcion debe tener al menos 10 caracteres' })
+  @MinLength(10, {
+    message: 'La descripcion debe tener al menos 10 caracteres',
+  })
   @MaxLength(500, { message: 'La descripcion supera el largo permitido' })
   descripcion!: string;
 
@@ -36,6 +38,8 @@ export class CreateIncidenciaDto {
 
   @IsOptional()
   @IsString({ message: 'El rut del administrador debe ser texto' })
-  @MaxLength(20, { message: 'El rut del administrador supera el largo permitido' })
+  @MaxLength(20, {
+    message: 'El rut del administrador supera el largo permitido',
+  })
   rutAdmin?: string;
 }

@@ -8,10 +8,8 @@ export class PlanAlimenticioService {
   constructor(
     @InjectRepository(PlanAlimenticioEntity)
     private readonly planAlimenticioRepo: Repository<PlanAlimenticioEntity>,
-  ) { }
+  ) {}
   async obtenerTodas() {
-    return await this.planAlimenticioRepo.find({
-    });
-
+    return await this.planAlimenticioRepo.find({});
   }
 }

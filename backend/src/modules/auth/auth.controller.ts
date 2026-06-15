@@ -18,7 +18,7 @@ import type { AuthenticatedRequest } from '../../common/types/authenticated-requ
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) { }
+  constructor(private readonly authService: AuthService) {}
 
   @Post('login')
   login(@Body() body: LoginDto) {
@@ -53,5 +53,4 @@ export class AuthController {
   studentOnly() {
     return { message: 'Acceso permitido para STUDENT' };
   }
-
 }

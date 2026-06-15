@@ -12,6 +12,7 @@ export interface SolicitudDTO {
   estado: EstadoSolicitud;
   fechaSolicitud: string;
   idPeriodo: number;
+  idAsignacion?: number | null;
   
   rutEstudiante: string;
   rutAdmin: string | null;

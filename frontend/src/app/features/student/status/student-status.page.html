@@ -40,16 +40,51 @@
         @if (solicitud) {
           <div class="detail-grid">
             <article>
-              <span>Semestre</span>
-              <strong>{{ solicitud.semester }}</strong>
+              <span>Estado postulacion</span>
+              <strong>{{ statusLabel }}</strong>
             </article>
             <article>
-              <span>Habitacion</span>
-              <strong>{{ solicitud.roomCode }} ({{ solicitud.buildingId }})</strong>
+              <span>Semestre</span>
+              <strong>{{ periodoLabel }}</strong>
             </article>
+            <article>
+              <span>Plan alimenticio</span>
+              <strong>{{ planAlimenticioLabel }}</strong>
+            </article>
+            @if (asignacion) {
+              <article>
+                <span>Habitacion</span>
+                <strong>{{ habitacionLabel }}</strong>
+              </article>
+              <article>
+                <span>Edificio</span>
+                <strong>{{ edificioLabel }}</strong>
+              </article>
+              <article>
+                <span>Piso</span>
+                <strong>{{ pisoLabel }}</strong>
+              </article>
+              <article>
+                <span>Ubicacion</span>
+                <strong>{{ ubicacionLabel }}</strong>
+              </article>
+              <article>
+                <span>Estado residencia</span>
+                <strong>{{ estadoAsignacionLabel }}</strong>
+              </article>
+              <article>
+                <span>Fecha asignacion</span>
+                <strong>{{ formatTimestamp(fechaAsignacionLabel) }}</strong>
+              </article>
+            } @else if (statusClass === 'approved') {
+              <article>
+                <span>Habitacion</span>
+                <strong>Asignacion no disponible</strong>
+              </article>
+            }
             <article>
               <span>Ultima actualizacion</span>
-              <strong>{{ formatTimestamp(solicitud.updatedAt) }}</strong>
+              <strong>{{ formatTimestamp(updatedAtLabel) }}</strong>
             </article>
           </div>
         } @else {

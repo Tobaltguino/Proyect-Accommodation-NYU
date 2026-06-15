@@ -6,11 +6,8 @@ import { EdificioEntity } from '../residencias/entities';
 import { AuthModule } from '../auth/auth.module';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([EdificioEntity]),
-    AuthModule
-  ],
+  imports: [TypeOrmModule.forFeature([EdificioEntity]), AuthModule],
   controllers: [EdificiosController],
   providers: [EdificiosService],
 })
-export class EdificiosModule { }
+export class EdificiosModule {}

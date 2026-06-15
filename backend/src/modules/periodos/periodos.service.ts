@@ -13,7 +13,7 @@ export class PeriodosService {
   // 1. Obtener todos los periodos (para que el Admin los vea en el dropdown)
   async obtenerTodos(): Promise<PeriodoEntity[]> {
     return await this.periodoRepository.find({
-      order: { fechaInicio: 'DESC' } // Ordenamos por fecha para que el Admin vea lo más nuevo arriba
+      order: { fechaInicio: 'DESC' }, // Ordenamos por fecha para que el Admin vea lo más nuevo arriba
     });
   }
 
@@ -27,7 +27,7 @@ export class PeriodosService {
       where: {
         fechaInicio: LessThanOrEqual(hoy),
         fechaTermino: MoreThanOrEqual(hoy),
-      }
+      },
     });
 
     // MANEJO DE EXCEPCIÓN: ¿Qué pasa si hoy es 15 de Julio y no hay semestre activo?
@@ -35,11 +35,13 @@ export class PeriodosService {
       // Buscamos el periodo que terminó más recientemente
       const ultimo = await this.periodoRepository.find({
         order: { fechaTermino: 'DESC' },
-        take: 1
+        take: 1,
       });
 
       if (ultimo.length === 0) {
-        throw new NotFoundException('No existen periodos configurados en la base de datos.');
+        throw new NotFoundException(
+          'No existen periodos configurados en la base de datos.',
+        );
       }
 
       return ultimo[0];

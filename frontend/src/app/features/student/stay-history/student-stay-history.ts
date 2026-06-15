@@ -2,8 +2,8 @@ import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
-import { AsignacionDTO, EstadoAsignacion } from '../../../shared/models';
-import { AsignacionesService } from '../../../core/services/asignaciones.service'; 
+import { HistorialResidenciaDTO, TipoMovimientoHistorial } from '../../../shared/models';
+import { HistorialService } from '../../../core/services/historial.service';
 
 @Component({
   selector: 'app-student-stay-history',
@@ -13,18 +13,15 @@ import { AsignacionesService } from '../../../core/services/asignaciones.service
   styleUrl: './student-stay-history.scss'
 })
 export class StudentStayHistoryComponent implements OnInit {
-  public EstadoAsignacionEnum = EstadoAsignacion;
+  private historialService = inject(HistorialService);
+  private cdr = inject(ChangeDetectorRef);
 
-  private asignacionesService = inject(AsignacionesService);
-  private cdr = inject(ChangeDetectorRef); 
-
-  historial: AsignacionDTO[] = [];
-  historialFiltrado: AsignacionDTO[] = [];
-  asignacionActual: AsignacionDTO | null = null;
+  historial: HistorialResidenciaDTO[] = [];
+  historialFiltrado: HistorialResidenciaDTO[] = [];
 
   filtroPeriodo: string = '';
-  filtroEstado: EstadoAsignacion | '' = '';
-  periodos: string[] = ['2026-1', '2025-2', '2025-1'];
+  filtroMovimiento: TipoMovimientoHistorial | '' = '';
+  periodos: string[] = [];
 
   paginaActual: number = 1;
   itemsPorPagina: number = 20;
@@ -34,21 +31,17 @@ export class StudentStayHistoryComponent implements OnInit {
   }
 
   cargarHistorial(): void {
-    // 👇 Cambiamos para usar el nuevo endpoint
-    this.asignacionesService.obtenerMiHistorial().subscribe({
-      next: (data: AsignacionDTO[]) => {
+    this.historialService.obtenerMiHistorial().subscribe({
+      next: (data: HistorialResidenciaDTO[]) => {
         this.historial = data;
-        
-        // Buscamos si tiene alguna asignación activa para destacarla visualmente
-        this.asignacionActual = this.historial.find(a => a.estado === EstadoAsignacion.ACTIVA) || null;
-        
+        this.periodos = Array.from(new Set(data.map(item => item.nombrePeriodo).filter(Boolean)));
         this.aplicarFiltros();
       },
       error: (err: any) => console.error('Error al cargar el historial del estudiante', err)
     });
   }
 
-  get historialPaginado(): AsignacionDTO[] {
+  get historialPaginado(): HistorialResidenciaDTO[] {
     const inicio = (this.paginaActual - 1) * this.itemsPorPagina;
     const fin = inicio + this.itemsPorPagina;
     return this.historialFiltrado.slice(inicio, fin);
@@ -68,8 +61,8 @@ export class StudentStayHistoryComponent implements OnInit {
   aplicarFiltros(): void {
     this.historialFiltrado = this.historial.filter(asig => {
       const matchPeriodo = this.filtroPeriodo ? asig.nombrePeriodo === this.filtroPeriodo : true;
-      const matchEstado = this.filtroEstado ? asig.estado === this.filtroEstado : true;
-      return matchPeriodo && matchEstado;
+      const matchMovimiento = this.filtroMovimiento ? asig.tipoMovimiento === this.filtroMovimiento : true;
+      return matchPeriodo && matchMovimiento;
     });
     
     this.paginaActual = 1;
@@ -78,16 +71,44 @@ export class StudentStayHistoryComponent implements OnInit {
 
   limpiarFiltros(): void {
     this.filtroPeriodo = '';
-    this.filtroEstado = '';
+    this.filtroMovimiento = '';
     this.aplicarFiltros();
   }
 
-  getClassForEstado(estado: string): string {
-    switch (estado) {
-      case EstadoAsignacion.ACTIVA: return 'act';
-      case EstadoAsignacion.FINALIZADA: return 'fin';
-      case EstadoAsignacion.RENUNCIADA: return 'ren';
+  getLabelMovimiento(tipo: TipoMovimientoHistorial): string {
+    switch (tipo) {
+      case 'ASIGNACION': return 'Asignación';
+      case 'CHECK_IN': return 'Check-in';
+      case 'REASIGNACION': return 'Reasignación';
+      case 'CHECK_OUT': return 'Check-out';
+      case 'RENUNCIA': return 'Renuncia';
+    }
+  }
+
+  getClassForMovimiento(tipo: TipoMovimientoHistorial): string {
+    switch (tipo) {
+      case 'ASIGNACION': return 'act';
+      case 'CHECK_IN': return 'act';
+      case 'REASIGNACION': return 'ren';
+      case 'CHECK_OUT': return 'fin';
+      case 'RENUNCIA': return 'ren';
       default: return '';
     }
+  }
+
+  getUbicacion(movimiento: HistorialResidenciaDTO): string {
+    if (movimiento.tipoMovimiento === 'REASIGNACION') {
+      return `${this.formatHabitacion(movimiento.habitacionAnterior)} -> ${this.formatHabitacion(movimiento.habitacionNueva)}`;
+    }
+
+    return this.formatHabitacion(movimiento.habitacionNueva ?? movimiento.habitacionAnterior);
+  }
+
+  private formatHabitacion(habitacion: HistorialResidenciaDTO['habitacionNueva']): string {
+    if (!habitacion) {
+      return 'Sin habitación';
+    }
+
+    return `${habitacion.nombreEdificio}, Hab. ${habitacion.numeroHabitacion}`;
   }
 }

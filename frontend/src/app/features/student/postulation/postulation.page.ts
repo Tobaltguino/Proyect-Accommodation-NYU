@@ -31,12 +31,16 @@ export class StudentPostulationPageComponent {
     semester: [{ value: this.activeSemester, disabled: true }, [Validators.required]],
     career: [{ value: '', disabled: true }, [Validators.required]],
     gender: [{ value: 'MUJER' as Gender, disabled: true }, [Validators.required]],
-    mealPlan: ['OMNIVORA' as MealPlan, [Validators.required]],
+    mealPlan: ['Sin preferencia' as MealPlan, [Validators.required]],
     declaration: [false, [Validators.requiredTrue]],
   });
 
   isLoadingSolicitud = false;
   isSubmitting = false;
+  hasPendingSolicitud = false;
+  solicitudBlockTitle = 'Solicitud pendiente';
+  solicitudBlockMessage =
+    'Ya tienes una solicitud de alojamiento pendiente de revision. No puedes enviar una nueva postulacion hasta que sea resuelta.';
   formMessage = '';
 
   constructor(
@@ -77,20 +81,17 @@ export class StudentPostulationPageComponent {
 
     const payload = this.postulationForm.getRawValue();
     this.formMessage = '';
+
+    if (this.hasPendingSolicitud) {
+      this.formMessage = 'Ya tienes una postulacion registrada. Revisa su estado antes de continuar.';
+      return;
+    }
+
     this.isSubmitting = true;
 
     this.postulationService
       .createSolicitud({
-        career: payload.career,
-        gender: payload.gender,
-        mealPlan: payload.mealPlan,
-        semester: this.activeSemester,
-        
-        // Datos genéricos para satisfacer al backend:
-        roomCode: '000', // El backend exige 3 números
-        phone: 'No especificado',
-        city: 'No especificada',
-        motivation: 'No aplica por el momento',
+        planAlimenticio: payload.mealPlan,
       })
       .pipe(finalize(() => (this.isSubmitting = false)))
       .subscribe({
@@ -120,6 +121,12 @@ export class StudentPostulationPageComponent {
     void this.router.navigate(['/student/home']);
   }
 
+  goToStatus(): void {
+    void this.router.navigate(['/student/status'], {
+      queryParams: { refresh: Date.now() },
+    });
+  }
+
   private loadMySolicitud(): void {
     this.isLoadingSolicitud = true;
 
@@ -132,16 +139,26 @@ export class StudentPostulationPageComponent {
             return;
           }
 
-          if (solicitud.status === 'EN_REVISION') {
-            this.formMessage =
-              'Ya tienes una postulacion en revision. Seras redirigido al panel.';
-            void this.router.navigate(['/student/home']);
+          const estado = solicitud.status ?? solicitud.estado;
+
+          if (this.isBlockingEstado(estado)) {
+            this.hasPendingSolicitud = true;
+            this.postulationForm.disable();
+            this.setSolicitudBlockMessage(estado);
             return;
           }
 
+          this.hasPendingSolicitud = false;
+          this.postulationForm.enable();
+          this.postulationForm.controls.fullName.disable();
+          this.postulationForm.controls.rut.disable();
+          this.postulationForm.controls.semester.disable();
+          this.postulationForm.controls.career.disable();
+          this.postulationForm.controls.gender.disable();
+
           this.syncFormWithSolicitud(solicitud);
           this.formMessage =
-            `Ya tienes una postulacion registrada. Estado actual: ${solicitud.status}.`;
+            `Ya tienes una postulacion registrada. Estado actual: ${estado}.`;
         },
         error: () => {
           this.formMessage = 'No se pudo recuperar tu postulacion actual.';
@@ -153,7 +170,32 @@ export class StudentPostulationPageComponent {
     this.postulationForm.patchValue({
       career: solicitud.career,
       gender: solicitud.gender,
-      mealPlan: solicitud.mealPlan,
+      mealPlan: solicitud.mealPlan ?? solicitud.planAlimenticio ?? solicitud.plan_alimenticio,
     });
+  }
+
+  private isBlockingEstado(estado: string | undefined): boolean {
+    return (
+      estado === 'EN_REVISION' ||
+      estado === 'En Revision' ||
+      estado === 'Pendiente' ||
+      estado === 'APROBADA' ||
+      estado === 'Aprobada'
+    );
+  }
+
+  private setSolicitudBlockMessage(estado: string | undefined): void {
+    if (estado === 'APROBADA' || estado === 'Aprobada') {
+      this.solicitudBlockTitle = 'Solicitud aprobada';
+      this.solicitudBlockMessage =
+        'Tu postulacion ya fue aprobada. No puedes enviar una nueva postulacion para este semestre.';
+      this.formMessage = 'Tu postulacion fue aprobada. Revisa el detalle en Estado de solicitud.';
+      return;
+    }
+
+    this.solicitudBlockTitle = 'Solicitud pendiente';
+    this.solicitudBlockMessage =
+      'Ya tienes una solicitud de alojamiento pendiente de revision. No puedes enviar una nueva postulacion hasta que sea resuelta.';
+    this.formMessage = 'Ya tienes una solicitud pendiente. Espera la evaluacion del equipo de residencia.';
   }
 }

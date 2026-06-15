@@ -6,7 +6,9 @@ import { PeriodoEntity } from '../solicitudes/entities';
 import { IncidenciaEstanciaEntity } from './entities';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([IncidenciaEstanciaEntity, PeriodoEntity])],
+  imports: [
+    TypeOrmModule.forFeature([IncidenciaEstanciaEntity, PeriodoEntity]),
+  ],
   controllers: [IncidenciasController],
   providers: [IncidenciasService],
 })

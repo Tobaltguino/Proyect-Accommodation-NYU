@@ -12,6 +12,7 @@ import { UsuarioEntity } from '../users/entities'; // Asegúrate de que UsuarioE
 import { Role } from './enums/role.enum';
 import { RegisterDto } from './dto/register.dto';
 import { AuthenticatedUser, JwtPayload } from './types/auth.types';
+import { HARDCODED_USERS } from './constants/hardcoded-users';
 
 @Injectable()
 export class AuthService implements OnModuleInit {
@@ -19,7 +20,7 @@ export class AuthService implements OnModuleInit {
     private readonly jwtService: JwtService,
     @InjectRepository(UsuarioEntity)
     private readonly usuarioRepository: Repository<UsuarioEntity>,
-  ) { }
+  ) {}
 
   async onModuleInit(): Promise<void> {
     await this.ensureSeedUsers();
@@ -71,8 +72,12 @@ export class AuthService implements OnModuleInit {
       where: [{ rut: body.rut }, { rut: normalizedRut }],
     });
 
-    if (existing.some((user) => this.normalizeRut(user.rut) === normalizedRut)) {
-      throw new ConflictException('Ya existe un usuario registrado con ese RUT');
+    if (
+      existing.some((user) => this.normalizeRut(user.rut) === normalizedRut)
+    ) {
+      throw new ConflictException(
+        'Ya existe un usuario registrado con ese RUT',
+      );
     }
 
     const newUser = await this.usuarioRepository.save(
@@ -81,7 +86,7 @@ export class AuthService implements OnModuleInit {
         rut: normalizedRut,
         contrasena: body.password,
         tipoUsuario: this.toTipoUsuario(body.role),
-        genero: (body as any).genero || 'No Especificado', // <-- Guardamos el género (Asegúrate de agregarlo al RegisterDto)
+        genero: 'No Especificado',
       }),
     );
 
@@ -127,41 +132,27 @@ export class AuthService implements OnModuleInit {
 
   // CAMBIO 4: Añadimos género a los usuarios de prueba (Seeders)
   private async ensureSeedUsers(): Promise<void> {
-    const total = await this.usuarioRepository.count();
+    for (const seedUser of HARDCODED_USERS) {
+      const normalizedRut = this.normalizeRut(seedUser.rut);
+      const existing = await this.usuarioRepository.find({
+        where: [{ rut: seedUser.rut }, { rut: normalizedRut }],
+      });
 
-    if (total > 0) {
-      return;
+      if (
+        existing.some((user) => this.normalizeRut(user.rut) === normalizedRut)
+      ) {
+        continue;
+      }
+
+      await this.usuarioRepository.save(
+        this.usuarioRepository.create({
+          nombre: seedUser.fullName,
+          rut: normalizedRut,
+          contrasena: seedUser.password,
+          tipoUsuario: this.toTipoUsuario(seedUser.role),
+          genero: seedUser.genero,
+        }),
+      );
     }
-
-    await this.usuarioRepository.save([
-      this.usuarioRepository.create({
-        nombre: 'Administrador NYU',
-        rut: '12345678-5',
-        contrasena: 'Admin123*',
-        tipoUsuario: 'Admin',
-        genero: 'Masculino', // Admin
-      }),
-      this.usuarioRepository.create({
-        nombre: 'Juanito Carlos Perez Hernandez',
-        rut: '87654321-K',
-        contrasena: 'Student123*',
-        tipoUsuario: 'Estudiante',
-        genero: 'Masculino', // Estudiante Hombre
-      }),
-      this.usuarioRepository.create({
-        nombre: 'Maria Fernanda Soto Rojas',
-        rut: '11222333-4',
-        contrasena: 'Student456*',
-        tipoUsuario: 'Estudiante',
-        genero: 'Femenino', // Estudiante Mujer
-      }),
-      this.usuarioRepository.create({
-        nombre: 'Diego Alejandro Vargas Morales',
-        rut: '20567891-7',
-        contrasena: 'Student789*',
-        tipoUsuario: 'Estudiante',
-        genero: 'Masculino',
-      }),
-    ]);
   }
 }

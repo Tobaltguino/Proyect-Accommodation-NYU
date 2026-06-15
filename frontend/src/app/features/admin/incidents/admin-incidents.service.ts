@@ -3,9 +3,9 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { AuthService } from '../../../core/auth/auth.service';
 import {
+  CreateIncidenciaRequest,
   IncidenciaApiResponse,
   IncidenciaFilters,
-  UpdateIncidenciaEstadoRequest,
 } from '../../../shared/models';
 
 @Injectable({ providedIn: 'root' })
@@ -24,10 +24,6 @@ export class AdminIncidentsService {
       params = params.set('semester', filters.semester);
     }
 
-    if (filters.estado) {
-      params = params.set('estado', filters.estado);
-    }
-
     if (filters.gravedad) {
       params = params.set('gravedad', filters.gravedad);
     }
@@ -42,17 +38,10 @@ export class AdminIncidentsService {
     });
   }
 
-  updateEstadoIncidencia(
-    incidenciaId: number,
-    payload: UpdateIncidenciaEstadoRequest,
-  ): Observable<IncidenciaApiResponse> {
-    return this.http.patch<IncidenciaApiResponse>(
-      `${this.apiBaseUrl}/incidencias/${incidenciaId}/estado`,
-      payload,
-      {
-        headers: this.getAuthHeaders(),
-      },
-    );
+  createIncidencia(payload: CreateIncidenciaRequest): Observable<IncidenciaApiResponse> {
+    return this.http.post<IncidenciaApiResponse>(`${this.apiBaseUrl}/incidencias`, payload, {
+      headers: this.getAuthHeaders(),
+    });
   }
 
   private getAuthHeaders(): HttpHeaders {

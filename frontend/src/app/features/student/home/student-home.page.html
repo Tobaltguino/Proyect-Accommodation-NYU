@@ -7,7 +7,16 @@
     </div>
   </header>
 
-  @if (tieneAsignacion) {
+  @if (isLoading) {
+    <div class="card module-box text-center p-5">
+      <p class="text-muted mb-0">Cargando tu asignacion actual...</p>
+    </div>
+  } @else if (loadError) {
+    <div class="card module-box text-center p-5">
+      <h2 style="color: #0f172a; font-weight: 700; margin-bottom: 0.5rem;">No se pudo cargar tu asignacion</h2>
+      <p class="text-muted mx-auto mb-0" style="max-width: 500px;">{{ loadError }}</p>
+    </div>
+  } @else if (tieneAsignacion) {
     
     <div class="row g-4">
       <div class="col-12 col-lg-8">
@@ -18,7 +27,7 @@
             </div>
             <div>
               <h2 class="m-0 fs-5" style="color: #1e3a8a; font-weight: 700;">Tu Asignación Actual</h2>
-              <p class="m-0 text-muted" style="font-size: 0.9rem;">Periodo 2026-1</p>
+              <p class="m-0 text-muted" style="font-size: 0.9rem;">Periodo {{ periodoLabel }}</p>
             </div>
           </div>
 
@@ -37,7 +46,7 @@
             </div>
             <div class="info-item">
               <span class="label">Plan de Dieta</span>
-              <strong class="value">{{ miPlanDieta.tipoPlan }}</strong>
+              <strong class="value">{{ planAlimenticioLabel }}</strong>
             </div>
           </div>
 

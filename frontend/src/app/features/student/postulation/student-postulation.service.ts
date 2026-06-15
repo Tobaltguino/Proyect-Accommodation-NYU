@@ -2,9 +2,10 @@ import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { AuthService } from '../../../core/auth/auth.service';
+import { AsignacionDTO } from '../../../shared/models';
 
 export type Gender = 'MUJER' | 'HOMBRE';
-export type MealPlan = 'VEGANA' | 'VEGETARIANA' | 'OMNIVORA';
+export type MealPlan = 'Sin preferencia' | 'Vegetariano' | 'Vegano';
 
 export interface RoomAvailability {
   code: string;
@@ -30,19 +31,14 @@ export interface AvailabilityResponse {
 }
 
 export interface CreateSolicitudPayload {
-  career: string;
-  gender: Gender;
-  phone: string;
-  city: string;
-  mealPlan: MealPlan;
-  roomCode: string;
-  motivation: string;
-  semester: string;
+  planAlimenticio: MealPlan;
 }
 
 export interface SolicitudResponse {
   id: number;
+  idSolicitud?: number;
   rut: string;
+  rutEstudiante?: string;
   fullName: string;
   semester: string;
   career: string;
@@ -53,7 +49,15 @@ export interface SolicitudResponse {
   buildingId: 'FEMENINO' | 'MASCULINO';
   roomCode: string;
   motivation: string;
-  status: 'EN_REVISION' | 'APROBADA' | 'RECHAZADA' | 'EXPIRADA';
+  status: 'EN_REVISION' | 'APROBADA' | 'RECHAZADA' | 'EXPIRADA' | 'En Revision' | 'Pendiente' | 'Aprobada' | 'Rechazada';
+  estado?: 'EN_REVISION' | 'APROBADA' | 'RECHAZADA' | 'EXPIRADA' | 'En Revision' | 'Pendiente' | 'Aprobada' | 'Rechazada';
+  fechaSolicitud?: string;
+  idPeriodo?: number;
+  idAsignacion?: number | null;
+  nombrePeriodo?: string;
+  asignacion?: AsignacionDTO | null;
+  planAlimenticio?: MealPlan;
+  plan_alimenticio?: MealPlan;
   reservationExpiresAt: string | null;
   updatedAt: string;
 }

@@ -1,4 +1,11 @@
-import { Column, Entity, PrimaryGeneratedColumn, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
+import {
+  Column,
+  Entity,
+  PrimaryGeneratedColumn,
+  ManyToOne,
+  JoinColumn,
+  OneToMany,
+} from 'typeorm';
 
 import { EdificioEntity } from './edificio.entity';
 import { HabitacionEntity } from './habitacion.entity';
@@ -23,5 +30,4 @@ export class PisoEntity {
 
   @OneToMany(() => HabitacionEntity, (habitacion) => habitacion.piso)
   habitaciones!: HabitacionEntity[];
-
 }

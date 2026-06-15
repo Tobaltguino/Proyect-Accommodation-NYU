@@ -5,15 +5,16 @@ import { Roles } from '../../common/decorators/roles.decorator';
 import { Role } from '../auth/enums/role.enum';
 import { PlanAlimenticioService } from './plan-alimenticio.service';
 
-
 @Controller('plan-alimenticio')
 export class PlanAlimenticioController {
-    constructor(private readonly PlanAlimenticioService: PlanAlimenticioService) { }
+  constructor(
+    private readonly PlanAlimenticioService: PlanAlimenticioService,
+  ) {}
 
-    @Get('todos')
-    @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles(Role.ADMIN)
-    async obtenerTodasPlanesAdmin() {
-        return this.PlanAlimenticioService.obtenerTodas();
-    }
+  @Get('todos')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  async obtenerTodasPlanesAdmin() {
+    return this.PlanAlimenticioService.obtenerTodas();
+  }
 }

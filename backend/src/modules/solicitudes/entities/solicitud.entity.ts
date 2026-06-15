@@ -1,12 +1,4 @@
-import {
-  Column,
-  Entity,
-  PrimaryGeneratedColumn,
-  ManyToOne,
-  JoinColumn
-} from 'typeorm';
-import { UsuarioEntity } from '../../users/entities/usuario.entity';
-
+import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity({ name: 'solicitudes', schema: 'public' })
 export class SolicitudEntity {
@@ -36,9 +28,4 @@ export class SolicitudEntity {
 
   // Temporal para evitar errores de compilación con código de compañeros
   idUsuario?: number;
-
-  @ManyToOne(() => UsuarioEntity)
-  @JoinColumn({ name: 'id_usuario', referencedColumnName: 'idUsuario' })
-  usuario!: UsuarioEntity;
-
 }

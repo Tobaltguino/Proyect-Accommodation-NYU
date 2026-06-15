@@ -34,5 +34,12 @@ export const HARDCODED_USERS: AuthUserRecord[] = [
     role: Role.STUDENT,
     genero: 'Masculino',
   },
-
+  {
+    id: 5,
+    rut: '33444555-6',
+    password: 'StudentTest123*',
+    fullName: 'Sofia Test Residencia',
+    role: Role.STUDENT,
+    genero: 'Femenino',
+  },
 ];
