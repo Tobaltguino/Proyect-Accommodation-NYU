@@ -13,18 +13,23 @@ export class EdificiosService {
   // 1. OBTENER TODOS LOS EDIFICIOS
   async obtenerTodos(): Promise<EdificioEntity[]> {
     return await this.edificioRepo.find({
-      order: { idEdificio: 'ASC' } // Ordenados por ID para que la lista siempre sea consistente
+      order: { idEdificio: 'ASC' }, // Ordenados por ID para que la lista siempre sea consistente
     });
   }
 
   // 2. MODIFICAR EDIFICIO (Actualización Parcial)
-  async modificarEdificio(idEdificio: number, datosActualizados: Partial<EdificioEntity>): Promise<EdificioEntity> {
+  async modificarEdificio(
+    idEdificio: number,
+    datosActualizados: Partial<EdificioEntity>,
+  ): Promise<EdificioEntity> {
     const edificio = await this.edificioRepo.findOne({
-      where: { idEdificio }
+      where: { idEdificio },
     });
 
     if (!edificio) {
-      throw new NotFoundException(`El edificio con ID ${idEdificio} no existe en la base de datos.`);
+      throw new NotFoundException(
+        `El edificio con ID ${idEdificio} no existe en la base de datos.`,
+      );
     }
 
     // Actualizamos solo los campos que el frontend nos envíe (ej. capacidad o nombre)
@@ -33,19 +38,14 @@ export class EdificiosService {
     return await this.edificioRepo.save(edificio);
   }
 
-  // 3. OBTENER EDIFICIOS POR GÉNERO
-  // =========================================================
-  // OBTENER EDIFICIOS POR GÉNERO
-  // =========================================================
   async obtenerPorGenero(genero: string) {
     const edificios = await this.edificioRepo.find({
-      where: { genero: genero },
-      // Si quisieras que el totalPisos del DTO funcione, descomenta la siguiente línea:
+      where: [{ genero: genero }, { genero: 'Mixto' }],
       relations: { pisos: true },
-      order: { nombre: 'ASC' }
+      order: { nombre: 'ASC' },
     });
 
-    return edificios.map(edificio => this.mapEdificioToDTO(edificio));
+    return edificios.map((edificio) => this.mapEdificioToDTO(edificio));
   }
 
   async obtenerInfraestructuraCompleta(): Promise<EdificioEntity[]> {
@@ -67,14 +67,16 @@ export class EdificiosService {
     });
   }
 
-  async obtenerInfraestructuraCompletaPorGenero(genero: string): Promise<EdificioEntity[]> {
+  async obtenerInfraestructuraCompletaPorGenero(
+    genero: string,
+  ): Promise<EdificioEntity[]> {
     return await this.edificioRepo.find({
       relations: {
         pisos: {
           habitaciones: true, // Trae las habitaciones dentro de cada piso
         },
       },
-      where: { genero: genero },
+      where: [{ genero: genero }, { genero: 'Mixto' }],
       order: {
         idEdificio: 'ASC',
         pisos: {
@@ -87,9 +89,6 @@ export class EdificiosService {
     });
   }
 
-  // =========================================================
-  // LA HERRAMIENTA APLANADORA DE EDIFICIOS
-  // =========================================================
   private mapEdificioToDTO(edificio: any) {
     return {
       idEdificio: edificio.idEdificio,
@@ -98,10 +97,7 @@ export class EdificiosService {
       capacidadHabitaciones: edificio.capacidadHabitaciones,
       genero: edificio.genero,
 
-      // Si en alguna ruta futura decides traer la relación de pisos,
-      // esto le enviará al frontend un número limpio con el total de pisos
-      totalPisos: edificio.pisos ? edificio.pisos.length : 0
+      totalPisos: edificio.pisos ? edificio.pisos.length : 0,
     };
   }
-
 }
