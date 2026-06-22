@@ -18,9 +18,9 @@ export class SolicitudesAdminService {
 async obtenerPorPeriodo(idPeriodo: number) {
   return await this.solicitudRepo
     .createQueryBuilder('solicitud')
-    .leftJoin('usuario', 'usuario', 'usuario.rut = solicitud.rutUsuario') // Ajusta 'rutUsuario' si es necesario
+    .leftJoin('usuario', 'usuario', 'usuario.rut = solicitud.rutEstudiante') // Ajusta 'rutUsuario' si es necesario
     .select([
-      'solicitud.id',
+      'solicitud.idSolicitud',
       'solicitud.fechaSolicitud',
       'solicitud.estado',
       'solicitud.idPeriodo',
@@ -36,9 +36,9 @@ async obtenerPorPeriodo(idPeriodo: number) {
 async obtenerTodas() {
   return await this.solicitudRepo
     .createQueryBuilder('solicitud')
-    .leftJoin('usuario', 'usuario', 'usuario.rut = solicitud.rutUsuario') // Ajusta 'rutUsuario' al nombre de tu columna
+    .leftJoin('usuario', 'usuario', 'usuario.rut = solicitud.rutEstudiante') // Ajusta 'rutUsuario' al nombre de tu columna
     .select([
-      'solicitud.id',
+      'solicitud.idSolicitud',
       'solicitud.fechaSolicitud',
       'solicitud.estado',
       'usuario.rut',
