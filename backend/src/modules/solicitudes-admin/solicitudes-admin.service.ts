@@ -16,24 +16,38 @@ export class SolicitudesAdminService {
 
 
 async obtenerPorPeriodo(idPeriodo: number) {
-  return await this.solicitudRepo.find({
-    where: { 
-      idPeriodo: idPeriodo,
-      estado: In(['en revision', 'pendiente'])
-    },
-    order: { 
-      fechaSolicitud: 'DESC' 
-    }
-  });
+  return await this.solicitudRepo
+    .createQueryBuilder('solicitud')
+    .leftJoin('usuario', 'usuario', 'usuario.rut = solicitud.rutUsuario') // Ajusta 'rutUsuario' si es necesario
+    .select([
+      'solicitud.id',
+      'solicitud.fechaSolicitud',
+      'solicitud.estado',
+      'solicitud.idPeriodo',
+      'usuario.rut',
+      'usuario.nombre'
+    ])
+    .where('solicitud.idPeriodo = :idPeriodo', { idPeriodo })
+    .andWhere('solicitud.estado IN (:...estados)', { estados: ['en revision', 'pendiente'] })
+    .orderBy('solicitud.fechaSolicitud', 'DESC')
+    .getMany();
 }
-  async obtenerTodas() {
-    return await this.solicitudRepo.find({
-      where: [
-        { estado: 'en revision' },
-        { estado: 'pendiente' }
-      ]
-    });
-  }
+
+async obtenerTodas() {
+  return await this.solicitudRepo
+    .createQueryBuilder('solicitud')
+    .leftJoin('usuario', 'usuario', 'usuario.rut = solicitud.rutUsuario') // Ajusta 'rutUsuario' al nombre de tu columna
+    .select([
+      'solicitud.id',
+      'solicitud.fechaSolicitud',
+      'solicitud.estado',
+      'usuario.rut',
+      'usuario.nombre'
+    ])
+    .where('solicitud.estado IN (:...estados)', { estados: ['en revision', 'pendiente'] })
+    .getMany();
+}
+
   async cambioEstadoYAdminSolicitud(idSolicitud: number, cambios: UpdateSolicitudesAdminDto, rutAdmin: string){
     const solicitud = await this.solicitudRepo.findOne({
       where: {idSolicitud: idSolicitud}
