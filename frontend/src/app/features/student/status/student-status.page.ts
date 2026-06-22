@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, inject } from '@angular/core'; // <-- Importamos ChangeDetectorRef e inject
 import { Router } from '@angular/router';
 import { finalize, TimeoutError, timeout } from 'rxjs';
 import { AuthService } from '../../../core/auth/auth.service';
@@ -18,9 +18,10 @@ export interface MappedSolicitud extends SolicitudResponse {
   templateUrl: './student-status.page.html',
   styleUrl: './student-status.page.scss',
 })
-export class StudentStatusPageComponent {
+export class StudentStatusPageComponent implements OnInit {
   private readonly activeSemester = '2026-1';
   private readonly requestTimeoutMs = 10000;
+  private readonly cdr = inject(ChangeDetectorRef); // <-- Inyectamos el detector de cambios
 
   readonly currentUser: SessionUser | null;
 
@@ -34,6 +35,9 @@ export class StudentStatusPageComponent {
     private readonly postulationService: StudentPostulationService,
   ) {
     this.currentUser = this.authService.getCurrentUser();
+  }
+
+  ngOnInit(): void {
     this.loadStatus();
   }
 
@@ -63,59 +67,75 @@ export class StudentStatusPageComponent {
     }).format(date);
   }
 
-  private mapSolicitudData(solicitud: SolicitudResponse, overrideId?: number): MappedSolicitud {
+  private mapSolicitudData(solicitud: any, overrideId?: number): MappedSolicitud {
+    const estadoReal = solicitud.estado || 'Pendiente';
+    
     let label = 'Expirada';
     let desc = 'La reserva asociada a tu solicitud expiró. Puedes iniciar una nueva postulación.';
     let cssClass = 'neutral';
 
-    if (solicitud.estado === 'En Revision') {
-      label = 'Pendiente';
-      desc = 'Tu solicitud está en evaluación por el equipo de residencia.';
+    if (estadoReal === 'En Revision' || estadoReal === 'Pendiente') {
+      label = 'En Revisión';
+      desc = 'Tu solicitud ha sido recibida y está en evaluación por el equipo de residencia.';
       cssClass = 'pending';
-    } else if (solicitud.estado === 'Aprobada') {
+    } else if (estadoReal === 'Aprobada') {
       label = 'Aprobada';
       desc = 'Tu solicitud fue aprobada. Revisa los siguientes pasos en secretaría.';
       cssClass = 'approved';
-    } else if (solicitud.estado === 'Rechazada') {
+    } else if (estadoReal === 'Rechazada') {
       label = 'Rechazada';
-      desc = 'Tu solicitud fue rechazada. Puedes revisar observaciones con asistencia estudiantil.';
+      desc = 'Tu solicitud fue rechazada. Puedes revisar las observaciones con asistencia estudiantil.';
       cssClass = 'rejected';
+    } else if (estadoReal === 'Finalizada') {
+      label = 'Finalizada';
+      desc = 'Este proceso de postulación ya ha concluido.';
+      cssClass = 'neutral';
     }
 
     return {
       ...solicitud,
-      id: overrideId ?? Math.floor(Math.random() * 10000), 
+      id: overrideId ?? solicitud.idSolicitud ?? Math.floor(Math.random() * 10000), 
+      semester: String(solicitud.idPeriodo ?? 'Desconocido'),
+      roomCode: String(solicitud.idAsignacion ?? '000'),
+      updatedAt: solicitud.fechaSolicitud ?? new Date().toISOString(),
+      
       statusLabel: label,
       statusDescription: desc,
       statusClass: cssClass,
-    };
+    } as MappedSolicitud;
   }
 
   private loadStatus(): void {
     this.isLoading = true;
     this.loadError = '';
 
-    // Petición HTTP real al backend
     this.postulationService
       .getHistorialSolicitudes()
       .pipe(
         timeout({ first: this.requestTimeoutMs }),
         finalize(() => {
           this.isLoading = false;
+          this.cdr.detectChanges(); // <-- Forzamos actualización visual al terminar
         }),
       )
       .subscribe({
-        next: (historialReal) => {
-          // Si el backend responde bien, mapeamos la data y la mostramos
-          this.solicitudes = historialReal.map((sol) => 
-            this.mapSolicitudData(sol, sol.id)
-          );
+        next: (historialReal: any) => {
+          if (!historialReal || !Array.isArray(historialReal)) {
+            this.solicitudes = [];
+          } else {
+            this.solicitudes = historialReal.map((sol) => 
+              this.mapSolicitudData(sol, sol.idSolicitud ?? sol.id)
+            );
+          }
+          this.cdr.detectChanges(); // <-- Refrescamos la lista en pantalla
         },
         error: (error: unknown) => {
           this.loadError =
             error instanceof TimeoutError
               ? 'La consulta demoró demasiado. Intenta nuevamente.'
               : 'No se pudo consultar el historial de tus postulaciones. Verifica la conexión con el backend.';
+          this.cdr.detectChanges(); // <-- Refrescamos el mensaje de error en pantalla
+          console.error('Error al cargar historial:', error);
         },
       });
   }

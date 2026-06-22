@@ -97,7 +97,7 @@ export class StudentPostulationService {
 
   // NUEVO MÉTODO: Pide el historial completo de solicitudes del estudiante
   getHistorialSolicitudes(): Observable<SolicitudResponse[]> {
-    return this.http.get<SolicitudResponse[]>(`${this.apiBaseUrl}/solicitudes/historial`, {
+    return this.http.get<SolicitudResponse[]>(`${this.apiBaseUrl}/solicitudes/all`, {
       headers: this.getAuthHeaders(),
     });
   }
