@@ -2,7 +2,7 @@ import {
   Injectable,
   BadRequestException,
   ForbiddenException,
-  NotFoundException
+  NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -14,6 +14,8 @@ import { EdificioEntity } from '../residencias/entities';
 import { PisoEntity } from '../residencias/entities';
 import { DataSource } from 'typeorm';
 import { PlanAlimenticioEntity } from '../solicitudes/entities';
+import { AsignacionDTO, RespuestaMiAsignacion } from './dto/asignacion.dto';
+
 @Injectable()
 export class AsignacionesService {
   constructor(
@@ -27,9 +29,9 @@ export class AsignacionesService {
     private readonly edificioRepo: Repository<EdificioEntity>,
     @InjectRepository(PisoEntity)
     private readonly pisoRepo: Repository<PisoEntity>,
-      @InjectRepository(PlanAlimenticioEntity)
+    @InjectRepository(PlanAlimenticioEntity)
     private readonly planRepo: Repository<PlanAlimenticioEntity>,
-    
+
     private dataSource: DataSource,
   ) { }
 
@@ -50,46 +52,65 @@ export class AsignacionesService {
     return 'Masculino'; // o 'Femenino'
   }
 
-  // ---------------------------------------------------------
-  // CORE: CREAR ASIGNACIÓN
-  // ---------------------------------------------------------
-async crearAsignacion(idSolicitud: number, idHabitacion: number, rutAdmin: string) {
+  async crearAsignacion(
+    idSolicitud: number,
+    idHabitacion: number,
+    rutAdmin: string,
+  ) {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
 
     try {
       // 1. Validaciones iniciales (Lecturas)
-      const solicitud = await queryRunner.manager.findOne(SolicitudEntity, { where: { idSolicitud } });
+      const solicitud = await queryRunner.manager.findOne(SolicitudEntity, {
+        where: { idSolicitud },
+      });
       if (!solicitud) throw new NotFoundException('La solicitud no existe.');
-      if (solicitud.estado !== 'Pendiente') throw new BadRequestException('Esta solicitud ya fue procesada.');
+      if (solicitud.estado !== 'Pendiente')
+        throw new BadRequestException('Esta solicitud ya fue procesada.');
 
-      const habitacion = await queryRunner.manager.findOne(HabitacionEntity, { where: { idHabitacion } });
+      const habitacion = await queryRunner.manager.findOne(HabitacionEntity, {
+        where: { idHabitacion },
+      });
       if (!habitacion) throw new NotFoundException('La habitación no existe.');
 
-      const piso = await queryRunner.manager.findOne(PisoEntity, { where: { idPiso: habitacion.idPiso } });
+      const piso = await queryRunner.manager.findOne(PisoEntity, {
+        where: { idPiso: habitacion.idPiso },
+      });
       if (!piso) throw new NotFoundException('El piso no existe.');
 
-      const edificio = await queryRunner.manager.findOne(EdificioEntity, { where: { idEdificio: piso.idEdificio } });
-      if (!edificio) throw new NotFoundException('El edificio asociado no existe.');
+      const edificio = await queryRunner.manager.findOne(EdificioEntity, {
+        where: { idEdificio: piso.idEdificio },
+      });
+      if (!edificio)
+        throw new NotFoundException('El edificio asociado no existe.');
 
       const rutEstudiante = solicitud.rutEstudiante;
 
       // 2. Validaciones externas
       const tieneMatricula = await this.verificarMatriculaActiva(rutEstudiante);
-      if (!tieneMatricula) throw new ForbiddenException('El estudiante no tiene matrícula activa.');
+      if (!tieneMatricula)
+        throw new ForbiddenException(
+          'El estudiante no tiene matrícula activa.',
+        );
 
-      const generoEstudiante = await this.obtenerGeneroEstudiante(rutEstudiante);
+      const generoEstudiante =
+        await this.obtenerGeneroEstudiante(rutEstudiante);
       if (edificio.genero !== 'Mixto' && edificio.genero !== generoEstudiante) {
-        throw new BadRequestException(`Conflicto de género: Estudiante ${generoEstudiante} no puede ingresar a edificio ${edificio.genero}.`);
+        throw new BadRequestException(
+          `Conflicto de género: Estudiante ${generoEstudiante} no puede ingresar a edificio ${edificio.genero}.`,
+        );
       }
 
       if (habitacion.capacidadActual <= 0 || !habitacion.disponibilidad) {
-        throw new BadRequestException('La habitación seleccionada no tiene camas disponibles.');
+        throw new BadRequestException(
+          'La habitación seleccionada no tiene camas disponibles.',
+        );
       }
 
       // 3. Ejecución de operaciones (Escritura dentro de la transacción)
-      
+
       // A. Crear Asignación
       const nuevaAsignacion = queryRunner.manager.create(AsignacionEntity, {
         fechaAsignacion: new Date(),
@@ -99,7 +120,8 @@ async crearAsignacion(idSolicitud: number, idHabitacion: number, rutAdmin: strin
         rutEstudiante: rutEstudiante,
         rutAdmin: rutAdmin,
       });
-      const asignacionGuardada = await queryRunner.manager.save(nuevaAsignacion);
+      const asignacionGuardada =
+        await queryRunner.manager.save(nuevaAsignacion);
 
       // B. Crear Plan Alimenticio
       const nuevoPlan = queryRunner.manager.create(PlanAlimenticioEntity, {
@@ -125,7 +147,6 @@ async crearAsignacion(idSolicitud: number, idHabitacion: number, rutAdmin: strin
         message: 'Asignación completada con éxito',
         asignacion: asignacionGuardada,
       };
-
     } catch (err) {
       // Revertir todo en caso de error
       await queryRunner.rollbackTransaction();
@@ -137,77 +158,78 @@ async crearAsignacion(idSolicitud: number, idHabitacion: number, rutAdmin: strin
   }
 
   // OBTENER TODAS LAS ASIGNACIONES
-  async obtenerTodas() {
+  async obtenerTodas(): Promise<AsignacionDTO[]> {
     const asignaciones = await this.asignacionRepo.find({
       relations: {
         periodo: true,
         habitacion: {
           piso: {
-            edificio: true
-          }
-        }
+            edificio: true,
+          },
+        },
       },
 
       order: {
-        fechaAsignacion: 'DESC'
-      }
+        fechaAsignacion: 'DESC',
+      },
     });
 
-    return asignaciones.map(asignacion => this.mapAsignacionToDTO(asignacion));
-
+    return asignaciones.map((asignacion) =>
+      this.mapAsignacionToDTO(asignacion),
+    );
   }
 
   // OBTENER HISTORIAL COMPLETO DEL ESTUDIANTE ACTUAL
-  async obtenerMiHistorial(rutEstudiante: string) {
+  async obtenerMiHistorial(rutEstudiante: string): Promise<AsignacionDTO[]> {
     const asignaciones = await this.asignacionRepo.find({
       where: { rutEstudiante: rutEstudiante }, // Sin filtro de estado para traer todo el historial
       relations: {
         periodo: true,
         habitacion: {
           piso: {
-            edificio: true
-          }
-        }
+            edificio: true,
+          },
+        },
       },
-      order: { fechaAsignacion: 'DESC' } // Las más recientes primero
+      order: { fechaAsignacion: 'DESC' }, // Las más recientes primero
     });
 
     // Reutilizamos el aplanador para mantener el formato plano que el frontend espera
     //return asignaciones
-    return asignaciones.map(asignacion => this.mapAsignacionToDTO(asignacion));
+    return asignaciones.map((asignacion) =>
+      this.mapAsignacionToDTO(asignacion),
+    );
   }
 
   // OBTENER ASIGNACIÓN DEL ESTUDIANTE ACTUAL
-  // OBTENER ASIGNACIÓN DEL ESTUDIANTE ACTUAL
-  async obtenerMiAsignacion(rutEstudiante: string) {
+  async obtenerMiAsignacion(rutEstudiante: string): Promise<RespuestaMiAsignacion> {
     const asignacion = await this.asignacionRepo.findOne({
       where: {
         rutEstudiante: rutEstudiante,
-        estado: 'Activa'
+        estado: 'Activa',
       },
       // Magia de TypeORM: Traemos el periodo, y bajamos en cascada hasta el edificio
       relations: {
         periodo: true,
         habitacion: {
           piso: {
-            edificio: true
-          }
-        }
+            edificio: true,
+          },
+        },
       },
-      order: { fechaAsignacion: 'DESC' }
+      order: { fechaAsignacion: 'DESC' },
     });
 
     if (!asignacion) {
       return {
         tieneAsignacion: false,
-        message: 'No tienes ninguna asignación activa en este momento.'
+        message: 'No tienes ninguna asignación activa en este momento.',
       };
     }
 
     return {
       tieneAsignacion: true,
-      // AQUÍ USAMOS EL APLANADOR:
-      asignacion: this.mapAsignacionToDTO(asignacion)
+      asignacion: this.mapAsignacionToDTO(asignacion),
     };
   }
 
@@ -219,51 +241,78 @@ async crearAsignacion(idSolicitud: number, idHabitacion: number, rutAdmin: strin
         periodo: true,
         habitacion: {
           piso: {
-            edificio: true
-          }
-        }
+            edificio: true,
+          },
+        },
       },
-      order: { fechaAsignacion: 'DESC' }
+      order: { fechaAsignacion: 'DESC' },
     });
 
     // AQUÍ USAMOS EL APLANADOR (Igual que en obtenerTodas):
-    return asignaciones.map(asignacion => this.mapAsignacionToDTO(asignacion));
+    return asignaciones.map((asignacion) =>
+      this.mapAsignacionToDTO(asignacion),
+    );
   }
 
-  // ---------------------------------------------------------
   // REASIGNAR HABITACIÓN
-  // ---------------------------------------------------------
-  async reasignarHabitacion(idAsignacion: number, idNuevaHabitacion: number, rutAdmin: string) {
+  async reasignarHabitacion(
+    idAsignacion: number,
+    idNuevaHabitacion: number,
+    rutAdmin: string,
+  ) {
     // 1. Obtener la asignación actual
-    const asignacion = await this.asignacionRepo.findOne({ where: { idAsignacion } });
+    const asignacion = await this.asignacionRepo.findOne({
+      where: { idAsignacion },
+    });
     if (!asignacion) throw new NotFoundException('La asignación no existe.');
     if (asignacion.estado !== 'Activa') {
-      throw new BadRequestException('Solo se pueden reasignar estudiantes que tengan una estadía "Activa".');
+      throw new BadRequestException(
+        'Solo se pueden reasignar estudiantes que tengan una estadía "Activa".',
+      );
     }
 
     if (asignacion.idHabitacion === idNuevaHabitacion) {
-      throw new BadRequestException('El estudiante ya se encuentra en esta habitación.');
+      throw new BadRequestException(
+        'El estudiante ya se encuentra en esta habitación.',
+      );
     }
 
     // 2. Obtener la NUEVA Habitación, su Piso y su Edificio
-    const nuevaHabitacion = await this.habitacionRepo.findOne({ where: { idHabitacion: idNuevaHabitacion } });
-    if (!nuevaHabitacion) throw new NotFoundException('La nueva habitación no existe.');
+    const nuevaHabitacion = await this.habitacionRepo.findOne({
+      where: { idHabitacion: idNuevaHabitacion },
+    });
+    if (!nuevaHabitacion)
+      throw new NotFoundException('La nueva habitación no existe.');
 
-    const piso = await this.pisoRepo.findOne({ where: { idPiso: nuevaHabitacion.idPiso } });
+    const piso = await this.pisoRepo.findOne({
+      where: { idPiso: nuevaHabitacion.idPiso },
+    });
     if (!piso) throw new NotFoundException('El piso no existe.');
 
-    const edificio = await this.edificioRepo.findOne({ where: { idEdificio: piso.idEdificio } });
-    if (!edificio) throw new NotFoundException('El edificio asociado no existe.');
+    const edificio = await this.edificioRepo.findOne({
+      where: { idEdificio: piso.idEdificio },
+    });
+    if (!edificio)
+      throw new NotFoundException('El edificio asociado no existe.');
 
     // 3. Validar Género (Reutilizamos tu método privado)
-    const generoEstudiante = await this.obtenerGeneroEstudiante(asignacion.rutEstudiante);
+    const generoEstudiante = await this.obtenerGeneroEstudiante(
+      asignacion.rutEstudiante,
+    );
     if (edificio.genero !== 'Mixto' && edificio.genero !== generoEstudiante) {
-      throw new BadRequestException(`Conflicto de género: Estudiante ${generoEstudiante} no puede ser reasignado a un edificio ${edificio.genero}.`);
+      throw new BadRequestException(
+        `Conflicto de género: Estudiante ${generoEstudiante} no puede ser reasignado a un edificio ${edificio.genero}.`,
+      );
     }
 
     // 4. Validar Capacidad de la NUEVA Habitación
-    if (nuevaHabitacion.capacidadActual <= 0 || !nuevaHabitacion.disponibilidad) {
-      throw new BadRequestException('La nueva habitación seleccionada no tiene camas disponibles.');
+    if (
+      nuevaHabitacion.capacidadActual <= 0 ||
+      !nuevaHabitacion.disponibilidad
+    ) {
+      throw new BadRequestException(
+        'La nueva habitación seleccionada no tiene camas disponibles.',
+      );
     }
 
     // ==========================================
@@ -271,7 +320,9 @@ async crearAsignacion(idSolicitud: number, idHabitacion: number, rutAdmin: strin
     // ==========================================
 
     // A. Liberar la cama de la habitación ANTIGUA
-    const habitacionAntigua = await this.habitacionRepo.findOne({ where: { idHabitacion: asignacion.idHabitacion } });
+    const habitacionAntigua = await this.habitacionRepo.findOne({
+      where: { idHabitacion: asignacion.idHabitacion },
+    });
     if (habitacionAntigua) {
       habitacionAntigua.capacidadActual += 1;
       habitacionAntigua.disponibilidad = true; // Al liberar una cama, vuelve a estar disponible obligatoriamente
@@ -294,18 +345,24 @@ async crearAsignacion(idSolicitud: number, idHabitacion: number, rutAdmin: strin
 
   async renunciarAsignacion(idAsignacion: number, rutAdmin: string) {
     // 1. Buscamos la asignación
-    const asignacion = await this.asignacionRepo.findOne({ where: { idAsignacion } });
+    const asignacion = await this.asignacionRepo.findOne({
+      where: { idAsignacion },
+    });
 
     if (!asignacion) {
       throw new NotFoundException('La asignación no existe.');
     }
 
     if (asignacion.estado !== 'Activa') {
-      throw new BadRequestException('Solo se puede procesar la renuncia de asignaciones que estén en estado "Activa".');
+      throw new BadRequestException(
+        'Solo se puede procesar la renuncia de asignaciones que estén en estado "Activa".',
+      );
     }
 
     // 2. Liberar la cama de la habitación
-    const habitacion = await this.habitacionRepo.findOne({ where: { idHabitacion: asignacion.idHabitacion } });
+    const habitacion = await this.habitacionRepo.findOne({
+      where: { idHabitacion: asignacion.idHabitacion },
+    });
     if (habitacion) {
       habitacion.capacidadActual += 1;
       habitacion.disponibilidad = true; // Al liberar una cama, la habitación vuelve a estar disponible
@@ -321,12 +378,20 @@ async crearAsignacion(idSolicitud: number, idHabitacion: number, rutAdmin: strin
 
     // 4. Guardamos y retornamos
     return await this.asignacionRepo.save(asignacion);
-
   }
 
+  // OBTENER CONTABILIZACIÓN DE ESTUDIANTES RESIDENTES (ACTIVOS) POR PERIODO
+  async obtenerTotalResidentesActivos(idPeriodo: number): Promise<{ total: number }> {
+    const cantidad = await this.asignacionRepo.count({
+      where: {
+        estado: 'Activa',
+        idPeriodo: idPeriodo,
+      },
+    });
+    return { total: cantidad };
+  }
 
-
-  private mapAsignacionToDTO(asignacion: any) {
+  private mapAsignacionToDTO(asignacion: any): AsignacionDTO {
     return {
       idAsignacion: asignacion.idAsignacion,
       fechaAsignacion: asignacion.fechaAsignacion,
@@ -340,23 +405,12 @@ async crearAsignacion(idSolicitud: number, idHabitacion: number, rutAdmin: strin
       idPeriodo: asignacion.periodo?.idPeriodo || asignacion.idPeriodo,
       nombrePeriodo: asignacion.periodo?.nombre || 'Sin periodo',
 
-      idHabitacion: asignacion.habitacion?.idHabitacion || asignacion.idHabitacion,
-      numeroHabitacion: asignacion.habitacion?.nroHabitacion?.toString() || 'Sin asignar',
-      nombreEdificio: asignacion.habitacion?.piso?.edificio?.nombre || 'Sin edificio'
+      idHabitacion:
+        asignacion.habitacion?.idHabitacion || asignacion.idHabitacion,
+      numeroHabitacion:
+        asignacion.habitacion?.nroHabitacion?.toString() || 'Sin asignar',
+      nombreEdificio:
+        asignacion.habitacion?.piso?.edificio?.nombre || 'Sin edificio',
     };
   }
-
-  // OBTENER CONTABILIZACIÓN DE ESTUDIANTES RESIDENTES (ACTIVOS) POR PERIODO
-  async obtenerTotalResidentesActivos(idPeriodo: number): Promise<{ total: number }> {
-    const cantidad = await this.asignacionRepo.count({
-      where: {
-        estado: 'Activa',
-        idPeriodo: idPeriodo
-      }
-    });
-
-    // Lo devolvemos en formato JSON para que el frontend lo lea directo como "datos.total"
-    return { total: cantidad };
-  }
-
 }

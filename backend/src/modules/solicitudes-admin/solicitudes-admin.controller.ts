@@ -15,7 +15,7 @@ import { UpdateSolicitudesAdminDto } from './dto/update-solicitudes-admin.dto';
 
 @Controller('solicitudes-admin')
 export class SolicitudesAdminController {
-  constructor(private readonly solicitudesAdminService: SolicitudesAdminService) {}
+  constructor(private readonly solicitudesAdminService: SolicitudesAdminService) { }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
@@ -23,17 +23,20 @@ export class SolicitudesAdminController {
   async obtenerSolicitudAdmin(@Param('idPeriodo', ParseIntPipe) idPeriodo: number) {
     return this.solicitudesAdminService.obtenerPorPeriodo(idPeriodo);
   }
+
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
   @Get('todas')
-  async obtenerTodasSolicitudAdmin(){
+  async obtenerTodasSolicitudAdmin() {
     return this.solicitudesAdminService.obtenerTodas();
   }
+
+  //ELIMINAR
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
   @Patch('idSolicitud/:idSolicitud')
-  async cambiarEstadoSolicitudAdmin(@Param('idSolicitud', ParseIntPipe) idSolicitud: number, @Body() dto:UpdateSolicitudesAdminDto, @Req() req: any ){
-      const rutAdmin = req.user.rut;
-      return this.solicitudesAdminService.cambioEstadoYAdminSolicitud(idSolicitud,dto,rutAdmin);
+  async cambiarEstadoSolicitudAdmin(@Param('idSolicitud', ParseIntPipe) idSolicitud: number, @Body() dto: UpdateSolicitudesAdminDto, @Req() req: any) {
+    const rutAdmin = req.user.rut;
+    return this.solicitudesAdminService.cambioEstadoYAdminSolicitud(idSolicitud, dto, rutAdmin);
   }
 }

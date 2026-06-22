@@ -33,4 +33,7 @@ export class SolicitudEntity {
 
   @Column({ name: 'plan_alimenticio', type: 'varchar' })
   planAlimenticio!: string;
+
+
+
 }

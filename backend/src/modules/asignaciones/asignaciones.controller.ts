@@ -18,6 +18,7 @@ import type { AuthenticatedRequest } from 'src/common/types/authenticated-reques
 import { UnauthorizedException } from '@nestjs/common';
 
 import { BadRequestException } from '@nestjs/common';
+import { CrearAsignacionDTO } from './dto/crearAsignacion.dto';
 
 @Controller('asignaciones')
 export class AsignacionesController {
@@ -27,18 +28,16 @@ export class AsignacionesController {
   @Roles(Role.ADMIN) // Solo el admin ejecuta esta acción
   @Post()
   crearAsignacion(
-    @Body('idSolicitud') idSolicitud: number,
-    @Body('idHabitacion') idHabitacion: number,
+    @Body() payload: CrearAsignacionDTO,
     @Req() request: AuthenticatedRequest
   ) {
-    // Extraemos el RUT del administrador directamente del Token JWT
     const rutAdmin = request.user?.rut;
 
     if (!rutAdmin) {
       throw new UnauthorizedException('No se pudo obtener el RUT del administrador');
     }
 
-    return this.asignacionesService.crearAsignacion(idSolicitud, idHabitacion, rutAdmin);
+    return this.asignacionesService.crearAsignacion(payload.idSolicitud, payload.idHabitacion, rutAdmin);
   }
 
 
@@ -100,7 +99,6 @@ export class AsignacionesController {
   }
 
   // PATCH http://localhost:3000/asignaciones/1/reasignar
-  // (Donde '1' es el ID de la asignación)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
   @Patch(':idAsignacion/reasignar')
