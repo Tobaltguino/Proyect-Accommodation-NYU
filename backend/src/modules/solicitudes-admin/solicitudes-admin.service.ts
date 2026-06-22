@@ -44,7 +44,7 @@ async obtenerTodas() {
       'usuario.rut',
       'usuario.nombre'
     ])
-    .where('solicitud.estado IN (:...estados)', { estados: ['en revision', 'pendiente'] })
+    .where('solicitud.estado IN (:...estados)', { estados: ['En Revision', 'Pendiente'] })
     .getMany();
 }
 
