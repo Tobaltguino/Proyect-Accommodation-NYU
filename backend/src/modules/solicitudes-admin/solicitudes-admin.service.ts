@@ -19,8 +19,13 @@ export class SolicitudesAdminService {
       order: { fechaSolicitud: 'DESC' }
     });
   }
-  async obtenerTodas(){
-    return await this.solicitudRepo.find();
+  async obtenerTodas() {
+    return await this.solicitudRepo.find({
+      where: [
+        { estado: 'en revision' },
+        { estado: 'pendiente' }
+      ]
+    });
   }
   async cambioEstadoYAdminSolicitud(idSolicitud: number, cambios: UpdateSolicitudesAdminDto, rutAdmin: string){
     const solicitud = await this.solicitudRepo.findOne({
