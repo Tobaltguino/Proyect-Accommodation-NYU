@@ -21,7 +21,7 @@ export class AsignacionesService {
     });
   }
 
-  /* ADMINISTRADOR ========================================= */
+  // ADMINISTRADOR
 
   crearAsignacion(idSolicitud: number, idHabitacion: number): Observable<any> {
     const payload = { idSolicitud, idHabitacion };
@@ -45,7 +45,7 @@ export class AsignacionesService {
     return this.http.patch(`${this.apiUrl}/${idAsignacion}/renunciar`, {}, { headers: this.getHeaders() });
   }
 
-  /* ESTUDIANTE ========================================= */
+  // ESTUDIANTE
 
   obtenerMiAsignacion(): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/mi-asignacion`, { headers: this.getHeaders() });
