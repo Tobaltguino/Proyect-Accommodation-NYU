@@ -6,6 +6,12 @@ import { AuthService } from '../../../core/auth/auth.service';
 import { SessionUser } from '../../../core/auth/auth.models';
 import { SolicitudResponse, StudentPostulationService } from '../postulation/student-postulation.service';
 
+export interface MappedSolicitud extends SolicitudResponse {
+  statusLabel: string;
+  statusDescription: string;
+  statusClass: string;
+}
+
 @Component({
   selector: 'app-student-status-page',
   imports: [CommonModule],
@@ -18,7 +24,7 @@ export class StudentStatusPageComponent {
 
   readonly currentUser: SessionUser | null;
 
-  solicitud: SolicitudResponse | null = null;
+  solicitudes: MappedSolicitud[] = [];
   isLoading = true;
   loadError = '';
 
@@ -43,65 +49,10 @@ export class StudentStatusPageComponent {
     this.loadStatus();
   }
 
-  get statusLabel(): string {
-    if (!this.solicitud) {
-      return 'Sin postulacion';
-    }
-
-    if (this.solicitud.status === 'EN_REVISION') {
-      return 'Pendiente';
-    }
-
-    if (this.solicitud.status === 'APROBADA') {
-      return 'Aprobada';
-    }
-
-    if (this.solicitud.status === 'RECHAZADA') {
-      return 'Rechazada';
-    }
-
-    return 'Expirada';
-  }
-
-  get statusDescription(): string {
-    if (!this.solicitud) {
-      return 'Aun no envias una postulacion para este semestre.';
-    }
-
-    if (this.solicitud.status === 'EN_REVISION') {
-      return 'Tu solicitud esta en evaluacion por el equipo de residencia.';
-    }
-
-    if (this.solicitud.status === 'APROBADA') {
-      return 'Tu solicitud fue aprobada. Revisa los siguientes pasos en secretaria.';
-    }
-
-    if (this.solicitud.status === 'RECHAZADA') {
-      return 'Tu solicitud fue rechazada. Puedes revisar observaciones con asistencia estudiantil.';
-    }
-
-    return 'La reserva asociada a tu solicitud expiro. Puedes iniciar una nueva postulacion.';
-  }
-
-  get statusClass(): 'pending' | 'approved' | 'rejected' | 'neutral' {
-    if (!this.solicitud) {
-      return 'neutral';
-    }
-
-    if (this.solicitud.status === 'EN_REVISION') {
-      return 'pending';
-    }
-
-    if (this.solicitud.status === 'APROBADA') {
-      return 'approved';
-    }
-
-    return 'rejected';
-  }
-
-  formatTimestamp(value: string): string {
+  formatTimestamp(value: string | undefined): string {
+    if (!value) return '-';
+    
     const date = new Date(value);
-
     if (Number.isNaN(date.getTime())) {
       return '-';
     }
@@ -112,12 +63,41 @@ export class StudentStatusPageComponent {
     }).format(date);
   }
 
+  private mapSolicitudData(solicitud: SolicitudResponse, overrideId?: number): MappedSolicitud {
+    let label = 'Expirada';
+    let desc = 'La reserva asociada a tu solicitud expiró. Puedes iniciar una nueva postulación.';
+    let cssClass = 'neutral';
+
+    if (solicitud.estado === 'En Revision') {
+      label = 'Pendiente';
+      desc = 'Tu solicitud está en evaluación por el equipo de residencia.';
+      cssClass = 'pending';
+    } else if (solicitud.estado === 'Aprobada') {
+      label = 'Aprobada';
+      desc = 'Tu solicitud fue aprobada. Revisa los siguientes pasos en secretaría.';
+      cssClass = 'approved';
+    } else if (solicitud.estado === 'Rechazada') {
+      label = 'Rechazada';
+      desc = 'Tu solicitud fue rechazada. Puedes revisar observaciones con asistencia estudiantil.';
+      cssClass = 'rejected';
+    }
+
+    return {
+      ...solicitud,
+      id: overrideId ?? Math.floor(Math.random() * 10000), 
+      statusLabel: label,
+      statusDescription: desc,
+      statusClass: cssClass,
+    };
+  }
+
   private loadStatus(): void {
     this.isLoading = true;
     this.loadError = '';
 
+    // Petición HTTP real al backend
     this.postulationService
-      .getMySolicitud(this.activeSemester)
+      .getHistorialSolicitudes()
       .pipe(
         timeout({ first: this.requestTimeoutMs }),
         finalize(() => {
@@ -125,15 +105,17 @@ export class StudentStatusPageComponent {
         }),
       )
       .subscribe({
-        next: (solicitud) => {
-          this.solicitud = solicitud;
+        next: (historialReal) => {
+          // Si el backend responde bien, mapeamos la data y la mostramos
+          this.solicitudes = historialReal.map((sol) => 
+            this.mapSolicitudData(sol, sol.id)
+          );
         },
         error: (error: unknown) => {
-          this.solicitud = null;
           this.loadError =
             error instanceof TimeoutError
-              ? 'La consulta demoro demasiado. Intenta nuevamente.'
-              : 'No se pudo consultar el estado de tu postulacion.';
+              ? 'La consulta demoró demasiado. Intenta nuevamente.'
+              : 'No se pudo consultar el historial de tus postulaciones. Verifica la conexión con el backend.';
         },
       });
   }

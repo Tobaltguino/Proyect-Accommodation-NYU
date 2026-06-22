@@ -25,7 +25,6 @@ export class AdminRequestsComponent implements OnInit {
   public GravedadEnum = GravedadIncidencia;
   public EstadoEnum = EstadoSolicitud;
 
-  // RUT del administrador que está usando el sistema (simulado)
   private readonly RUT_ADMIN_ACTUAL = '14.555.666-7'; 
   private readonly NOMBRE_ADMIN_ACTUAL = 'Cristóbal Administrador';
 
@@ -56,11 +55,11 @@ export class AdminRequestsComponent implements OnInit {
   ];
 
   solicitudesFiltradas: SolicitudDTO[] = [];
+  filtroRut: string = ''; // Nueva propiedad para enlazar la búsqueda
   filtroPeriodo: string = '';
   filtroEstado: EstadoSolicitud | '' = '';
   periodos: string[] = ['2026-1', '2025-2', '2025-1'];
 
-  // Variables de Paginación
   paginaActual: number = 1;
   itemsPorPagina: number = 20;
 
@@ -104,7 +103,6 @@ export class AdminRequestsComponent implements OnInit {
     this.aplicarFiltros();
   }
 
-  // Getters de Paginación
   get solicitudesPaginadas(): SolicitudDTO[] {
     const inicio = (this.paginaActual - 1) * this.itemsPorPagina;
     const fin = inicio + this.itemsPorPagina;
@@ -125,14 +123,20 @@ export class AdminRequestsComponent implements OnInit {
     this.solicitudesFiltradas = this.solicitudes.filter(sol => {
       const matchPeriodo = this.filtroPeriodo ? sol.nombrePeriodo === this.filtroPeriodo : true;
       const matchEstado = this.filtroEstado ? sol.estado === this.filtroEstado : true;
-      return matchPeriodo && matchEstado;
+      
+      // Filtro por RUT del estudiante (limpia espacios y tolera mayúsculas)
+      const matchRut = this.filtroRut 
+        ? sol.rutEstudiante.toLowerCase().replace(/\s+/g, '').includes(this.filtroRut.toLowerCase().replace(/\s+/g, '')) 
+        : true;
+        
+      return matchPeriodo && matchEstado && matchRut;
     });
 
-    // Reiniciar paginación al filtrar
     this.paginaActual = 1;
   }
 
   limpiarFiltros(): void {
+    this.filtroRut = '';
     this.filtroPeriodo = '';
     this.filtroEstado = '';
     this.aplicarFiltros();
@@ -143,7 +147,6 @@ export class AdminRequestsComponent implements OnInit {
     
     if (solicitud.estado === EstadoSolicitud.PENDIENTE) {
       solicitud.estado = EstadoSolicitud.EN_REVISION;
-      // Vinculamos al admin que inició la revisión
       solicitud.rutAdmin = this.RUT_ADMIN_ACTUAL;
       solicitud.nombreAdmin = this.NOMBRE_ADMIN_ACTUAL;
     }
@@ -193,7 +196,6 @@ export class AdminRequestsComponent implements OnInit {
   procesarSolicitud(accion: 'Aprobar' | 'Rechazar'): void {
     if (!this.solicitudSeleccionada) return;
 
-    // Al procesar, aseguramos que el administrador actual quede registrado
     this.solicitudSeleccionada.rutAdmin = this.RUT_ADMIN_ACTUAL;
     this.solicitudSeleccionada.nombreAdmin = this.NOMBRE_ADMIN_ACTUAL;
 

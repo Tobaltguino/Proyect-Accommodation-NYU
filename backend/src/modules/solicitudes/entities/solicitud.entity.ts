@@ -33,12 +33,4 @@ export class SolicitudEntity {
 
   @Column({ name: 'plan_alimenticio', type: 'varchar' })
   planAlimenticio!: string;
-
-  // Temporal para evitar errores de compilación con código de compañeros
-  idUsuario?: number;
-
-  @ManyToOne(() => UsuarioEntity)
-  @JoinColumn({ name: 'id_usuario', referencedColumnName: 'idUsuario' })
-  usuario!: UsuarioEntity;
-
 }
