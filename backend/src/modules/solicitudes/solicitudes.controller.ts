@@ -25,17 +25,6 @@ export class SolicitudesController {
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.STUDENT)
-  @Post()
-  async create(@Req() request: any, @Body() body: CreateSolicitudDto) {
-    if (!request.user) {
-      throw new UnauthorizedException('Usuario no autenticado');
-    }
-
-    return this.solicitudesService.createSolicitud(request.user, body);
-  }
-
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.STUDENT)
   @Get('mia')
   async getMine(@Req() request: any) {
     if (!request.user) {
@@ -43,5 +32,16 @@ export class SolicitudesController {
     }
 
     return this.solicitudesService.getMySolicitud(request.user);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.STUDENT)
+  @Post()
+  async create(@Req() request: any, @Body() body: CreateSolicitudDto) {
+    if (!request.user) {
+      throw new UnauthorizedException('Usuario no autenticado');
+    }
+
+    return this.solicitudesService.createSolicitud(request.user, body);
   }
 }

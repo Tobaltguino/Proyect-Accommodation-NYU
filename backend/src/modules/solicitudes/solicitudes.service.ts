@@ -91,4 +91,27 @@ export class SolicitudesService {
       },
     });
   }
+async getAllMySolicitudes(user: JwtPayload) {
+  const solicitudes = await this.solicitudRepository.find({
+    // Use the exact property names from your SolicitudEntity class
+    select: {
+      idSolicitud: true,
+      estado: true,
+      fechaSolicitud: true,
+      idPeriodo: true,
+      idAsignacion: true,
+      rutEstudiante: true,
+      planAlimenticio: true
+
+    },
+    where: {
+      rutEstudiante: user.rut,
+    },
+    order: {
+      fechaSolicitud: 'DESC',
+    },
+  });
+
+  return solicitudes.length > 0 ? solicitudes : null;
+}
 }
