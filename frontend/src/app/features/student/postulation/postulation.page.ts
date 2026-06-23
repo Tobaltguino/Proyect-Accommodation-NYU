@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core'; // Importamos OnInit y ChangeDetectorRef
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { finalize } from 'rxjs';
@@ -15,12 +15,14 @@ import {
 
 @Component({
   selector: 'app-student-postulation-page',
+  standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './postulation.page.html',
   styleUrl: './postulation.page.scss',
 })
-export class StudentPostulationPageComponent {
+export class StudentPostulationPageComponent implements OnInit { // Implementamos OnInit
   private readonly formBuilder = inject(FormBuilder);
+  private readonly cdr = inject(ChangeDetectorRef); // Inyectamos el detector de cambios
   private readonly activeSemester = '2026-1';
 
   readonly currentUser: SessionUser | null;
@@ -36,6 +38,7 @@ export class StudentPostulationPageComponent {
   });
 
   isLoadingSolicitud = false;
+  hasExistingPostulation = false; 
   isSubmitting = false;
   formMessage = '';
 
@@ -54,7 +57,11 @@ export class StudentPostulationPageComponent {
       gender: user?.gender ?? 'MUJER',
       semester: this.activeSemester,
     });
+    // Quitamos la carga del constructor para evitar bloqueos en la navegación
+  }
 
+  // Iniciamos la carga en el ciclo de vida correcto
+  ngOnInit(): void {
     this.loadMySolicitud();
   }
 
@@ -79,24 +86,26 @@ export class StudentPostulationPageComponent {
     this.formMessage = '';
     this.isSubmitting = true;
 
+    const payloadParaBackend: any = {
+      planAlimenticio: payload.mealPlan,
+    };
+
     this.postulationService
-      .createSolicitud({
-        career: payload.career,
-        gender: payload.gender,
-        mealPlan: payload.mealPlan,
-        semester: this.activeSemester,
-        
-        // Datos genéricos para satisfacer al backend:
-        roomCode: '000', // El backend exige 3 números
-        phone: 'No especificado',
-        city: 'No especificada',
-        motivation: 'No aplica por el momento',
-      })
-      .pipe(finalize(() => (this.isSubmitting = false)))
+      .createSolicitud(payloadParaBackend)
+      .pipe(finalize(() => {
+        this.isSubmitting = false;
+        this.cdr.detectChanges(); // Forzamos renderizado al terminar envío
+      }))
       .subscribe({
         next: (response) => {
           this.syncFormWithSolicitud(response);
-          void this.router.navigate(['/student/home']);
+          this.hasExistingPostulation = true; 
+          this.postulationForm.disable(); 
+          this.formMessage = '¡Postulacion enviada exitosamente!';
+          this.cdr.detectChanges();
+          setTimeout(() => {
+            void this.router.navigate(['/student/home']);
+          }, 2000); 
         },
         error: (error: HttpErrorResponse) => {
           if (error.status === 409) {
@@ -106,7 +115,8 @@ export class StudentPostulationPageComponent {
           }
 
           if (error.status === 400) {
-            this.formMessage = 'Datos invalidos. Verifica el formulario y vuelve a intentar.';
+            this.formMessage = 'Datos invalidos o rechazados por el servidor. Verifica el formulario.';
+            console.error('Detalle del rechazo (400):', error.error);
             return;
           }
 
@@ -125,26 +135,47 @@ export class StudentPostulationPageComponent {
 
     this.postulationService
       .getMySolicitud(this.activeSemester)
-      .pipe(finalize(() => (this.isLoadingSolicitud = false)))
+      .pipe(
+        finalize(() => {
+          this.isLoadingSolicitud = false;
+          this.cdr.detectChanges(); // Rompe el bucle visual de carga obligatoriamente aquí
+        })
+      )
       .subscribe({
-        next: (solicitud) => {
-          if (!solicitud) {
+        next: (solicitud: any) => {
+          console.log('--- RESPUESTA REAL DEL BACKEND ---', solicitud);
+          
+          if (!solicitud || (Array.isArray(solicitud) && solicitud.length === 0)) {
             return;
           }
 
-          if (solicitud.status === 'EN_REVISION') {
-            this.formMessage =
-              'Ya tienes una postulacion en revision. Seras redirigido al panel.';
-            void this.router.navigate(['/student/home']);
+          this.hasExistingPostulation = true;
+          this.postulationForm.disable();
+
+          const dataReal = Array.isArray(solicitud) ? solicitud[0] : solicitud;
+          const estadoReal = dataReal.estado || dataReal.Estado || dataReal.status || 'Desconocido';
+
+          if (
+            estadoReal === 'En Revision' || 
+            estadoReal === 'Pendiente' || 
+            estadoReal === 'En revision' || 
+            estadoReal === 'EN_REVISION'
+          ) {
+            this.formMessage = 'Ya tienes una postulacion en curso. Seras redirigido al panel.';
+            this.cdr.detectChanges();
+            setTimeout(() => {
+                void this.router.navigate(['/student/home']);
+            }, 3000);
             return;
           }
 
-          this.syncFormWithSolicitud(solicitud);
-          this.formMessage =
-            `Ya tienes una postulacion registrada. Estado actual: ${solicitud.status}.`;
+          this.syncFormWithSolicitud(dataReal);
+          this.formMessage = `Ya tienes una postulacion registrada. Estado actual: ${estadoReal}.`;
+          this.cdr.detectChanges();
         },
         error: () => {
           this.formMessage = 'No se pudo recuperar tu postulacion actual.';
+          this.cdr.detectChanges();
         },
       });
   }

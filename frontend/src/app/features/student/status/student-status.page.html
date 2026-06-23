@@ -2,8 +2,8 @@
   <section class="status-shell">
     <header class="status-header">
       <div>
-        <h1>Estado de tu postulacion</h1>
-        <p>Consulta el avance y resultado de tu solicitud de residencia.</p>
+        <h1>Historial de Postulaciones</h1>
+        <p>Consulta el avance y resultado de todas tus solicitudes de residencia.</p>
       </div>
 
       <button type="button" class="back-btn" (click)="goBack()">Volver al panel</button>
@@ -11,55 +11,72 @@
 
     @if (isLoading) {
       <section class="status-card loading">
-        <p>Cargando estado de postulacion...</p>
+        <p>Cargando historial de postulaciones...</p>
       </section>
     } @else if (loadError) {
       <section class="status-card error">
-        <h2>No se pudo cargar el estado</h2>
+        <h2>No se pudo cargar el historial</h2>
         <p>{{ loadError }}</p>
         <div class="actions">
           <button type="button" class="ghost" (click)="retry()">Reintentar</button>
         </div>
       </section>
     } @else {
-      <section class="status-card">
-        <div class="status-top">
+      <section class="status-card" style="margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 2px solid #eee;">
+        <div class="status-top" style="border: none; padding: 0;">
           <div>
             <span class="label">Estudiante</span>
             <strong>{{ currentUser?.fullName ?? 'Estudiante' }}</strong>
             <small>RUT: {{ currentUser?.rut ?? '-' }}</small>
           </div>
-
-          <div class="chip" [class.pending]="statusClass === 'pending'" [class.approved]="statusClass === 'approved'" [class.rejected]="statusClass === 'rejected'" [class.neutral]="statusClass === 'neutral'">
-            {{ statusLabel }}
-          </div>
         </div>
+      </section>
 
-        <p class="description">{{ statusDescription }}</p>
-
-        @if (solicitud) {
-          <div class="detail-grid">
-            <article>
-              <span>Semestre</span>
-              <strong>{{ solicitud.semester }}</strong>
-            </article>
-            <article>
-              <span>Habitacion</span>
-              <strong>{{ solicitud.roomCode }} ({{ solicitud.buildingId }})</strong>
-            </article>
-            <article>
-              <span>Ultima actualizacion</span>
-              <strong>{{ formatTimestamp(solicitud.updatedAt) }}</strong>
-            </article>
-          </div>
-        } @else {
-          <div class="actions">
+      @if (solicitudes.length === 0) {
+        <section class="status-card" style="text-align: center; padding: 3rem 1rem;">
+          <h2 style="margin-bottom: 0.5rem;">Sin postulaciones previas</h2>
+          <p class="description">Aún no tienes solicitudes de residencia registradas en el sistema.</p>
+          <div class="actions" style="justify-content: center; margin-top: 1.5rem;">
             <button type="button" class="primary" (click)="goToPostulation()">
               Ir a postular
             </button>
           </div>
-        }
-      </section>
+        </section>
+      } @else {
+        <div class="solicitudes-list" style="display: flex; flex-direction: column; gap: 1rem;">
+          @for (solicitud of solicitudes; track solicitud.id) {
+            <section class="status-card">
+              <div class="status-top">
+                <div>
+                  <span class="label">Semestre de postulación</span>
+                  <strong>{{ solicitud.semester }}</strong>
+                </div>
+
+                <div class="chip" 
+                     [class.pending]="solicitud.statusClass === 'pending'" 
+                     [class.approved]="solicitud.statusClass === 'approved'" 
+                     [class.rejected]="solicitud.statusClass === 'rejected'" 
+                     [class.neutral]="solicitud.statusClass === 'neutral'">
+                  {{ solicitud.statusLabel }}
+                </div>
+              </div>
+
+              <p class="description">{{ solicitud.statusDescription }}</p>
+
+              <div class="detail-grid">
+                <article>
+                  <span>Habitación</span>
+                  <strong>{{ solicitud.roomCode !== '000' && solicitud.roomCode ? solicitud.roomCode : 'Por asignar' }}</strong>
+                </article>
+                <article>
+                  <span>Última actualización</span>
+                  <strong>{{ formatTimestamp(solicitud.updatedAt) }}</strong>
+                </article>
+              </div>
+            </section>
+          }
+        </div>
+      }
     }
   </section>
 </main>

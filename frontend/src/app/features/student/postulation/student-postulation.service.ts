@@ -53,7 +53,8 @@ export interface SolicitudResponse {
   buildingId: 'FEMENINO' | 'MASCULINO';
   roomCode: string;
   motivation: string;
-  status: 'EN_REVISION' | 'APROBADA' | 'RECHAZADA' | 'EXPIRADA';
+  estado: 'En Revision' | 'Aprobada' | 'Rechazada' | 'Pendiente' | 'Finalizada'; 
+  
   reservationExpiresAt: string | null;
   updatedAt: string;
 }
@@ -91,6 +92,13 @@ export class StudentPostulationService {
     return this.http.get<SolicitudResponse | null>(`${this.apiBaseUrl}/solicitudes/mia`, {
       headers: this.getAuthHeaders(),
       params,
+    });
+  }
+
+  // NUEVO MÉTODO: Pide el historial completo de solicitudes del estudiante
+  getHistorialSolicitudes(): Observable<SolicitudResponse[]> {
+    return this.http.get<SolicitudResponse[]>(`${this.apiBaseUrl}/solicitudes/all`, {
+      headers: this.getAuthHeaders(),
     });
   }
 
