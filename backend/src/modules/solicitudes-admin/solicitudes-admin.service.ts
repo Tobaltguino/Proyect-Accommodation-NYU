@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { SolicitudEntity } from '../solicitudes/entities/solicitud.entity';
+import { PeriodoEntity } from '../solicitudes/entities/periodo.entity';
 import { UpdateSolicitudesAdminDto } from './dto/update-solicitudes-admin.dto';
 import { ExceptionsHandler } from '@nestjs/core/exceptions/exceptions-handler';
 import { JwtPayload } from '../auth/types/auth.types';
@@ -16,38 +17,45 @@ export class SolicitudesAdminService {
 
 
 async obtenerPorPeriodo(idPeriodo: number) {
-  return await this.solicitudRepo
+  const solicitudes = await this.solicitudRepo
     .createQueryBuilder('solicitud')
-    .leftJoin('usuario', 'usuario', 'usuario.rut = solicitud.rutEstudiante') // Ajusta 'rutUsuario' si es necesario
+    .leftJoin('usuario', 'usuario', 'usuario.rut = solicitud.rut_estudiante') 
+    .leftJoin('periodo', 'periodo', 'periodo.id_periodo = solicitud.id_periodo')
     .select([
-      'solicitud.idSolicitud',
-      'solicitud.fechaSolicitud',
-      'solicitud.estado',
-      'solicitud.idPeriodo',
-      'usuario.rut',
-      'usuario.nombre'
+      'solicitud.id_solicitud AS "idSolicitud"',
+      'solicitud.fecha_solicitud AS "fechaSolicitud"',
+      'solicitud.estado AS "estado"',
+      'solicitud.id_periodo AS "idPeriodo"',
+      'usuario.rut AS "rutEstudiante"',
+      'usuario.nombre AS "nombreEstudiante"',
+      'periodo.nombre AS "nombrePeriodo"' 
     ])
-    .where('solicitud.idPeriodo = :idPeriodo', { idPeriodo })
-    .andWhere('solicitud.estado IN (:...estados)', { estados: ['en revision', 'pendiente'] })
-    .orderBy('solicitud.fechaSolicitud', 'DESC')
-    .getMany();
+    .where('solicitud.id_periodo = :idPeriodo', { idPeriodo })
+    .orderBy('solicitud.fecha_solicitud', 'DESC')
+    .getRawMany(); 
+
+  return solicitudes.length > 0 ? solicitudes : null;
 }
 
 async obtenerTodas() {
-  return await this.solicitudRepo
+  const solicitudes = await this.solicitudRepo
     .createQueryBuilder('solicitud')
-    .leftJoin('usuario', 'usuario', 'usuario.rut = solicitud.rutEstudiante') // Ajusta 'rutUsuario' al nombre de tu columna
+    .leftJoin('usuario', 'usuario', 'usuario.rut = solicitud.rut_estudiante') 
+    .leftJoin('periodo', 'periodo', 'periodo.id_periodo = solicitud.id_periodo')
     .select([
-      'solicitud.idSolicitud',
-      'solicitud.fechaSolicitud',
-      'solicitud.estado',
-      'usuario.rut',
-      'usuario.nombre'
+      'solicitud.id_solicitud AS "idSolicitud"',
+      'solicitud.fecha_solicitud AS "fechaSolicitud"',
+      'solicitud.estado AS "estado"',
+      'solicitud.id_periodo AS "idPeriodo"',
+      'usuario.rut AS "rutEstudiante"',
+      'usuario.nombre AS "nombreEstudiante"',
+      'periodo.nombre AS "nombrePeriodo"' 
     ])
-    .where('solicitud.estado IN (:...estados)', { estados: ['En Revision', 'Pendiente'] })
-    .getMany();
-}
+    .orderBy('solicitud.fecha_solicitud', 'DESC')
+    .getRawMany(); 
 
+  return solicitudes.length > 0 ? solicitudes : null;
+}
   async cambioEstadoYAdminSolicitud(idSolicitud: number, cambios: UpdateSolicitudesAdminDto, rutAdmin: string){
     const solicitud = await this.solicitudRepo.findOne({
       where: {idSolicitud: idSolicitud}

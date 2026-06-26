@@ -103,12 +103,16 @@
                   }
                 </td>
                 <td>
-                  <button 
-                    type="button" 
-                    class="ghost small icon-only primary-btn border-0" 
-                    (click)="abrirModal(solicitud)">
-                    <i class="pi pi-search"></i>
-                  </button>
+                  @if (solicitud.estado !== EstadoEnum.APROBADA && solicitud.estado !== EstadoEnum.RECHAZADA) {
+                    <button 
+                      type="button" 
+                      class="ghost small icon-only primary-btn border-0" 
+                      (click)="abrirModal(solicitud)">
+                      <i class="pi pi-search"></i>
+                    </button>
+                  } @else {
+                    <span class="text-muted small d-block text-center"><i class="pi pi-lock"></i></span>
+                  }
                 </td>
               </tr>
             }

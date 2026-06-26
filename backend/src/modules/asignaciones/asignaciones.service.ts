@@ -48,8 +48,26 @@ export class AsignacionesService {
     return false;
   }
 
-  private async obtenerGeneroEstudiante(rut: string): Promise<string> {
-    return 'Masculino'; // o 'Femenino'
+private async obtenerGeneroEstudiante(rutEstudiante: string): Promise<string> {
+    try {
+      const usuario = await this.dataSource
+        .createQueryBuilder()
+        .select('usuario.genero', 'genero')
+        // 👇 Asegúrate de que el primer string sea el nombre EXACTO de la tabla en tu BD
+        .from('usuario', 'usuario') 
+        .where('usuario.rut = :rut', { rut: rutEstudiante })
+        .getRawOne();
+
+      if (!usuario || !usuario.genero) {
+        throw new BadRequestException(`No se pudo determinar el género del estudiante con RUT ${rutEstudiante}.`);
+      }
+
+      return usuario.genero; 
+    } catch (error) {
+      // Esto imprimirá en tu consola del backend exactamente qué falló (ej. columna no existe)
+      console.error('💥 Error en obtenerGeneroEstudiante:', error);
+      throw error;
+    }
   }
 
   async crearAsignacion(
@@ -67,7 +85,7 @@ export class AsignacionesService {
         where: { idSolicitud },
       });
       if (!solicitud) throw new NotFoundException('La solicitud no existe.');
-      if (solicitud.estado !== 'Pendiente')
+      if (solicitud.estado !== 'Pendiente' && solicitud.estado !== 'En Revision' )
         throw new BadRequestException('Esta solicitud ya fue procesada.');
 
       const habitacion = await queryRunner.manager.findOne(HabitacionEntity, {

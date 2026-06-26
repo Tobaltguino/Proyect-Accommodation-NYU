@@ -11,8 +11,7 @@ export enum BuildingId {
 export enum MealPlan {
   SIN_PREFERENCIA = 'Sin preferencia',
   VEGETARIANO = 'Vegetariano',
-  VEGANO = 'Vegano',
-  PESCETARIANO = 'Pescetariano',
+  VEGANO = 'Vegano'
 }
 
 export enum SolicitudStatus {
