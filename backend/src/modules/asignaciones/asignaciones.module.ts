@@ -11,9 +11,18 @@ import { PisoEntity } from '../residencias/entities';
 import { AuthModule } from '../auth/auth.module';
 import { PlanAlimenticioEntity } from '../solicitudes/entities';
 @Module({
-  imports: [TypeOrmModule.forFeature([AsignacionEntity,PlanAlimenticioEntity ,HabitacionEntity, SolicitudEntity, EdificioEntity, PisoEntity]),
-    AuthModule],
+  imports: [
+    TypeOrmModule.forFeature([
+      AsignacionEntity,
+      PlanAlimenticioEntity,
+      HabitacionEntity,
+      SolicitudEntity,
+      EdificioEntity,
+      PisoEntity,
+    ]),
+    AuthModule,
+  ],
   controllers: [AsignacionesController],
   providers: [AsignacionesService],
 })
-export class AsignacionesModule { }
+export class AsignacionesModule {}

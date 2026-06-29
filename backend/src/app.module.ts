@@ -37,7 +37,8 @@ import { PlanAlimenticioModule } from './modules/plan-alimenticio/plan-alimentic
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (configService: ConfigService) => getDatabaseConfig(configService),
+      useFactory: (configService: ConfigService) =>
+        getDatabaseConfig(configService),
     }),
 
     AuthModule,
@@ -53,12 +54,9 @@ import { PlanAlimenticioModule } from './modules/plan-alimenticio/plan-alimentic
     HabitacionesModule,
     PeriodosModule,
     EdificiosModule,
-    PlanAlimenticioModule
-
-
-
+    PlanAlimenticioModule,
   ],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule { }
+export class AppModule {}

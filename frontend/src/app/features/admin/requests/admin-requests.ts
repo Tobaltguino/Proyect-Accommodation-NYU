@@ -9,7 +9,6 @@ import {
   HabitacionDTO, 
   IncidenciaDTO,
   GravedadIncidencia,
-  EstadoIncidencia,
   AsignacionDTO,
   EstadoAsignacion
 } from '../../../shared/models';
@@ -154,7 +153,7 @@ export class AdminRequestsComponent implements OnInit {
     this.incidenciasEstudiante = [
       { 
         idIncidencia: 1, fecha: '2025-10-12', descripcion: 'Ruido excesivo en horario de descanso', 
-        gravedad: GravedadIncidencia.MODERADO, estado: EstadoIncidencia.RESUELTA,
+        gravedad: GravedadIncidencia.MODERADO,
         idHabitacion: 10, nroHabitacion: 101, nombreEdificio: 'Residencia Norte',
         rutEstudiante: solicitud.rutEstudiante, nombreEstudiante: solicitud.nombreEstudiante,
         rutAdmin: '12.888.777-6', nombreAdmin: 'Admin Guardia', periodo: '2025-2'

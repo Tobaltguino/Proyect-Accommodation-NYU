@@ -33,7 +33,7 @@ export class AsignacionesService {
     private readonly planRepo: Repository<PlanAlimenticioEntity>,
 
     private dataSource: DataSource,
-  ) { }
+  ) {}
 
   // ---------------------------------------------------------
   // MOCKS DE APIs EXTERNAS (Reemplazar con HTTP Calls reales luego)
@@ -202,7 +202,9 @@ export class AsignacionesService {
   }
 
   // OBTENER ASIGNACIÓN DEL ESTUDIANTE ACTUAL
-  async obtenerMiAsignacion(rutEstudiante: string): Promise<RespuestaMiAsignacion> {
+  async obtenerMiAsignacion(
+    rutEstudiante: string,
+  ): Promise<RespuestaMiAsignacion> {
     const asignacion = await this.asignacionRepo.findOne({
       where: {
         rutEstudiante: rutEstudiante,
@@ -224,6 +226,39 @@ export class AsignacionesService {
       return {
         tieneAsignacion: false,
         message: 'No tienes ninguna asignación activa en este momento.',
+      };
+    }
+
+    return {
+      tieneAsignacion: true,
+      asignacion: this.mapAsignacionToDTO(asignacion),
+    };
+  }
+
+  async obtenerAsignacionActivaPorRut(
+    rutEstudiante: string,
+  ): Promise<RespuestaMiAsignacion> {
+    const rutNormalizado = rutEstudiante.replace(/\./g, '').toUpperCase();
+    const asignacion = await this.asignacionRepo.findOne({
+      where: [
+        { rutEstudiante, estado: 'Activa' },
+        { rutEstudiante: rutNormalizado, estado: 'Activa' },
+      ],
+      relations: {
+        periodo: true,
+        habitacion: {
+          piso: {
+            edificio: true,
+          },
+        },
+      },
+      order: { fechaAsignacion: 'DESC' },
+    });
+
+    if (!asignacion) {
+      return {
+        tieneAsignacion: false,
+        message: 'El estudiante no tiene asignación activa en este momento.',
       };
     }
 
@@ -381,7 +416,9 @@ export class AsignacionesService {
   }
 
   // OBTENER CONTABILIZACIÓN DE ESTUDIANTES RESIDENTES (ACTIVOS) POR PERIODO
-  async obtenerTotalResidentesActivos(idPeriodo: number): Promise<{ total: number }> {
+  async obtenerTotalResidentesActivos(
+    idPeriodo: number,
+  ): Promise<{ total: number }> {
     const cantidad = await this.asignacionRepo.count({
       where: {
         estado: 'Activa',

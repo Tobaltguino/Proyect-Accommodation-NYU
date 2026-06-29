@@ -19,6 +19,9 @@ export class ResidenciasController {
   @Roles(Role.STUDENT)
   @Get('disponibilidad')
   disponibilidad(@Query() query: AvailabilityQueryDto) {
-    return this.residenciasService.getAvailability(query.gender, query.semester);
+    return this.residenciasService.getAvailability(
+      query.gender,
+      query.semester,
+    );
   }
 }

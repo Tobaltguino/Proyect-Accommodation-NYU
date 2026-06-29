@@ -8,17 +8,20 @@ export class PisosService {
   constructor(
     @InjectRepository(PisoEntity)
     private readonly pisoRepo: Repository<PisoEntity>,
-  ) { }
+  ) {}
 
   // 1. CREAR PISO
-  async crearPiso(nroPiso: number, nombre: string, idEdificio: number): Promise<PisoEntity> {
+  async crearPiso(
+    nroPiso: number,
+    nombre: string,
+    idEdificio: number,
+  ): Promise<PisoEntity> {
     // .create() prepara el objeto en memoria
     const nuevoPiso = this.pisoRepo.create({
       nroPiso,
       nombre,
       idEdificio,
     });
-
 
     // .save() lo inserta en Supabase
     return await this.pisoRepo.save(nuevoPiso);
@@ -28,11 +31,13 @@ export class PisosService {
   async eliminarPiso(idPiso: number) {
     // Primero verificamos que el piso realmente exista
     const piso = await this.pisoRepo.findOne({
-      where: { idPiso: idPiso }
+      where: { idPiso: idPiso },
     });
 
     if (!piso) {
-      throw new NotFoundException(`El piso con ID ${idPiso} no se encontró en la base de datos.`);
+      throw new NotFoundException(
+        `El piso con ID ${idPiso} no se encontró en la base de datos.`,
+      );
     }
 
     // Si existe, lo eliminamos
@@ -41,13 +46,16 @@ export class PisosService {
     // Devolvemos un mensaje de éxito para que el frontend sepa que todo salió bien
     return {
       statusCode: 200,
-      message: `El piso '${piso.nombre}' fue eliminado correctamente.`
+      message: `El piso '${piso.nombre}' fue eliminado correctamente.`,
     };
   }
 
-  async modificarPiso(idPiso: number, datosActualizados: Partial<PisoEntity>): Promise<PisoEntity> {
+  async modificarPiso(
+    idPiso: number,
+    datosActualizados: Partial<PisoEntity>,
+  ): Promise<PisoEntity> {
     const piso = await this.pisoRepo.findOne({
-      where: { idPiso }
+      where: { idPiso },
     });
 
     if (!piso) {
@@ -64,8 +72,8 @@ export class PisosService {
     return await this.pisoRepo.find({
       order: {
         idEdificio: 'ASC', // Agrupamos visualmente por edificio
-        nroPiso: 'ASC'     // Y luego ordenamos por el número de piso
-      }
+        nroPiso: 'ASC', // Y luego ordenamos por el número de piso
+      },
     });
   }
 
@@ -73,8 +81,7 @@ export class PisosService {
   async obtenerPorEdificio(idEdificio: number): Promise<PisoEntity[]> {
     return await this.pisoRepo.find({
       where: { idEdificio: idEdificio },
-      order: { nroPiso: 'ASC' }
+      order: { nroPiso: 'ASC' },
     });
   }
-
 }

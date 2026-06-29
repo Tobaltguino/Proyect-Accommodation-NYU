@@ -7,7 +7,7 @@ import {
   Get,
   Param,
   ParseIntPipe,
-  Patch
+  Patch,
 } from '@nestjs/common';
 import { AsignacionesService } from './asignaciones.service';
 import { RolesGuard } from 'src/common/guards/roles.guard';
@@ -22,25 +22,29 @@ import { CrearAsignacionDTO } from './dto/crearAsignacion.dto';
 
 @Controller('asignaciones')
 export class AsignacionesController {
-  constructor(private readonly asignacionesService: AsignacionesService) { }
+  constructor(private readonly asignacionesService: AsignacionesService) {}
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN) // Solo el admin ejecuta esta acción
   @Post()
   crearAsignacion(
     @Body() payload: CrearAsignacionDTO,
-    @Req() request: AuthenticatedRequest
+    @Req() request: AuthenticatedRequest,
   ) {
     const rutAdmin = request.user?.rut;
 
     if (!rutAdmin) {
-      throw new UnauthorizedException('No se pudo obtener el RUT del administrador');
+      throw new UnauthorizedException(
+        'No se pudo obtener el RUT del administrador',
+      );
     }
 
-    return this.asignacionesService.crearAsignacion(payload.idSolicitud, payload.idHabitacion, rutAdmin);
+    return this.asignacionesService.crearAsignacion(
+      payload.idSolicitud,
+      payload.idHabitacion,
+      rutAdmin,
+    );
   }
-
-
 
   // GET http://localhost:3000/asignaciones/mi-historial
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -51,7 +55,9 @@ export class AsignacionesController {
     const rutEstudiante = request.user?.rut;
 
     if (!rutEstudiante) {
-      throw new UnauthorizedException('No se pudo obtener el RUT del estudiante');
+      throw new UnauthorizedException(
+        'No se pudo obtener el RUT del estudiante',
+      );
     }
 
     return this.asignacionesService.obtenerMiHistorial(rutEstudiante);
@@ -74,10 +80,19 @@ export class AsignacionesController {
     const rutEstudiante = request.user?.rut;
 
     if (!rutEstudiante) {
-      throw new UnauthorizedException('No se pudo obtener el RUT del estudiante');
+      throw new UnauthorizedException(
+        'No se pudo obtener el RUT del estudiante',
+      );
     }
 
     return this.asignacionesService.obtenerMiAsignacion(rutEstudiante);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  @Get('estudiante/:rut/activa')
+  obtenerAsignacionActivaPorRut(@Param('rut') rut: string) {
+    return this.asignacionesService.obtenerAsignacionActivaPorRut(rut);
   }
 
   // GET http://localhost:3000/asignaciones/periodo/1
@@ -93,7 +108,7 @@ export class AsignacionesController {
   @Roles(Role.ADMIN)
   @Get('residentes-activos/:idPeriodo')
   obtenerTotalResidentesActivos(
-    @Param('idPeriodo', ParseIntPipe) idPeriodo: number
+    @Param('idPeriodo', ParseIntPipe) idPeriodo: number,
   ) {
     return this.asignacionesService.obtenerTotalResidentesActivos(idPeriodo);
   }
@@ -105,19 +120,27 @@ export class AsignacionesController {
   reasignarHabitacion(
     @Param('idAsignacion', ParseIntPipe) idAsignacion: number,
     @Body('idNuevaHabitacion', ParseIntPipe) idNuevaHabitacion: number,
-    @Req() request: AuthenticatedRequest
+    @Req() request: AuthenticatedRequest,
   ) {
     const rutAdmin = request.user?.rut;
 
     if (!rutAdmin) {
-      throw new UnauthorizedException('No se pudo obtener el RUT del administrador');
+      throw new UnauthorizedException(
+        'No se pudo obtener el RUT del administrador',
+      );
     }
 
     if (!idNuevaHabitacion) {
-      throw new BadRequestException('Debes enviar el idNuevaHabitacion en el body.');
+      throw new BadRequestException(
+        'Debes enviar el idNuevaHabitacion en el body.',
+      );
     }
 
-    return this.asignacionesService.reasignarHabitacion(idAsignacion, idNuevaHabitacion, rutAdmin);
+    return this.asignacionesService.reasignarHabitacion(
+      idAsignacion,
+      idNuevaHabitacion,
+      rutAdmin,
+    );
   }
 
   // PATCH http://localhost:3000/asignaciones/1/renunciar
@@ -126,16 +149,17 @@ export class AsignacionesController {
   @Patch(':idAsignacion/renunciar')
   renunciarAsignacion(
     @Param('idAsignacion', ParseIntPipe) idAsignacion: number,
-    @Req() request: AuthenticatedRequest
+    @Req() request: AuthenticatedRequest,
   ) {
     // Extraemos el RUT del administrador que está haciendo la operación
     const rutAdmin = request.user?.rut;
 
     if (!rutAdmin) {
-      throw new UnauthorizedException('No se pudo obtener el RUT del administrador');
+      throw new UnauthorizedException(
+        'No se pudo obtener el RUT del administrador',
+      );
     }
 
     return this.asignacionesService.renunciarAsignacion(idAsignacion, rutAdmin);
   }
-
 }

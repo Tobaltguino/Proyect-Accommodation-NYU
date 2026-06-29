@@ -8,7 +8,7 @@ export class EdificiosService {
   constructor(
     @InjectRepository(EdificioEntity)
     private readonly edificioRepo: Repository<EdificioEntity>,
-  ) { }
+  ) {}
 
   // 1. OBTENER TODOS LOS EDIFICIOS
   async obtenerTodos(): Promise<EdificioEntity[]> {

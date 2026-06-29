@@ -3,7 +3,7 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   ManyToOne,
-  JoinColumn
+  JoinColumn,
 } from 'typeorm';
 
 import { PisoEntity } from './piso.entity';
@@ -31,5 +31,4 @@ export class HabitacionEntity {
   @ManyToOne(() => PisoEntity, (piso) => piso.habitaciones)
   @JoinColumn({ name: 'id_piso' })
   piso!: PisoEntity;
-
 }

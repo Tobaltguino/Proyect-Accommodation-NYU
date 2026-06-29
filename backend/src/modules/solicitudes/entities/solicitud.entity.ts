@@ -3,10 +3,9 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   ManyToOne,
-  JoinColumn
+  JoinColumn,
 } from 'typeorm';
 import { UsuarioEntity } from '../../users/entities/usuario.entity';
-
 
 @Entity({ name: 'solicitudes', schema: 'public' })
 export class SolicitudEntity {
@@ -33,7 +32,4 @@ export class SolicitudEntity {
 
   @Column({ name: 'plan_alimenticio', type: 'varchar' })
   planAlimenticio!: string;
-
-
-
 }

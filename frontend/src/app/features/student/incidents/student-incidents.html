@@ -4,11 +4,8 @@
     <header class="d-flex flex-column flex-md-row justify-content-between align-items-md-start gap-3 mb-4">
       <div>
         <h1 class="page-title m-0">Mis Incidencias</h1>
-        <p class="page-subtitle mt-1 mb-0">Reporta problemas de mantenimiento en tu habitación.</p>
+        <p class="page-subtitle mt-1 mb-0">Revisa tus reportes de mantenimiento.</p>
       </div>
-      <button type="button" class="primary" (click)="openCreateModal()">
-        <i class="pi pi-plus"></i> Nuevo Reporte
-      </button>
     </header>
 
     <section class="filters-block border rounded-4 p-3 p-md-4 mb-4">
@@ -25,16 +22,6 @@
             @for (p of periodos; track p) {
               <option [value]="p">{{ p }}</option>
             }
-          </select>
-        </div>
-
-        <div class="col-12 col-md-4">
-          <label for="estado" class="form-label mb-1">Estado</label>
-          <select id="estado" class="form-select custom-control" [(ngModel)]="filtroEstado" (change)="aplicarFiltros()">
-            <option value="">Todos los estados</option>
-            <option [value]="EstadoEnum.PENDIENTE">Pendiente</option>
-            <option [value]="EstadoEnum.EN_PROCESO">En Proceso</option>
-            <option [value]="EstadoEnum.RESUELTA">Resuelta</option>
           </select>
         </div>
 
@@ -63,7 +50,6 @@
               <th>Fecha</th>
               <th>Ubicación</th>
               <th>Gravedad</th>
-              <th>Estado</th>
               <th class="text-center">Detalles</th>
             </tr>
           </thead>
@@ -82,12 +68,6 @@
                 <td>
                   <span class="badge rounded-pill severity" [ngClass]="incidencia.gravedad | lowercase">
                     {{ incidencia.gravedad }}
-                  </span>
-                </td>
-
-                <td>
-                  <span class="badge rounded-pill status" [ngClass]="incidencia.estado | lowercase | slice:0:3">
-                    {{ incidencia.estado }}
                   </span>
                 </td>
 
@@ -167,12 +147,6 @@
             <small class="text-muted text-uppercase" style="font-size: 0.8rem; letter-spacing: 0.02em;">Fecha</small>
             <strong class="text-dark">{{ selectedIncident.fecha }}</strong>
           </div>
-          <div class="col-12 col-sm-6 d-flex flex-column align-items-start">
-            <small class="text-muted text-uppercase" style="font-size: 0.8rem; letter-spacing: 0.02em;">Estado</small>
-            <span class="badge rounded-pill mt-1 status" [ngClass]="selectedIncident.estado | lowercase | slice:0:3">
-              {{ selectedIncident.estado }}
-            </span>
-          </div>
         </div>
 
         <div class="modal-desc-box border rounded-3 p-3 bg-light">
@@ -188,59 +162,3 @@
   </div>
 }
 
-@if (isCreateModalOpen) {
-  <div class="modal-backdrop position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center z-3 p-3" (click)="closeCreateModal()">
-    <div class="modal-card bg-white d-flex flex-column" (click)="$event.stopPropagation()">
-      
-      <header class="modal-header d-flex justify-content-between align-items-center">
-        <h2 class="m-0">Generar Nuevo Reporte</h2>
-        <button type="button" class="close-btn border-0" (click)="closeCreateModal()">
-          <i class="pi pi-times"></i>
-        </button>
-      </header>
-      
-      <div class="modal-body p-4">
-        <p class="text-muted mb-4" style="font-size: 0.95rem;">
-          Detalla el problema que estás presentando en tu habitación actual. El administrador asignará la prioridad y gestionará la reparación.
-        </p>
-
-        <div class="form-group mb-4">
-          <label class="form-label fw-bold">Gravedad del Problema</label>
-          <select class="form-select custom-control" [(ngModel)]="nuevaIncidencia.gravedad">
-            <option [value]="GravedadEnum.LEVE">Leve (Ej: Ampolleta quemada, bisagra suelta)</option>
-            <option [value]="GravedadEnum.MODERADO">Moderado (Ej: Filtración leve, toma corriente no funciona)</option>
-            <option [value]="GravedadEnum.GRAVE">Grave (Ej: Fuga de agua, cortocircuito, ventana rota)</option>
-          </select>
-        </div>
-
-        <div class="form-group mb-4">
-          <label class="form-label fw-bold">ID de habitación</label>
-          <input
-            type="number"
-            min="1"
-            class="form-control custom-control"
-            placeholder="Ejemplo: 1"
-            [(ngModel)]="nuevaIncidencia.id_habitacion"
-          />
-        </div>
-
-        <div class="form-group">
-          <label class="form-label fw-bold">Descripción detallada</label>
-          <textarea 
-            class="form-control custom-control" 
-            rows="5" 
-            placeholder="Describe exactamente qué ocurrió y en qué sector de la habitación..."
-            [(ngModel)]="nuevaIncidencia.descripcion">
-          </textarea>
-        </div>
-      </div>
-      
-      <footer class="modal-footer d-flex justify-content-end p-3 bg-light border-top rounded-bottom-4 gap-2">
-        <button type="button" class="ghost border-0 danger-text" (click)="closeCreateModal()">Cancelar</button>
-        <button type="button" class="primary border-0" (click)="enviarReporte()">
-          <i class="pi pi-send"></i> Enviar Reporte
-        </button>
-      </footer>
-    </div>
-  </div>
-}

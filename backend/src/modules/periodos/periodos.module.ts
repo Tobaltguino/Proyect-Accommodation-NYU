@@ -10,4 +10,4 @@ import { PeriodoEntity } from '../solicitudes/entities';
   providers: [PeriodosService],
   exports: [PeriodosService],
 })
-export class PeriodosModule { }
+export class PeriodosModule {}

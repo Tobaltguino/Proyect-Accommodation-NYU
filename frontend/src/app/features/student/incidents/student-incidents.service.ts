@@ -3,7 +3,6 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { AuthService } from '../../../core/auth/auth.service';
 import {
-  CreateIncidenciaRequest,
   IncidenciaApiResponse,
   IncidenciaFilters,
 } from '../../../shared/models';
@@ -17,21 +16,11 @@ export class StudentIncidentsService {
     private readonly authService: AuthService,
   ) {}
 
-  createIncidencia(payload: CreateIncidenciaRequest): Observable<IncidenciaApiResponse> {
-    return this.http.post<IncidenciaApiResponse>(`${this.apiBaseUrl}/incidencias`, payload, {
-      headers: this.getAuthHeaders(),
-    });
-  }
-
   getIncidencias(filters: IncidenciaFilters = {}): Observable<IncidenciaApiResponse[]> {
     let params = new HttpParams();
 
     if (filters.semester) {
       params = params.set('semester', filters.semester);
-    }
-
-    if (filters.estado) {
-      params = params.set('estado', filters.estado);
     }
 
     if (filters.gravedad) {

@@ -6,7 +6,7 @@ import { AuthModule } from '../auth/auth.module';
 import { SolicitudEntity } from '../solicitudes/entities';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([SolicitudEntity]),AuthModule],
+  imports: [TypeOrmModule.forFeature([SolicitudEntity]), AuthModule],
   controllers: [SolicitudesAdminController],
   providers: [SolicitudesAdminService],
 })

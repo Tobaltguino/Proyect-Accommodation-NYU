@@ -6,11 +6,8 @@ import { PisoEntity } from '../residencias/entities';
 import { AuthModule } from '../auth/auth.module';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([PisoEntity]),
-    AuthModule
-  ],
+  imports: [TypeOrmModule.forFeature([PisoEntity]), AuthModule],
   controllers: [PisosController],
   providers: [PisosService],
 })
-export class PisosModule { }
+export class PisosModule {}

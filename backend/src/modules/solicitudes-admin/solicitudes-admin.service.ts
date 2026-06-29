@@ -12,48 +12,57 @@ export class SolicitudesAdminService {
   constructor(
     @InjectRepository(SolicitudEntity)
     private readonly solicitudRepo: Repository<SolicitudEntity>,
-  ) { }
+  ) {}
 
+  async obtenerPorPeriodo(idPeriodo: number) {
+    return await this.solicitudRepo
+      .createQueryBuilder('solicitud')
+      .leftJoin('usuario', 'usuario', 'usuario.rut = solicitud.rutEstudiante') // Ajusta 'rutUsuario' si es necesario
+      .select([
+        'solicitud.idSolicitud',
+        'solicitud.fechaSolicitud',
+        'solicitud.estado',
+        'solicitud.idPeriodo',
+        'usuario.rut',
+        'usuario.nombre',
+      ])
+      .where('solicitud.idPeriodo = :idPeriodo', { idPeriodo })
+      .andWhere('solicitud.estado IN (:...estados)', {
+        estados: ['en revision', 'pendiente'],
+      })
+      .orderBy('solicitud.fechaSolicitud', 'DESC')
+      .getMany();
+  }
 
-async obtenerPorPeriodo(idPeriodo: number) {
-  return await this.solicitudRepo
-    .createQueryBuilder('solicitud')
-    .leftJoin('usuario', 'usuario', 'usuario.rut = solicitud.rutEstudiante') // Ajusta 'rutUsuario' si es necesario
-    .select([
-      'solicitud.idSolicitud',
-      'solicitud.fechaSolicitud',
-      'solicitud.estado',
-      'solicitud.idPeriodo',
-      'usuario.rut',
-      'usuario.nombre'
-    ])
-    .where('solicitud.idPeriodo = :idPeriodo', { idPeriodo })
-    .andWhere('solicitud.estado IN (:...estados)', { estados: ['en revision', 'pendiente'] })
-    .orderBy('solicitud.fechaSolicitud', 'DESC')
-    .getMany();
-}
+  async obtenerTodas() {
+    return await this.solicitudRepo
+      .createQueryBuilder('solicitud')
+      .leftJoin('usuario', 'usuario', 'usuario.rut = solicitud.rutEstudiante') // Ajusta 'rutUsuario' al nombre de tu columna
+      .select([
+        'solicitud.idSolicitud',
+        'solicitud.fechaSolicitud',
+        'solicitud.estado',
+        'usuario.rut',
+        'usuario.nombre',
+      ])
+      .where('solicitud.estado IN (:...estados)', {
+        estados: ['En Revision', 'Pendiente'],
+      })
+      .getMany();
+  }
 
-async obtenerTodas() {
-  return await this.solicitudRepo
-    .createQueryBuilder('solicitud')
-    .leftJoin('usuario', 'usuario', 'usuario.rut = solicitud.rutEstudiante') // Ajusta 'rutUsuario' al nombre de tu columna
-    .select([
-      'solicitud.idSolicitud',
-      'solicitud.fechaSolicitud',
-      'solicitud.estado',
-      'usuario.rut',
-      'usuario.nombre'
-    ])
-    .where('solicitud.estado IN (:...estados)', { estados: ['En Revision', 'Pendiente'] })
-    .getMany();
-}
-
-  async cambioEstadoYAdminSolicitud(idSolicitud: number, cambios: UpdateSolicitudesAdminDto, rutAdmin: string){
+  async cambioEstadoYAdminSolicitud(
+    idSolicitud: number,
+    cambios: UpdateSolicitudesAdminDto,
+    rutAdmin: string,
+  ) {
     const solicitud = await this.solicitudRepo.findOne({
-      where: {idSolicitud: idSolicitud}
-    })
-    if(!solicitud){
-      throw new NotFoundException('throw new NotFoundException(`La solicitud con ID ${idSolicitud} no existe.`');
+      where: { idSolicitud: idSolicitud },
+    });
+    if (!solicitud) {
+      throw new NotFoundException(
+        'throw new NotFoundException(`La solicitud con ID ${idSolicitud} no existe.`',
+      );
     }
     solicitud.estado = cambios.estado;
     solicitud.rutAdmin = rutAdmin;

@@ -9,5 +9,4 @@ import { PlanAlimenticioEntity } from '../solicitudes/entities';
   controllers: [PlanAlimenticioController],
   providers: [PlanAlimenticioService],
 })
-export class PlanAlimenticioModule {
-}
+export class PlanAlimenticioModule {}

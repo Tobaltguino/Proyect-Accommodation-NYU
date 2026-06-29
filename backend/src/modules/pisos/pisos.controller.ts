@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Patch, Delete, Body, Param, ParseIntPipe, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Delete,
+  Body,
+  Param,
+  ParseIntPipe,
+  UseGuards,
+} from '@nestjs/common';
 import { PisosService } from './pisos.service';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/common/guards/roles.guard';
@@ -7,7 +17,7 @@ import { Role } from '../auth/enums/role.enum';
 
 @Controller('pisos')
 export class PisosController {
-  constructor(private readonly pisosService: PisosService) { }
+  constructor(private readonly pisosService: PisosService) {}
 
   // GET http://localhost:3000/pisos
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -43,7 +53,7 @@ export class PisosController {
   @Patch(':id')
   modificarPiso(
     @Param('id', ParseIntPipe) id: number,
-    @Body() datosActualizados: any
+    @Body() datosActualizados: any,
   ) {
     return this.pisosService.modificarPiso(id, datosActualizados);
   }
@@ -55,6 +65,4 @@ export class PisosController {
   eliminarPiso(@Param('id', ParseIntPipe) idPiso: number) {
     return this.pisosService.eliminarPiso(idPiso);
   }
-
-
 }

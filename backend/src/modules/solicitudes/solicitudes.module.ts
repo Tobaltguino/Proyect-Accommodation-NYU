@@ -14,6 +14,6 @@ import { AuthModule } from '../auth/auth.module';
   ],
   controllers: [SolicitudesController],
   providers: [SolicitudesService],
-  exports: [SolicitudesService], 
+  exports: [SolicitudesService],
 })
 export class SolicitudesModule {}

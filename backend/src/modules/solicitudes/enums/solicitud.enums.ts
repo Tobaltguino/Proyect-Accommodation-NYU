@@ -3,7 +3,6 @@ export enum StudentGender {
   HOMBRE = 'HOMBRE',
 }
 
-
 export enum BuildingId {
   FEMENINO = 'FEMENINO',
   MASCULINO = 'MASCULINO',

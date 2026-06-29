@@ -32,6 +32,13 @@ export class AsignacionesService {
     return this.http.get<AsignacionDTO[]>(this.apiUrl, { headers: this.getHeaders() });
   }
 
+  obtenerAsignacionActivaPorRut(rut: string): Observable<{ tieneAsignacion: boolean; message?: string; asignacion?: AsignacionDTO }> {
+    return this.http.get<{ tieneAsignacion: boolean; message?: string; asignacion?: AsignacionDTO }>(
+      `${this.apiUrl}/estudiante/${encodeURIComponent(rut)}/activa`,
+      { headers: this.getHeaders() }
+    );
+  }
+
   obtenerPorPeriodo(idPeriodo: number): Observable<AsignacionDTO[]> {
     return this.http.get<AsignacionDTO[]>(`${this.apiUrl}/periodo/${idPeriodo}`, { headers: this.getHeaders() });
   }

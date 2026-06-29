@@ -17,6 +17,11 @@ export class UsuarioEntity {
   @Column({ name: 'tipo_usuario', type: 'varchar', length: 15 })
   tipoUsuario!: string;
 
-  @Column({ name: 'genero', type: 'varchar', length: 20, default: 'No Especificado' })
+  @Column({
+    name: 'genero',
+    type: 'varchar',
+    length: 20,
+    default: 'No Especificado',
+  })
   genero!: string;
 }

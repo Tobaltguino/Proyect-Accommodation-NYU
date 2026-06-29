@@ -20,5 +20,4 @@ export class EdificioEntity {
 
   @OneToMany(() => PisoEntity, (piso) => piso.edificio)
   pisos!: PisoEntity[];
-
 }

@@ -34,5 +34,4 @@ export const HARDCODED_USERS: AuthUserRecord[] = [
     role: Role.STUDENT,
     genero: 'Masculino',
   },
-
 ];

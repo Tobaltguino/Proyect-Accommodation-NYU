@@ -1,9 +1,3 @@
-export enum EstadoIncidencia {
-  PENDIENTE = 'Pendiente',
-  EN_PROCESO = 'En Proceso',
-  RESUELTA = 'Resuelta'
-}
-
 export enum GravedadIncidencia {
   LEVE = 'Leve',
   MODERADO = 'Moderado',
@@ -13,7 +7,6 @@ export enum GravedadIncidencia {
 export interface IncidenciaDTO {
   idIncidencia: number;
   descripcion: string;
-  estado: EstadoIncidencia;
   fecha: string;
   gravedad: GravedadIncidencia;
   idHabitacion: number; // Base de datos real
@@ -39,22 +32,24 @@ export interface CreateIncidenciaRequest {
 export interface IncidenciaApiResponse {
   idIncidencia: number;
   descripcion: string;
-  estado: EstadoIncidencia;
   fecha: string;
   gravedad: GravedadIncidencia;
   idHabitacion: number;
   rutEstudiante: string;
   rutAdmin: string | null;
+  habitacion?: {
+    idHabitacion: number;
+    nroHabitacion: number;
+    piso?: {
+      edificio?: {
+        nombre: string;
+      };
+    };
+  };
 }
 
 export interface IncidenciaFilters {
   semester?: string;
-  estado?: EstadoIncidencia;
   gravedad?: GravedadIncidencia;
   rut?: string;
-}
-
-export interface UpdateIncidenciaEstadoRequest {
-  estado: EstadoIncidencia;
-  rutAdmin?: string;
 }

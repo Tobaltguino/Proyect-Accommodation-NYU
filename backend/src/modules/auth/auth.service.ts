@@ -19,7 +19,7 @@ export class AuthService implements OnModuleInit {
     private readonly jwtService: JwtService,
     @InjectRepository(UsuarioEntity)
     private readonly usuarioRepository: Repository<UsuarioEntity>,
-  ) { }
+  ) {}
 
   async onModuleInit(): Promise<void> {
     await this.ensureSeedUsers();
@@ -71,8 +71,12 @@ export class AuthService implements OnModuleInit {
       where: [{ rut: body.rut }, { rut: normalizedRut }],
     });
 
-    if (existing.some((user) => this.normalizeRut(user.rut) === normalizedRut)) {
-      throw new ConflictException('Ya existe un usuario registrado con ese RUT');
+    if (
+      existing.some((user) => this.normalizeRut(user.rut) === normalizedRut)
+    ) {
+      throw new ConflictException(
+        'Ya existe un usuario registrado con ese RUT',
+      );
     }
 
     const newUser = await this.usuarioRepository.save(
