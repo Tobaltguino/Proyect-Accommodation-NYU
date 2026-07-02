@@ -136,5 +136,6 @@ export class AdminAssignmentsComponent implements OnInit {
       case EstadoAsignacion.RENUNCIADA: return 'ren';
       default: return '';
     }
+  
   }
 }
