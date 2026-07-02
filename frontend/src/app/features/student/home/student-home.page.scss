@@ -93,6 +93,12 @@
     color: #0f172a;
     &:hover { background: #e2e8f0; }
   }
+
+  &.pay {
+    background: #179107; /* Naranja/Ámbar elegante */
+    color: #ffffff;
+    &:hover { background: #179107; }
+  }
 }
 
 @media (max-width: 820px) {

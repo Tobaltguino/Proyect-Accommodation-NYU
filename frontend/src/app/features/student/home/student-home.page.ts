@@ -3,7 +3,6 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { AuthService } from '../../../core/auth/auth.service';
 import { SessionUser } from '../../../core/auth/auth.models';
-// Importamos tus nuevos modelos
 import { DietaDTO, TipoDieta } from '../../../shared/models'; 
 
 @Component({
@@ -26,26 +25,47 @@ export class StudentHomePageComponent implements OnInit {
     nombreEstudiante: '' 
   };
 
-  miAsignacion = {
+  // 👇 Agregamos 'fechaAsignacion' al mock para tener un punto de partida
+  miAsignacion: any = {
     edificio: 'Residencia Norte',
     piso: 2,
     habitacion: 204,
-    fechaIngreso: '2026-03-01'
+    fechaIngreso: '2026-03-01',
+    fechaAsignacion: '2026-06-25', // Fecha en que se le otorgó la habitación
+    fechaPago: null
   };
 
   constructor(private authService: AuthService) {
     this.currentUser = this.authService.getCurrentUser();
     
-    // Si hay un usuario logueado, le asignamos su RUT al plan de dieta
     if (this.currentUser) {
-      // Nota: Asumo que en tu auth.models.ts agregaste el 'rut' al SessionUser.
-      // Si la variable se llama diferente, cámbialo aquí.
       this.miPlanDieta.rutEstudiante = (this.currentUser as any).rut || '12.345.678-9';
     }
   }
 
   ngOnInit(): void {
-    // En el futuro, tus llamadas al backend también usarán el RUT:
-    // this.estudianteService.getAsignacionPorRut(this.currentUser.rut).subscribe(...)
+    // Aquí irían tus llamadas HTTP reales
+  }
+
+  // 👇 NUEVO: Calculamos dinámicamente los días restantes
+  get diasRestantesPago(): number {
+    const fechaAsig = new Date(this.miAsignacion.fechaAsignacion);
+    
+    // Le sumamos los 15 días de plazo
+    const fechaLimite = new Date(fechaAsig);
+    fechaLimite.setDate(fechaLimite.getDate() + 15);
+
+    const hoy = new Date();
+    
+    // Calculamos la diferencia en milisegundos y la pasamos a días
+    const diferenciaMs = fechaLimite.getTime() - hoy.getTime();
+    const dias = Math.ceil(diferenciaMs / (1000 * 60 * 60 * 24));
+
+    return dias;
+  }
+
+  pagarAsignacion(): void {
+    const hoy = new Date();
+    this.miAsignacion.fechaPago = hoy.toISOString().split('T')[0];
   }
 }
