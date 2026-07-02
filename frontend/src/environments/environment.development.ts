@@ -1,4 +1,5 @@
 export const environment = {
-  production: true,
-  apiUrl: 'https://proyect-accommodation-nyu.vercel.app'
+  production: false,
+  // Aquí usamos el localhost porque es tu backend corriendo en tu computadora
+  apiUrl: 'http://localhost:3000' 
 };
