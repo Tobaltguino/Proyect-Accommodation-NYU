@@ -2,6 +2,8 @@ import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { AuthService } from '../../../core/auth/auth.service';
+import { environment } from '../../../../environments/environment';
+
 import {
   IncidenciaApiResponse,
   IncidenciaFilters,
@@ -9,7 +11,8 @@ import {
 
 @Injectable({ providedIn: 'root' })
 export class StudentIncidentsService {
-  private readonly apiBaseUrl = 'http://localhost:3000';
+  private apiUrl = `${environment.apiUrl}/asignaciones`;
+  
 
   constructor(
     private readonly http: HttpClient,
@@ -31,7 +34,7 @@ export class StudentIncidentsService {
       params = params.set('rut', filters.rut);
     }
 
-    return this.http.get<IncidenciaApiResponse[]>(`${this.apiBaseUrl}/incidencias`, {
+    return this.http.get<IncidenciaApiResponse[]>(`${this.apiUrl}/incidencias`, {
       headers: this.getAuthHeaders(),
       params,
     });

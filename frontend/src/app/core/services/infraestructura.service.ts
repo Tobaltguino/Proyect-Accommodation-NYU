@@ -1,6 +1,8 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
+
 
 import { EdificioDTO, PisoDTO, HabitacionDTO } from '../../shared/models';
 import { AuthService } from '../auth/auth.service'; 
@@ -12,7 +14,7 @@ export class InfraestructuraService {
   private http = inject(HttpClient);
   private authService = inject(AuthService);
   
-  private apiUrl = 'http://localhost:3000'; 
+  private apiUrl = `${environment.apiUrl}/asignaciones`;
 
   public cacheEdificios: EdificioDTO[] = [];
   public cacheEdificioSeleccionado: EdificioDTO | null = null;

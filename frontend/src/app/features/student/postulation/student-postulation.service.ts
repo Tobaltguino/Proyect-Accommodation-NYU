@@ -2,6 +2,8 @@ import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { AuthService } from '../../../core/auth/auth.service';
+import { environment } from '../../../../environments/environment';
+
 
 export type Gender = 'MUJER' | 'HOMBRE';
 export type MealPlan = 'VEGANA' | 'VEGETARIANA' | 'OMNIVORA';
@@ -61,7 +63,8 @@ export interface SolicitudResponse {
 
 @Injectable({ providedIn: 'root' })
 export class StudentPostulationService {
-  private readonly apiBaseUrl = 'http://localhost:3000';
+  private apiUrl = `${environment.apiUrl}/asignaciones`;
+  
 
   constructor(
     private readonly http: HttpClient,
@@ -72,7 +75,7 @@ export class StudentPostulationService {
     const params = new HttpParams().set('gender', gender).set('semester', semester);
 
     return this.http.get<AvailabilityResponse>(
-      `${this.apiBaseUrl}/residencias/disponibilidad`,
+      `${this.apiUrl}/residencias/disponibilidad`,
       {
         headers: this.getAuthHeaders(),
         params,
@@ -81,7 +84,7 @@ export class StudentPostulationService {
   }
 
   createSolicitud(payload: CreateSolicitudPayload): Observable<SolicitudResponse> {
-    return this.http.post<SolicitudResponse>(`${this.apiBaseUrl}/solicitudes`, payload, {
+    return this.http.post<SolicitudResponse>(`${this.apiUrl}/solicitudes`, payload, {
       headers: this.getAuthHeaders(),
     });
   }
@@ -89,7 +92,7 @@ export class StudentPostulationService {
   getMySolicitud(semester: string): Observable<SolicitudResponse | null> {
     const params = new HttpParams().set('semester', semester);
 
-    return this.http.get<SolicitudResponse | null>(`${this.apiBaseUrl}/solicitudes/mia`, {
+    return this.http.get<SolicitudResponse | null>(`${this.apiUrl}/solicitudes/mia`, {
       headers: this.getAuthHeaders(),
       params,
     });
@@ -97,7 +100,7 @@ export class StudentPostulationService {
 
   // NUEVO MÉTODO: Pide el historial completo de solicitudes del estudiante
   getHistorialSolicitudes(): Observable<SolicitudResponse[]> {
-    return this.http.get<SolicitudResponse[]>(`${this.apiBaseUrl}/solicitudes/all`, {
+    return this.http.get<SolicitudResponse[]>(`${this.apiUrl}/solicitudes/all`, {
       headers: this.getAuthHeaders(),
     });
   }

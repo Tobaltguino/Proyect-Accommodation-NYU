@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 import { AsignacionDTO } from '../../shared/models';
 import { AuthService } from '../auth/auth.service';
@@ -12,7 +13,7 @@ export class AsignacionesService {
   private http = inject(HttpClient);
   private authService = inject(AuthService);
   
-  private apiUrl = 'http://localhost:3000/asignaciones'; 
+  private apiUrl = `${environment.apiUrl}/asignaciones`;
 
   private getHeaders(): HttpHeaders {
     const token = this.authService.getToken() || '';

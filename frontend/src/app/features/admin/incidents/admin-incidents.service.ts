@@ -2,6 +2,8 @@ import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { AuthService } from '../../../core/auth/auth.service';
+import { environment } from '../../../../environments/environment';
+
 import {
   CreateIncidenciaRequest,
   IncidenciaApiResponse,
@@ -10,7 +12,8 @@ import {
 
 @Injectable({ providedIn: 'root' })
 export class AdminIncidentsService {
-  private readonly apiBaseUrl = 'http://localhost:3000';
+  private apiUrl = `${environment.apiUrl}/asignaciones`;
+  
 
   constructor(
     private readonly http: HttpClient,
@@ -18,7 +21,7 @@ export class AdminIncidentsService {
   ) {}
 
   createIncidencia(payload: CreateIncidenciaRequest): Observable<IncidenciaApiResponse> {
-    return this.http.post<IncidenciaApiResponse>(`${this.apiBaseUrl}/incidencias`, payload, {
+    return this.http.post<IncidenciaApiResponse>(`${this.apiUrl}/incidencias`, payload, {
       headers: this.getAuthHeaders(),
     });
   }
@@ -38,7 +41,7 @@ export class AdminIncidentsService {
       params = params.set('rut', filters.rut);
     }
 
-    return this.http.get<IncidenciaApiResponse[]>(`${this.apiBaseUrl}/incidencias`, {
+    return this.http.get<IncidenciaApiResponse[]>(`${this.apiUrl}/incidencias`, {
       headers: this.getAuthHeaders(),
       params,
     });
