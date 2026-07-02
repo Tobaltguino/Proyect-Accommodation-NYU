@@ -6,8 +6,8 @@ import {
   JoinColumn,
 } from 'typeorm';
 
-import { PeriodoEntity } from 'src/modules/solicitudes/entities';
-import { HabitacionEntity } from 'src/modules/residencias/entities';
+import { PeriodoEntity } from '../../solicitudes/entities';
+import { HabitacionEntity } from '../../residencias/entities';
 
 @Entity({ name: 'asignacion_estancia' })
 export class AsignacionEntity {
