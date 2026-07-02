@@ -1,4 +1,4 @@
 export const environment = {
   production: false,
-  apiUrl: 'proyect-accommodation-nyu.vercel.app'
+  apiUrl: 'https://proyect-accommodation-nyu.vercel.app'
 };

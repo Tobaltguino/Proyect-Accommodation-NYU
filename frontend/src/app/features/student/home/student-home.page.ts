@@ -64,6 +64,7 @@ export class StudentHomePageComponent implements OnInit {
     return dias;
   }
 
+  
   pagarAsignacion(): void {
     const hoy = new Date();
     this.miAsignacion.fechaPago = hoy.toISOString().split('T')[0];
