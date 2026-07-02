@@ -12,7 +12,7 @@ import {
 
 @Injectable({ providedIn: 'root' })
 export class AdminIncidentsService {
-  private apiUrl = `${environment.apiUrl}/asignaciones`;
+  private apiUrl = `${environment.apiUrl}`;
   
 
   constructor(

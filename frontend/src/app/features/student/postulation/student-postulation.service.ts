@@ -63,7 +63,7 @@ export interface SolicitudResponse {
 
 @Injectable({ providedIn: 'root' })
 export class StudentPostulationService {
-  private apiUrl = `${environment.apiUrl}/asignaciones`;
+  private apiUrl = `${environment.apiUrl}`;
   
 
   constructor(

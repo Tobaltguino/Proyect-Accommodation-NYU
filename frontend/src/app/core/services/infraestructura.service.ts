@@ -14,7 +14,7 @@ export class InfraestructuraService {
   private http = inject(HttpClient);
   private authService = inject(AuthService);
   
-  private apiUrl = `${environment.apiUrl}/asignaciones`;
+  private apiUrl = `${environment.apiUrl}`;
 
   public cacheEdificios: EdificioDTO[] = [];
   public cacheEdificioSeleccionado: EdificioDTO | null = null;

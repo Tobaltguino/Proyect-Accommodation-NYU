@@ -11,7 +11,7 @@ import {
 
 @Injectable({ providedIn: 'root' })
 export class StudentIncidentsService {
-  private apiUrl = `${environment.apiUrl}/asignaciones`;
+  private apiUrl = `${environment.apiUrl}`;
   
 
   constructor(

@@ -2,19 +2,22 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, tap } from 'rxjs';
 import { LoginRequest, LoginResponse, SessionUser } from './auth.models';
+import { environment } from '../../../environments/environment';
+
 
 const TOKEN_KEY = 'nyu_access_token';
 const USER_KEY = 'nyu_session_user';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private readonly apiBaseUrl = 'http://localhost:3000';
+    private apiUrl = `${environment.apiUrl}`;
+
 
   constructor(private readonly http: HttpClient) {}
 
   login(payload: LoginRequest): Observable<LoginResponse> {
     return this.http
-      .post<LoginResponse>(`${this.apiBaseUrl}/auth/login`, payload)
+      .post<LoginResponse>(`${this.apiUrl}/auth/login`, payload)
       .pipe(
         tap((response) => {
           localStorage.setItem(TOKEN_KEY, response.accessToken);
