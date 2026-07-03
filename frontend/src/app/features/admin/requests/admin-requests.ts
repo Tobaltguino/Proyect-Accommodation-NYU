@@ -1,6 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { finalize } from 'rxjs';
+import { AdminRequestsService } from './admin-request.service';
 import { 
   SolicitudDTO, 
   EstadoSolicitud, 
@@ -11,7 +13,7 @@ import {
   GravedadIncidencia,
   AsignacionDTO,
   EstadoAsignacion
-} from '../../../shared/models';
+} from '../../../shared/models'; 
 
 @Component({
   selector: 'app-admin-requests',
@@ -27,40 +29,17 @@ export class AdminRequestsComponent implements OnInit {
   private readonly RUT_ADMIN_ACTUAL = '14.555.666-7'; 
   private readonly NOMBRE_ADMIN_ACTUAL = 'Cristóbal Administrador';
 
-  solicitudes: SolicitudDTO[] = [
-    {
-      idSolicitud: 101, 
-      estado: EstadoSolicitud.PENDIENTE, 
-      fechaSolicitud: '2026-04-25',
-      idPeriodo: 1, 
-      nombrePeriodo: '2026-1', 
-      rutEstudiante: '21.345.678-9', 
-      nombreEstudiante: 'Valentina Soto', 
-      generoEstudiante: Genero.FEMENINO,
-      rutAdmin: null
-    },
-    {
-      idSolicitud: 102, 
-      estado: EstadoSolicitud.EN_REVISION, 
-      fechaSolicitud: '2026-04-22',
-      idPeriodo: 1, 
-      nombrePeriodo: '2026-1', 
-      rutEstudiante: '20.123.456-7', 
-      nombreEstudiante: 'Matías Fernández', 
-      generoEstudiante: Genero.MASCULINO,
-      rutAdmin: '12.999.888-7',
-      nombreAdmin: 'Admin Previo'
-    }
-  ];
-
+  solicitudes: SolicitudDTO[] = [];
   solicitudesFiltradas: SolicitudDTO[] = [];
-  filtroRut: string = ''; // Nueva propiedad para enlazar la búsqueda
+  
+  filtroRut: string = '';
   filtroPeriodo: string = '';
   filtroEstado: EstadoSolicitud | '' = '';
   periodos: string[] = ['2026-1', '2025-2', '2025-1'];
 
   paginaActual: number = 1;
   itemsPorPagina: number = 20;
+  isLoading: boolean = true;
 
   isModalOpen: boolean = false;
   solicitudSeleccionada: SolicitudDTO | null = null;
@@ -78,16 +57,6 @@ export class AdminRequestsComponent implements OnInit {
           ]
         }
       ]
-    },
-    {
-      idEdificio: 2, nombre: 'Pabellón Sur', ubicacion: 'Campus Sur', genero: Genero.FEMENINO,
-      pisos: [
-        {
-          idPiso: 2, nroPiso: 1, nombre: 'Piso 1', idEdificio: 2, habitaciones: [
-            { idHabitacion: 20, nroHabitacion: 201, capacidadActual: 0, capacidadTotal: 4, disponibilidad: true, idPiso: 2 }
-          ]
-        }
-      ]
     }
   ];
 
@@ -96,10 +65,62 @@ export class AdminRequestsComponent implements OnInit {
   matriculaActiva: boolean = false;
   habitacionSeleccionadaId: number | null = null;
 
+  constructor(
+    private readonly adminService: AdminRequestsService,
+    private readonly cdr: ChangeDetectorRef
+  ) {}
+
   ngOnInit(): void {
-    this.solicitudesFiltradas = [...this.solicitudes];
-    this.filtroPeriodo = '2026-1';
-    this.aplicarFiltros();
+    this.cargarSolicitudes();
+  }
+
+  cargarSolicitudes(): void {
+    this.isLoading = true;
+    this.adminService.obtenerTodasLasSolicitudes()
+      .pipe(finalize(() => {
+        this.isLoading = false;
+        this.cdr.detectChanges();
+      }))
+      .subscribe({
+        next: (dataCruda: any) => {
+          if (!dataCruda || !Array.isArray(dataCruda)) {
+            this.solicitudes = [];
+          } else {
+            this.solicitudes = dataCruda.map((dbSol: any) => this.mapearSolicitudDelBackend(dbSol));
+          }
+          
+          this.solicitudesFiltradas = [...this.solicitudes];
+        },
+        error: (err: unknown) => {
+          console.error('Error al cargar solicitudes de admin:', err);
+        }
+      });
+  }
+
+  private mapearSolicitudDelBackend(dbSol: any): SolicitudDTO {
+    let estadoEnum = EstadoSolicitud.PENDIENTE;
+    const estadoStr = (dbSol.estado || dbSol.solicitud_estado || '').toLowerCase();
+    
+    if (estadoStr === 'en revision' || estadoStr === 'en revisión') estadoEnum = EstadoSolicitud.EN_REVISION;
+    else if (estadoStr === 'aprobada') estadoEnum = EstadoSolicitud.APROBADA;
+    else if (estadoStr === 'rechazada') estadoEnum = EstadoSolicitud.RECHAZADA;
+
+    const rutReal = dbSol.rutEstudiante || dbSol.rut_estudiante || dbSol.rut || 'Sin RUT';
+    const nombreReal = dbSol.nombreEstudiante || dbSol.nombre_estudiante || dbSol.nombre || dbSol.usuario_nombre || 'Estudiante';
+    const periodoReal = dbSol.nombrePeriodo || dbSol.periodo_nombre || dbSol.semester || dbSol.semestre || 'Desconocido';
+
+    return {
+      idSolicitud: dbSol.idSolicitud || dbSol.id_solicitud,
+      estado: estadoEnum,
+      fechaSolicitud: dbSol.fechaSolicitud || dbSol.fecha_solicitud || '-',
+      idPeriodo: dbSol.idPeriodo || dbSol.id_periodo || 1,
+      nombrePeriodo: String(periodoReal), 
+      rutEstudiante: String(rutReal),
+      nombreEstudiante: String(nombreReal), 
+      generoEstudiante: Genero.MIXTO, 
+      rutAdmin: dbSol.rutAdmin || dbSol.rut_admin || undefined,
+      nombreAdmin: (dbSol.rutAdmin || dbSol.rut_admin) ? 'Admin Asignado' : undefined
+    };
   }
 
   get solicitudesPaginadas(): SolicitudDTO[] {
@@ -122,15 +143,12 @@ export class AdminRequestsComponent implements OnInit {
     this.solicitudesFiltradas = this.solicitudes.filter(sol => {
       const matchPeriodo = this.filtroPeriodo ? sol.nombrePeriodo === this.filtroPeriodo : true;
       const matchEstado = this.filtroEstado ? sol.estado === this.filtroEstado : true;
-      
-      // Filtro por RUT del estudiante (limpia espacios y tolera mayúsculas)
       const matchRut = this.filtroRut 
         ? sol.rutEstudiante.toLowerCase().replace(/\s+/g, '').includes(this.filtroRut.toLowerCase().replace(/\s+/g, '')) 
         : true;
         
       return matchPeriodo && matchEstado && matchRut;
     });
-
     this.paginaActual = 1;
   }
 
@@ -148,6 +166,12 @@ export class AdminRequestsComponent implements OnInit {
       solicitud.estado = EstadoSolicitud.EN_REVISION;
       solicitud.rutAdmin = this.RUT_ADMIN_ACTUAL;
       solicitud.nombreAdmin = this.NOMBRE_ADMIN_ACTUAL;
+
+      this.adminService.cambiarEstadoSolicitud(solicitud.idSolicitud, 'En Revision')
+        .subscribe({
+          next: () => console.log(`BD actualizada: Solicitud ${solicitud.idSolicitud} en revisión.`),
+          error: (err) => console.error('Error al actualizar estado a En Revisión:', err)
+        });
     }
 
     this.incidenciasEstudiante = [
@@ -175,16 +199,8 @@ export class AdminRequestsComponent implements OnInit {
     this.solicitudSeleccionada = null;
   }
 
-  cambiarEdificioMapa(idEdificioStr: string): void {
-    const id = parseInt(idEdificioStr, 10);
-    this.edificioSeleccionadoMapa = this.edificiosFiltrados.find(e => e.idEdificio === id) || null;
-    this.habitacionSeleccionadaId = null; 
-  }
-
   seleccionarHabitacion(habitacion: HabitacionDTO): void {
-    if (habitacion.capacidadActual >= (habitacion.capacidadTotal || 0) || !habitacion.disponibilidad) {
-      return; 
-    }
+    if (habitacion.capacidadActual >= (habitacion.capacidadTotal || 0) || !habitacion.disponibilidad) return; 
     this.habitacionSeleccionadaId = habitacion.idHabitacion;
   }
 
@@ -195,27 +211,39 @@ export class AdminRequestsComponent implements OnInit {
   procesarSolicitud(accion: 'Aprobar' | 'Rechazar'): void {
     if (!this.solicitudSeleccionada) return;
 
-    this.solicitudSeleccionada.rutAdmin = this.RUT_ADMIN_ACTUAL;
-    this.solicitudSeleccionada.nombreAdmin = this.NOMBRE_ADMIN_ACTUAL;
+    const idSolicitud = this.solicitudSeleccionada.idSolicitud;
 
-    if (accion === 'Rechazar') {
-      this.solicitudSeleccionada.estado = EstadoSolicitud.RECHAZADA;
-    } else if (accion === 'Aprobar') {
-      this.solicitudSeleccionada.estado = EstadoSolicitud.APROBADA;
-      
-      const nuevaAsignacion: Partial<AsignacionDTO> = {
-        fechaAsignacion: new Date().toISOString().split('T')[0],
-        estado: EstadoAsignacion.ACTIVA,
-        idHabitacion: this.habitacionSeleccionadaId!,
-        idPeriodo: this.solicitudSeleccionada.idPeriodo,
-        rutEstudiante: this.solicitudSeleccionada.rutEstudiante,
-        rutAdmin: this.RUT_ADMIN_ACTUAL
-      };
-      console.log('Solicitud Aprobada. Creando Asignación:', nuevaAsignacion);
+    if (accion === 'Aprobar') {
+      if (!this.habitacionSeleccionadaId) return;
+
+      this.adminService.crearAsignacion(idSolicitud, this.habitacionSeleccionadaId).subscribe({
+        next: (res) => {
+          if (this.solicitudSeleccionada) {
+            this.solicitudSeleccionada.estado = EstadoSolicitud.APROBADA;
+          }
+          this.aplicarFiltros();
+          this.cerrarModal();
+        },
+        error: (err) => {
+          console.error('Error al crear la asignación:', err);
+          alert('Ocurrió un error al intentar aprobar y asignar la habitación. Revisa la consola para más detalles.');
+        }
+      });
+    } else if (accion === 'Rechazar') {
+      this.adminService.cambiarEstadoSolicitud(idSolicitud, 'Rechazada').subscribe({
+        next: (res) => {
+          if (this.solicitudSeleccionada) {
+            this.solicitudSeleccionada.estado = EstadoSolicitud.RECHAZADA;
+          }
+          this.aplicarFiltros();
+          this.cerrarModal();
+        },
+        error: (err) => {
+          console.error('Error al rechazar la solicitud:', err);
+          alert('Ocurrió un error al intentar rechazar la solicitud.');
+        }
+      });
     }
-
-    this.aplicarFiltros();
-    this.cerrarModal();
   }
 
   getClassForEstado(estado: string): string {

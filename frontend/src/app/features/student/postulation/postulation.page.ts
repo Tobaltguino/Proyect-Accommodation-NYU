@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core'; // Importamos OnInit y ChangeDetectorRef
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core'; 
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { finalize } from 'rxjs';
@@ -9,7 +9,6 @@ import { SessionUser } from '../../../core/auth/auth.models';
 import {
   Gender,
   MealPlan,
-  SolicitudResponse,
   StudentPostulationService,
 } from './student-postulation.service';
 
@@ -20,9 +19,9 @@ import {
   templateUrl: './postulation.page.html',
   styleUrl: './postulation.page.scss',
 })
-export class StudentPostulationPageComponent implements OnInit { // Implementamos OnInit
+export class StudentPostulationPageComponent implements OnInit { 
   private readonly formBuilder = inject(FormBuilder);
-  private readonly cdr = inject(ChangeDetectorRef); // Inyectamos el detector de cambios
+  private readonly cdr = inject(ChangeDetectorRef); 
   private readonly activeSemester = '2026-1';
 
   readonly currentUser: SessionUser | null;
@@ -33,7 +32,7 @@ export class StudentPostulationPageComponent implements OnInit { // Implementamo
     semester: [{ value: this.activeSemester, disabled: true }, [Validators.required]],
     career: [{ value: '', disabled: true }, [Validators.required]],
     gender: [{ value: 'MUJER' as Gender, disabled: true }, [Validators.required]],
-    mealPlan: ['OMNIVORA' as MealPlan, [Validators.required]],
+    mealPlan: ['Sin preferencia' as MealPlan, [Validators.required]],
     declaration: [false, [Validators.requiredTrue]],
   });
 
@@ -57,10 +56,8 @@ export class StudentPostulationPageComponent implements OnInit { // Implementamo
       gender: user?.gender ?? 'MUJER',
       semester: this.activeSemester,
     });
-    // Quitamos la carga del constructor para evitar bloqueos en la navegación
   }
 
-  // Iniciamos la carga en el ciclo de vida correcto
   ngOnInit(): void {
     this.loadMySolicitud();
   }
@@ -86,6 +83,7 @@ export class StudentPostulationPageComponent implements OnInit { // Implementamo
     this.formMessage = '';
     this.isSubmitting = true;
 
+    // Solo enviamos lo que el backend realmente está pidiendo
     const payloadParaBackend: any = {
       planAlimenticio: payload.mealPlan,
     };
@@ -94,7 +92,7 @@ export class StudentPostulationPageComponent implements OnInit { // Implementamo
       .createSolicitud(payloadParaBackend)
       .pipe(finalize(() => {
         this.isSubmitting = false;
-        this.cdr.detectChanges(); // Forzamos renderizado al terminar envío
+        this.cdr.detectChanges(); 
       }))
       .subscribe({
         next: (response) => {
@@ -109,19 +107,17 @@ export class StudentPostulationPageComponent implements OnInit { // Implementamo
         },
         error: (error: HttpErrorResponse) => {
           if (error.status === 409) {
-            this.formMessage =
-              'No se pudo guardar: ya existe postulacion para este semestre o no hay cupo.';
+            this.formMessage = 'No se pudo guardar: ya existe postulacion para este semestre.';
             return;
           }
 
           if (error.status === 400) {
-            this.formMessage = 'Datos invalidos o rechazados por el servidor. Verifica el formulario.';
+            this.formMessage = 'Datos inválidos o rechazados por el servidor. Verifica el formulario.';
             console.error('Detalle del rechazo (400):', error.error);
             return;
           }
 
-          this.formMessage =
-            'No se pudo guardar la postulacion. Verifica el backend e intenta nuevamente.';
+          this.formMessage = 'No se pudo guardar la postulacion. Verifica el backend e intenta nuevamente.';
         },
       });
   }
@@ -133,18 +129,17 @@ export class StudentPostulationPageComponent implements OnInit { // Implementamo
   private loadMySolicitud(): void {
     this.isLoadingSolicitud = true;
 
+    // Ya no es necesario pasar el 'activeSemester' como parámetro
     this.postulationService
-      .getMySolicitud(this.activeSemester)
+      .getMySolicitud()
       .pipe(
         finalize(() => {
           this.isLoadingSolicitud = false;
-          this.cdr.detectChanges(); // Rompe el bucle visual de carga obligatoriamente aquí
+          this.cdr.detectChanges(); 
         })
       )
       .subscribe({
         next: (solicitud: any) => {
-          console.log('--- RESPUESTA REAL DEL BACKEND ---', solicitud);
-          
           if (!solicitud || (Array.isArray(solicitud) && solicitud.length === 0)) {
             return;
           }
@@ -180,11 +175,15 @@ export class StudentPostulationPageComponent implements OnInit { // Implementamo
       });
   }
 
-  private syncFormWithSolicitud(solicitud: SolicitudResponse): void {
-    this.postulationForm.patchValue({
-      career: solicitud.career,
-      gender: solicitud.gender,
-      mealPlan: solicitud.mealPlan,
-    });
+  // Se encarga de extraer el plan alimenticio independientemente de si viene de GET (camelCase) o POST (snake_case)
+  private syncFormWithSolicitud(solicitud: any): void {
+    if (!solicitud) return;
+    
+    const plan = solicitud.planAlimenticio || solicitud.plan_alimenticio;
+    if (plan) {
+      this.postulationForm.patchValue({
+        mealPlan: plan as MealPlan,
+      });
+    }
   }
 }

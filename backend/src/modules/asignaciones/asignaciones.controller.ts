@@ -8,6 +8,8 @@ import {
   Param,
   ParseIntPipe,
   Patch,
+  UnauthorizedException,
+  BadRequestException
 } from '@nestjs/common';
 import { AsignacionesService } from './asignaciones.service';
 import { RolesGuard } from '../../common/guards/roles.guard';
@@ -15,14 +17,12 @@ import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { Role } from '../auth/enums/role.enum';
 import type { AuthenticatedRequest } from '../../common/types/authenticated-request.type';
-import { UnauthorizedException } from '@nestjs/common';
 
-import { BadRequestException } from '@nestjs/common';
 import { CrearAsignacionDTO } from './dto/crearAsignacion.dto';
 
 @Controller('asignaciones')
 export class AsignacionesController {
-  constructor(private readonly asignacionesService: AsignacionesService) {}
+  constructor(private readonly asignacionesService: AsignacionesService) { }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN) // Solo el admin ejecuta esta acción
@@ -181,5 +181,48 @@ export class AsignacionesController {
     }
 
     return this.asignacionesService.renunciarAsignacion(idAsignacion, rutAdmin);
+  }
+
+  // ==========================================
+  // NUEVAS RUTAS: BÚSQUEDA Y CONTROL DE ESTANCIA
+  // ==========================================
+
+  // GET http://localhost:3000/asignaciones/buscar-residente/12345678-9
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  @Get('buscar-residente/:rut')
+  buscarResidentePorRut(@Param('rut') rut: string) {
+    if (!rut) {
+      throw new BadRequestException('Debes proporcionar el RUT del estudiante.');
+    }
+    return this.asignacionesService.obtenerMiAsignacion(rut);
+  }
+
+  // PATCH http://localhost:3000/asignaciones/1/check-in
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  @Patch(':idAsignacion/check-in')
+  registrarCheckIn(
+    @Param('idAsignacion', ParseIntPipe) idAsignacion: number,
+    @Req() request: AuthenticatedRequest
+  ) {
+    const rutAdmin = request.user?.rut;
+    if (!rutAdmin) throw new UnauthorizedException('No se pudo obtener el RUT del administrador');
+
+    return this.asignacionesService.registrarCheckIn(idAsignacion, rutAdmin);
+  }
+
+  // PATCH http://localhost:3000/asignaciones/1/check-out
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  @Patch(':idAsignacion/check-out')
+  registrarCheckOut(
+    @Param('idAsignacion', ParseIntPipe) idAsignacion: number,
+    @Req() request: AuthenticatedRequest
+  ) {
+    const rutAdmin = request.user?.rut;
+    if (!rutAdmin) throw new UnauthorizedException('No se pudo obtener el RUT del administrador');
+
+    return this.asignacionesService.registrarCheckOut(idAsignacion, rutAdmin);
   }
 }

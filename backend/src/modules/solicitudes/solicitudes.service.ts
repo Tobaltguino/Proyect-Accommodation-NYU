@@ -9,6 +9,7 @@ import { JwtPayload } from '../auth/types/auth.types';
 import { PeriodosService } from '../periodos/periodos.service';
 import { CreateSolicitudDto } from './dto';
 import { SolicitudEntity } from './entities';
+import { PeriodoEntity } from './entities';
 
 @Injectable()
 export class SolicitudesService {
@@ -88,26 +89,24 @@ export class SolicitudesService {
       },
     });
   }
-  async getAllMySolicitudes(user: JwtPayload) {
-    const solicitudes = await this.solicitudRepository.find({
-      // Use the exact property names from your SolicitudEntity class
-      select: {
-        idSolicitud: true,
-        estado: true,
-        fechaSolicitud: true,
-        idPeriodo: true,
-        idAsignacion: true,
-        rutEstudiante: true,
-        planAlimenticio: true,
-      },
-      where: {
-        rutEstudiante: user.rut,
-      },
-      order: {
-        fechaSolicitud: 'DESC',
-      },
-    });
+async getAllMySolicitudes(user: JwtPayload) {
+  const solicitudes = await this.solicitudRepository.createQueryBuilder('solicitud')
+    .select([
+      'solicitud.idSolicitud AS "idSolicitud"',
+      'solicitud.estado AS "estado"',
+      'solicitud.fechaSolicitud AS "fechaSolicitud"',
+      'solicitud.idPeriodo AS "idPeriodo"',
+      'solicitud.idAsignacion AS "idAsignacion"',
+      'solicitud.rutEstudiante AS "rutEstudiante"',
+      'solicitud.planAlimenticio AS "planAlimenticio"',
+      'periodo.nombre AS "semester"' // 
+    ])
 
-    return solicitudes.length > 0 ? solicitudes : null;
+    .leftJoin(PeriodoEntity, 'periodo', 'periodo.idPeriodo = solicitud.idPeriodo') 
+    .where('solicitud.rutEstudiante = :rut', { rut: user.rut })
+    .orderBy('solicitud.fechaSolicitud', 'DESC')
+    .getRawMany(); 
+
+  return solicitudes.length > 0 ? solicitudes : null;
   }
 }

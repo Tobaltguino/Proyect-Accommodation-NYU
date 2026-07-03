@@ -53,9 +53,9 @@
           <div class="form-group">
             <label for="mealPlan">Plan alimenticio</label>
             <select id="mealPlan" formControlName="mealPlan">
-              <option value="VEGANA">Dieta vegana</option>
-              <option value="VEGETARIANA">Dieta vegetariana</option>
-              <option value="OMNIVORA">Dieta omnivora</option>
+              <option value="Sin preferencia">Sin preferencia</option>
+              <option value="Vegetariano">Dieta vegetariana</option>
+              <option value="Vegano">Dieta vegana</option>
             </select>
             @if (postulationForm.controls.mealPlan.touched && postulationForm.controls.mealPlan.invalid) {
               <small class="error">Debes seleccionar un plan alimenticio.</small>
