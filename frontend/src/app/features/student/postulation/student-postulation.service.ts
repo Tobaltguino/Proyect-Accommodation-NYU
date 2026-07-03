@@ -1,63 +1,10 @@
-import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { AuthService } from '../../../core/auth/auth.service';
 
 export type Gender = 'MUJER' | 'HOMBRE';
-export type MealPlan = 'VEGANA' | 'VEGETARIANA' | 'OMNIVORA';
-
-export interface RoomAvailability {
-  code: string;
-  occupiedBeds: number;
-  totalBeds: number;
-}
-
-export interface FloorAvailability {
-  level: number;
-  rooms: RoomAvailability[];
-}
-
-export interface BuildingAvailability {
-  id: 'FEMENINO' | 'MASCULINO';
-  label: string;
-  gender: Gender;
-  floors: FloorAvailability[];
-}
-
-export interface AvailabilityResponse {
-  semester: string;
-  building: BuildingAvailability;
-}
-
-export interface CreateSolicitudPayload {
-  career: string;
-  gender: Gender;
-  phone: string;
-  city: string;
-  mealPlan: MealPlan;
-  roomCode: string;
-  motivation: string;
-  semester: string;
-}
-
-export interface SolicitudResponse {
-  id: number;
-  rut: string;
-  fullName: string;
-  semester: string;
-  career: string;
-  gender: Gender;
-  phone: string;
-  city: string;
-  mealPlan: MealPlan;
-  buildingId: 'FEMENINO' | 'MASCULINO';
-  roomCode: string;
-  motivation: string;
-  estado: 'En Revision' | 'Aprobada' | 'Rechazada' | 'Pendiente' | 'Finalizada'; 
-  
-  reservationExpiresAt: string | null;
-  updatedAt: string;
-}
+export type MealPlan = 'Sin preferencia' | 'Vegetariano' | 'Vegano';
 
 @Injectable({ providedIn: 'root' })
 export class StudentPostulationService {
@@ -68,36 +15,23 @@ export class StudentPostulationService {
     private readonly authService: AuthService,
   ) {}
 
-  getAvailability(gender: Gender, semester: string): Observable<AvailabilityResponse> {
-    const params = new HttpParams().set('gender', gender).set('semester', semester);
-
-    return this.http.get<AvailabilityResponse>(
-      `${this.apiBaseUrl}/residencias/disponibilidad`,
-      {
-        headers: this.getAuthHeaders(),
-        params,
-      },
-    );
-  }
-
-  createSolicitud(payload: CreateSolicitudPayload): Observable<SolicitudResponse> {
-    return this.http.post<SolicitudResponse>(`${this.apiBaseUrl}/solicitudes`, payload, {
+  // POST: Enviar nueva solicitud
+  createSolicitud(payload: any): Observable<any> {
+    return this.http.post<any>(`${this.apiBaseUrl}/solicitudes`, payload, {
       headers: this.getAuthHeaders(),
     });
   }
 
-  getMySolicitud(semester: string): Observable<SolicitudResponse | null> {
-    const params = new HttpParams().set('semester', semester);
-
-    return this.http.get<SolicitudResponse | null>(`${this.apiBaseUrl}/solicitudes/mia`, {
+  // GET: Obtener la solicitud del semestre actual (ya no requiere el semestre por parámetro)
+  getMySolicitud(): Observable<any> {
+    return this.http.get<any>(`${this.apiBaseUrl}/solicitudes/mia`, {
       headers: this.getAuthHeaders(),
-      params,
     });
   }
 
-  // NUEVO MÉTODO: Pide el historial completo de solicitudes del estudiante
-  getHistorialSolicitudes(): Observable<SolicitudResponse[]> {
-    return this.http.get<SolicitudResponse[]>(`${this.apiBaseUrl}/solicitudes/all`, {
+  // GET: Obtener todo el historial
+  getHistorialSolicitudes(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiBaseUrl}/solicitudes/all`, {
       headers: this.getAuthHeaders(),
     });
   }

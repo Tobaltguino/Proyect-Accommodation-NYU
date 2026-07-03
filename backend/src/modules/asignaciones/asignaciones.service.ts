@@ -35,21 +35,32 @@ export class AsignacionesService {
     private dataSource: DataSource,
   ) {}
 
-  // ---------------------------------------------------------
-  // MOCKS DE APIs EXTERNAS (Reemplazar con HTTP Calls reales luego)
-  // ---------------------------------------------------------
   private async verificarMatriculaActiva(rut: string): Promise<boolean> {
-    // Aquí irá la llamada a la API del otro grupo
     return true;
   }
 
   private async verificarIncidenciasGraves(rut: string): Promise<boolean> {
-    // Retorna 'true' si tiene una incidencia grave activa
     return false;
   }
 
-  private async obtenerGeneroEstudiante(rut: string): Promise<string> {
-    return 'Masculino'; // o 'Femenino'
+  private async obtenerGeneroEstudiante(rutEstudiante: string): Promise<string> {
+    try {
+      const usuario = await this.dataSource
+        .createQueryBuilder()
+        .select('usuario.genero', 'genero')
+        .from('usuario', 'usuario') 
+        .where('usuario.rut = :rut', { rut: rutEstudiante })
+        .getRawOne();
+
+      if (!usuario || !usuario.genero) {
+        throw new BadRequestException(`No se pudo determinar el género del estudiante con RUT ${rutEstudiante}.`);
+      }
+
+      return usuario.genero; 
+    } catch (error) {
+      console.error('💥 Error en obtenerGeneroEstudiante:', error);
+      throw error;
+    }
   }
 
   async crearAsignacion(
@@ -62,12 +73,11 @@ export class AsignacionesService {
     await queryRunner.startTransaction();
 
     try {
-      // 1. Validaciones iniciales (Lecturas)
       const solicitud = await queryRunner.manager.findOne(SolicitudEntity, {
         where: { idSolicitud },
       });
       if (!solicitud) throw new NotFoundException('La solicitud no existe.');
-      if (solicitud.estado !== 'Pendiente')
+      if (solicitud.estado !== 'Pendiente' && solicitud.estado !== 'En Revision' )
         throw new BadRequestException('Esta solicitud ya fue procesada.');
 
       const habitacion = await queryRunner.manager.findOne(HabitacionEntity, {
@@ -88,7 +98,6 @@ export class AsignacionesService {
 
       const rutEstudiante = solicitud.rutEstudiante;
 
-      // 2. Validaciones externas
       const tieneMatricula = await this.verificarMatriculaActiva(rutEstudiante);
       if (!tieneMatricula)
         throw new ForbiddenException(
@@ -109,9 +118,6 @@ export class AsignacionesService {
         );
       }
 
-      // 3. Ejecución de operaciones (Escritura dentro de la transacción)
-
-      // A. Crear Asignación
       const nuevaAsignacion = queryRunner.manager.create(AsignacionEntity, {
         fechaAsignacion: new Date(),
         estado: 'Activa',
@@ -123,24 +129,20 @@ export class AsignacionesService {
       const asignacionGuardada =
         await queryRunner.manager.save(nuevaAsignacion);
 
-      // B. Crear Plan Alimenticio
       const nuevoPlan = queryRunner.manager.create(PlanAlimenticioEntity, {
         tipoPlan: solicitud.planAlimenticio,
         idPeriodo: solicitud.idPeriodo,
-        rutEstudiante: rutEstudiante, // Asegúrate de tener este campo en la entidad
+        rutEstudiante: rutEstudiante, 
       });
       await queryRunner.manager.save(nuevoPlan);
 
-      // C. Actualizar Solicitud
       solicitud.estado = 'Aprobada';
       solicitud.idAsignacion = asignacionGuardada.idAsignacion;
       await queryRunner.manager.save(solicitud);
 
-      // D. Actualizar Habitación
       habitacion.capacidadActual -= 1;
       await queryRunner.manager.save(habitacion);
 
-      // Finalizar transacción
       await queryRunner.commitTransaction();
 
       return {
@@ -148,16 +150,13 @@ export class AsignacionesService {
         asignacion: asignacionGuardada,
       };
     } catch (err) {
-      // Revertir todo en caso de error
       await queryRunner.rollbackTransaction();
       throw err;
     } finally {
-      // Liberar conexión
       await queryRunner.release();
     }
   }
 
-  // OBTENER TODAS LAS ASIGNACIONES
   async obtenerTodas(): Promise<AsignacionDTO[]> {
     const asignaciones = await this.asignacionRepo.find({
       relations: {
@@ -168,7 +167,6 @@ export class AsignacionesService {
           },
         },
       },
-
       order: {
         fechaAsignacion: 'DESC',
       },
@@ -179,10 +177,9 @@ export class AsignacionesService {
     );
   }
 
-  // OBTENER HISTORIAL COMPLETO DEL ESTUDIANTE ACTUAL
   async obtenerMiHistorial(rutEstudiante: string): Promise<AsignacionDTO[]> {
     const asignaciones = await this.asignacionRepo.find({
-      where: { rutEstudiante: rutEstudiante }, // Sin filtro de estado para traer todo el historial
+      where: { rutEstudiante: rutEstudiante },
       relations: {
         periodo: true,
         habitacion: {
@@ -191,26 +188,17 @@ export class AsignacionesService {
           },
         },
       },
-      order: { fechaAsignacion: 'DESC' }, // Las más recientes primero
+      order: { fechaAsignacion: 'DESC' }, 
     });
 
-    // Reutilizamos el aplanador para mantener el formato plano que el frontend espera
-    //return asignaciones
     return asignaciones.map((asignacion) =>
       this.mapAsignacionToDTO(asignacion),
     );
   }
 
-  // OBTENER ASIGNACIÓN DEL ESTUDIANTE ACTUAL
-  async obtenerMiAsignacion(
-    rutEstudiante: string,
-  ): Promise<RespuestaMiAsignacion> {
+  async obtenerMiAsignacion(rutEstudiante: string): Promise<RespuestaMiAsignacion> {
     const asignacion = await this.asignacionRepo.findOne({
-      where: {
-        rutEstudiante: rutEstudiante,
-        estado: 'Activa',
-      },
-      // Magia de TypeORM: Traemos el periodo, y bajamos en cascada hasta el edificio
+      where: { rutEstudiante: rutEstudiante, estado: 'Activa' },
       relations: {
         periodo: true,
         habitacion: {
@@ -225,7 +213,7 @@ export class AsignacionesService {
     if (!asignacion) {
       return {
         tieneAsignacion: false,
-        message: 'No tienes ninguna asignación activa en este momento.',
+        message: 'No se encontró ninguna estancia vigente para este residente.',
       };
     }
 
@@ -283,26 +271,23 @@ export class AsignacionesService {
       order: { fechaAsignacion: 'DESC' },
     });
 
-    // AQUÍ USAMOS EL APLANADOR (Igual que en obtenerTodas):
     return asignaciones.map((asignacion) =>
       this.mapAsignacionToDTO(asignacion),
     );
   }
 
-  // REASIGNAR HABITACIÓN
   async reasignarHabitacion(
     idAsignacion: number,
     idNuevaHabitacion: number,
     rutAdmin: string,
   ) {
-    // 1. Obtener la asignación actual
     const asignacion = await this.asignacionRepo.findOne({
       where: { idAsignacion },
     });
     if (!asignacion) throw new NotFoundException('La asignación no existe.');
     if (asignacion.estado !== 'Activa') {
       throw new BadRequestException(
-        'Solo se pueden reasignar estudiantes que tengan una estadía "Activa".',
+        'Solo se pueden reasignar estudiantes que tengan una estadía vigente.',
       );
     }
 
@@ -312,7 +297,6 @@ export class AsignacionesService {
       );
     }
 
-    // 2. Obtener la NUEVA Habitación, su Piso y su Edificio
     const nuevaHabitacion = await this.habitacionRepo.findOne({
       where: { idHabitacion: idNuevaHabitacion },
     });
@@ -330,7 +314,6 @@ export class AsignacionesService {
     if (!edificio)
       throw new NotFoundException('El edificio asociado no existe.');
 
-    // 3. Validar Género (Reutilizamos tu método privado)
     const generoEstudiante = await this.obtenerGeneroEstudiante(
       asignacion.rutEstudiante,
     );
@@ -340,7 +323,6 @@ export class AsignacionesService {
       );
     }
 
-    // 4. Validar Capacidad de la NUEVA Habitación
     if (
       nuevaHabitacion.capacidadActual <= 0 ||
       !nuevaHabitacion.disponibilidad
@@ -350,36 +332,28 @@ export class AsignacionesService {
       );
     }
 
-    // ==========================================
-    // EJECUCIÓN DEL INTERCAMBIO (SWAP)
-    // ==========================================
-
-    // A. Liberar la cama de la habitación ANTIGUA
     const habitacionAntigua = await this.habitacionRepo.findOne({
       where: { idHabitacion: asignacion.idHabitacion },
     });
     if (habitacionAntigua) {
       habitacionAntigua.capacidadActual += 1;
-      habitacionAntigua.disponibilidad = true; // Al liberar una cama, vuelve a estar disponible obligatoriamente
+      habitacionAntigua.disponibilidad = true; 
       await this.habitacionRepo.save(habitacionAntigua);
     }
 
-    // B. Ocupar la cama de la NUEVA habitación
     nuevaHabitacion.capacidadActual -= 1;
     if (nuevaHabitacion.capacidadActual === 0) {
-      nuevaHabitacion.disponibilidad = false; // Se llenó
+      nuevaHabitacion.disponibilidad = false; 
     }
     await this.habitacionRepo.save(nuevaHabitacion);
 
-    // C. Actualizar la Asignación
     asignacion.idHabitacion = idNuevaHabitacion;
-    asignacion.rutAdmin = rutAdmin; // Actualizamos quién fue el responsable del traslado
+    asignacion.rutAdmin = rutAdmin; 
 
     return await this.asignacionRepo.save(asignacion);
   }
 
   async renunciarAsignacion(idAsignacion: number, rutAdmin: string) {
-    // 1. Buscamos la asignación
     const asignacion = await this.asignacionRepo.findOne({
       where: { idAsignacion },
     });
@@ -390,40 +364,79 @@ export class AsignacionesService {
 
     if (asignacion.estado !== 'Activa') {
       throw new BadRequestException(
-        'Solo se puede procesar la renuncia de asignaciones que estén en estado "Activa".',
+        'Solo se puede procesar la renuncia de asignaciones que estén vigentes.',
       );
     }
 
-    // 2. Liberar la cama de la habitación
     const habitacion = await this.habitacionRepo.findOne({
       where: { idHabitacion: asignacion.idHabitacion },
     });
     if (habitacion) {
       habitacion.capacidadActual += 1;
-      habitacion.disponibilidad = true; // Al liberar una cama, la habitación vuelve a estar disponible
+      habitacion.disponibilidad = true; 
       await this.habitacionRepo.save(habitacion);
     }
 
-    // 3. Actualizar los datos de la Asignación
+    const hoy = new Date();
+    const fechaLocal = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
+
     asignacion.estado = 'Renunciada';
+    asignacion.fechaCheckOut = fechaLocal as any; 
+    asignacion.rutAdmin = rutAdmin; 
 
-    //REVISAR BIEN FECHAS
-    asignacion.fechaCheckOut = new Date(); // La fecha de salida pasa a ser el día de hoy
-    asignacion.rutAdmin = rutAdmin; // Registramos qué admin procesó la salida en el sistema
-
-    // 4. Guardamos y retornamos
     return await this.asignacionRepo.save(asignacion);
   }
 
-  // OBTENER CONTABILIZACIÓN DE ESTUDIANTES RESIDENTES (ACTIVOS) POR PERIODO
-  async obtenerTotalResidentesActivos(
-    idPeriodo: number,
-  ): Promise<{ total: number }> {
+  async registrarCheckIn(idAsignacion: number, rutAdmin: string) {
+    try {
+      const asignacion = await this.asignacionRepo.findOne({ where: { idAsignacion } });
+      if (!asignacion) throw new NotFoundException('La asignación no existe.');
+      if (asignacion.estado !== 'Activa') throw new BadRequestException('La asignación no está pendiente de ingreso.');
+
+      const hoy = new Date();
+      const fechaLocal = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
+
+      asignacion.fechaCheckIn = fechaLocal as any; 
+      asignacion.rutAdmin = rutAdmin; 
+      
+      return await this.asignacionRepo.save(asignacion);
+    } catch (error) {
+      console.error(' Error CRÍTICO en registrarCheckIn:', error);
+      throw error;
+    }
+  }
+
+  async registrarCheckOut(idAsignacion: number, rutAdmin: string) {
+    try {
+      const asignacion = await this.asignacionRepo.findOne({ where: { idAsignacion } });
+      if (!asignacion) throw new NotFoundException('La asignación no existe.');
+      if (asignacion.estado !== 'Activa') throw new BadRequestException('Solo se puede hacer Check-Out a residentes activos.');
+      if (!asignacion.fechaCheckIn) throw new BadRequestException('El estudiante aún no ha realizado el Check-In.');
+      
+      const habitacion = await this.habitacionRepo.findOne({ where: { idHabitacion: asignacion.idHabitacion } });
+      if (habitacion) {
+        habitacion.capacidadActual += 1;
+        habitacion.disponibilidad = true;
+        await this.habitacionRepo.save(habitacion);
+      }
+
+      const hoy = new Date();
+      const fechaLocal = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
+
+      asignacion.estado = 'Finalizada'; 
+      asignacion.fechaCheckOut = fechaLocal as any;
+      asignacion.rutAdmin = rutAdmin;
+      
+      return await this.asignacionRepo.save(asignacion);
+    } catch (error) {
+      console.error('💥 Error CRÍTICO en registrarCheckOut:', error);
+      throw error;
+    }
+  }
+
+  async obtenerTotalResidentesActivos(idPeriodo: number): Promise<{ total: number }> {
     const cantidad = await this.asignacionRepo.count({
-      where: {
-        estado: 'Activa',
-        idPeriodo: idPeriodo,
-      },
+      where: { estado: 'Activa', idPeriodo: idPeriodo }
     });
     return { total: cantidad };
   }
@@ -438,7 +451,6 @@ export class AsignacionesService {
       rutEstudiante: asignacion.rutEstudiante,
       rutAdmin: asignacion.rutAdmin,
 
-      // Relaciones aplanadas de forma segura con ?.
       idPeriodo: asignacion.periodo?.idPeriodo || asignacion.idPeriodo,
       nombrePeriodo: asignacion.periodo?.nombre || 'Sin periodo',
 

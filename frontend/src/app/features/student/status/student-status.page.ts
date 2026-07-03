@@ -1,12 +1,17 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, ChangeDetectorRef, inject } from '@angular/core'; // <-- Importamos ChangeDetectorRef e inject
+import { Component, OnInit, ChangeDetectorRef, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { finalize, TimeoutError, timeout } from 'rxjs';
 import { AuthService } from '../../../core/auth/auth.service';
 import { SessionUser } from '../../../core/auth/auth.models';
-import { SolicitudResponse, StudentPostulationService } from '../postulation/student-postulation.service';
+import { StudentPostulationService } from '../postulation/student-postulation.service';
 
-export interface MappedSolicitud extends SolicitudResponse {
+// Interfaz definida localmente sin depender de fuentes externas
+export interface MappedSolicitud {
+  id: number;
+  semester: string;
+  roomCode: string;
+  updatedAt: string;
   statusLabel: string;
   statusDescription: string;
   statusClass: string;
@@ -19,9 +24,8 @@ export interface MappedSolicitud extends SolicitudResponse {
   styleUrl: './student-status.page.scss',
 })
 export class StudentStatusPageComponent implements OnInit {
-  private readonly activeSemester = '2026-1';
   private readonly requestTimeoutMs = 10000;
-  private readonly cdr = inject(ChangeDetectorRef); // <-- Inyectamos el detector de cambios
+  private readonly cdr = inject(ChangeDetectorRef);
 
   readonly currentUser: SessionUser | null;
 
@@ -53,7 +57,7 @@ export class StudentStatusPageComponent implements OnInit {
     this.loadStatus();
   }
 
-  formatTimestamp(value: string | undefined): string {
+  public formatTimestamp(value: string | undefined): string {
     if (!value) return '-';
     
     const date = new Date(value);
@@ -67,42 +71,48 @@ export class StudentStatusPageComponent implements OnInit {
     }).format(date);
   }
 
-  private mapSolicitudData(solicitud: any, overrideId?: number): MappedSolicitud {
+  private mapSolicitudData(solicitud: any): MappedSolicitud {
+    // Leemos el estado exacto que llega del JSON
     const estadoReal = solicitud.estado || 'Pendiente';
     
-    let label = 'Expirada';
-    let desc = 'La reserva asociada a tu solicitud expiró. Puedes iniciar una nueva postulación.';
+    let label = 'Estado Desconocido';
+    let desc = 'No se pudo determinar el estado actual.';
     let cssClass = 'neutral';
 
-    if (estadoReal === 'En Revision' || estadoReal === 'Pendiente') {
+    // 1. Separamos "Pendiente" / "En Espera" para que no se confunda con "En Revision"
+    if (estadoReal === 'Pendiente' || estadoReal === 'En Espera') {
+      label = 'En Espera';
+      desc = 'Tu solicitud ha sido recibida y está a la espera de evaluación.';
+      cssClass = 'pending';
+    } else if (estadoReal === 'En Revision') {
       label = 'En Revisión';
-      desc = 'Tu solicitud ha sido recibida y está en evaluación por el equipo de residencia.';
+      desc = 'Tu solicitud está siendo evaluada por la administración.';
       cssClass = 'pending';
     } else if (estadoReal === 'Aprobada') {
       label = 'Aprobada';
-      desc = 'Tu solicitud fue aprobada. Revisa los siguientes pasos en secretaría.';
+      desc = 'Tu solicitud fue aprobada. Revisa los siguientes pasos.';
       cssClass = 'approved';
     } else if (estadoReal === 'Rechazada') {
       label = 'Rechazada';
-      desc = 'Tu solicitud fue rechazada. Puedes revisar las observaciones con asistencia estudiantil.';
+      desc = 'Tu solicitud fue rechazada.';
       cssClass = 'rejected';
     } else if (estadoReal === 'Finalizada') {
       label = 'Finalizada';
-      desc = 'Este proceso de postulación ya ha concluido.';
+      desc = 'El proceso ha concluido.';
       cssClass = 'neutral';
     }
 
     return {
-      ...solicitud,
-      id: overrideId ?? solicitud.idSolicitud ?? Math.floor(Math.random() * 10000), 
-      semester: String(solicitud.idPeriodo ?? 'Desconocido'),
+      // Usamos exactamente las llaves del JSON
+      id: Number(solicitud.idSolicitud),
+      semester: String(solicitud.semester || 'Desconocido'),
       roomCode: String(solicitud.idAsignacion ?? '000'),
       updatedAt: solicitud.fechaSolicitud ?? new Date().toISOString(),
       
       statusLabel: label,
       statusDescription: desc,
       statusClass: cssClass,
-    } as MappedSolicitud;
+    };
   }
 
   private loadStatus(): void {
@@ -115,26 +125,22 @@ export class StudentStatusPageComponent implements OnInit {
         timeout({ first: this.requestTimeoutMs }),
         finalize(() => {
           this.isLoading = false;
-          this.cdr.detectChanges(); // <-- Forzamos actualización visual al terminar
+          this.cdr.detectChanges();
         }),
       )
       .subscribe({
         next: (historialReal: any) => {
-          if (!historialReal || !Array.isArray(historialReal)) {
+          if (!Array.isArray(historialReal)) {
             this.solicitudes = [];
           } else {
-            this.solicitudes = historialReal.map((sol) => 
-              this.mapSolicitudData(sol, sol.idSolicitud ?? sol.id)
-            );
+            // Mapeo directo con los datos ya corregidos
+            this.solicitudes = historialReal.map((sol) => this.mapSolicitudData(sol));
           }
-          this.cdr.detectChanges(); // <-- Refrescamos la lista en pantalla
         },
         error: (error: unknown) => {
-          this.loadError =
-            error instanceof TimeoutError
-              ? 'La consulta demoró demasiado. Intenta nuevamente.'
-              : 'No se pudo consultar el historial de tus postulaciones. Verifica la conexión con el backend.';
-          this.cdr.detectChanges(); // <-- Refrescamos el mensaje de error en pantalla
+          this.loadError = error instanceof TimeoutError
+              ? 'La consulta demoró demasiado.'
+              : 'Error al consultar el historial.';
           console.error('Error al cargar historial:', error);
         },
       });
