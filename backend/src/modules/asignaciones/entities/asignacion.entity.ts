@@ -8,6 +8,7 @@ import {
 
 import { PeriodoEntity } from '../../solicitudes/entities';
 import { HabitacionEntity } from '../../residencias/entities';
+import { estadoPago } from './estadoPagos.enum';
 
 @Entity({ name: 'asignacion_estancia' })
 export class AsignacionEntity {

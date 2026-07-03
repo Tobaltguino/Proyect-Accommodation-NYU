@@ -15,6 +15,8 @@ import { PisoEntity } from '../residencias/entities';
 import { DataSource } from 'typeorm';
 import { PlanAlimenticioEntity } from '../solicitudes/entities';
 import { AsignacionDTO, RespuestaMiAsignacion } from './dto/asignacion.dto';
+import { Pagos } from './pagos.service';
+import { estadoPago } from './entities/estadoPagos.enum';
 
 @Injectable()
 export class AsignacionesService {
@@ -31,6 +33,7 @@ export class AsignacionesService {
     private readonly pisoRepo: Repository<PisoEntity>,
     @InjectRepository(PlanAlimenticioEntity)
     private readonly planRepo: Repository<PlanAlimenticioEntity>,
+    private pagos: Pagos,
 
     private dataSource: DataSource,
   ) {}
@@ -426,6 +429,103 @@ export class AsignacionesService {
       },
     });
     return { total: cantidad };
+  }
+
+  // =====================================================================
+  // FASE 1: Preparar la orden de pago antes de redirigir al estudiante
+  // =====================================================================
+  async prepararOrdenPago(idAsignacion: number, rutEstudiante: string) {
+    const asignacion = await this.asignacionRepo.findOne({
+      where: { idAsignacion, rutEstudiante },
+      relations: { habitacion: { piso: { edificio: true } } } // Si necesitas sacar el precio del edificio
+    });
+
+    if (!asignacion) {
+      throw new NotFoundException('No se encontró la asignación activa.');
+    }
+
+    if (asignacion.estado === 'PAGADO') {
+      throw new BadRequestException('Esta estancia ya se encuentra pagada.');
+    }
+
+    // 1. Validar la regla de negocio de los 15 días
+    const hoy = new Date();
+    const fechaAsignacion = new Date(asignacion.fechaAsignacion);
+    const msPorDia = 1000 * 60 * 60 * 24;
+    const diasTranscurridos = Math.floor((hoy.getTime() - fechaAsignacion.getTime()) / msPorDia);
+
+    if (diasTranscurridos > 15) {
+      asignacion.estado = 'EXPIRADO';
+      await this.asignacionRepo.save(asignacion);
+      throw new BadRequestException('El plazo máximo de 15 días para pagar ha expirado.');
+    }
+
+    // 2. Generar un referenceId único 
+    // El PDF exige un referenceId único para evitar error 409 [cite: 129]
+    const referenceId = `RES-${idAsignacion}-${Date.now()}`;
+
+    // Asumimos un monto fijo o lo sacas de la entidad edificio
+    const montoAPagar = 150000;
+    const descripcion = `Pago de residencia - Asignación #${idAsignacion}`;
+
+    // 3. Crear la orden en el API del equipo de pagos (Quedará en PENDING) [cite: 66]
+    await this.pagos.crearOrdenPago(referenceId, montoAPagar, descripcion);
+
+    // 4. Guardamos temporalmente el referenceId en nuestra BD para saber qué consultar después
+    asignacion.idPago = referenceId;
+    await this.asignacionRepo.save(asignacion);
+
+    // 5. Devolvemos el referenceId al frontend para que arme su URL de redirección
+    return {
+      success: true,
+      referenceId: referenceId,
+      message: 'Orden de pago creada exitosamente. Redirigiendo a pasarela...'
+    };
+  }
+
+  // =====================================================================
+  // FASE 3: Verificar si el estudiante realmente pagó al volver
+  // =====================================================================
+  async verificarYConfirmarPago(idAsignacion: number, rutEstudiante: string) {
+    const asignacion = await this.asignacionRepo.findOne({
+      where: { idAsignacion, rutEstudiante }
+    });
+
+    if (!asignacion) throw new NotFoundException('Asignación no encontrada.');
+    if (!asignacion.idPago) throw new BadRequestException('No hay ninguna orden de pago en curso.');
+    if (asignacion.estado === 'PAGADO') return { success: true, message: 'Ya estaba pagado.' };
+
+    // 1. Consultamos el estado real al API de pagos
+    const estadoPago = await this.pagos.consultarEstado(asignacion.idPago);
+
+    // 2. Evaluamos la respuesta según el documento de integración [cite: 119]
+    if (estadoPago === 'APPROVED') {
+      asignacion.estado = 'PAGADO';
+      asignacion.fechaPago = new Date(); // Fecha exacta en que confirmamos el pago
+      await this.asignacionRepo.save(asignacion);
+
+      return {
+        success: true,
+        estado: 'APPROVED',
+        message: '¡Pago confirmado exitosamente!'
+      };
+    }
+
+    if (estadoPago === 'REJECTED' || estadoPago === 'CANCELLED') {
+      // Opcional: Podrías limpiar el idPago si quieres que intenten de nuevo desde cero
+      return {
+        success: false,
+        estado: estadoPago,
+        message: 'El pago fue rechazado o cancelado en la pasarela.'
+      };
+    }
+
+    // Si sigue PENDING [cite: 119]
+    return {
+      success: false,
+      estado: 'PENDING',
+      message: 'El pago aún está pendiente de confirmación.'
+    };
   }
 
   private mapAsignacionToDTO(asignacion: any): AsignacionDTO {

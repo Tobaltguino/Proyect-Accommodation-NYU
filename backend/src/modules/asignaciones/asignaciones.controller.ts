@@ -143,6 +143,26 @@ export class AsignacionesController {
     );
   }
 
+  // FASE 1: Ruta POST para iniciar el pago (Orientada a recursos)
+  @Post(':idAsignacion/pagos')
+  async iniciarPago(
+    @Param('idAsignacion', ParseIntPipe) idAsignacion: number,
+    @Req() request: any // Usa tu AuthenticatedRequest aquí
+  ) {
+    const rutEstudiante = request.user.rut; // Extraído del token JWT
+    return this.asignacionesService.prepararOrdenPago(idAsignacion, rutEstudiante);
+  }
+
+  // FASE 3: Ruta GET para verificar cómo quedó el pago
+  @Get(':idAsignacion/pagos')
+  async verificarPago(
+    @Param('idAsignacion', ParseIntPipe) idAsignacion: number,
+    @Req() request: any
+  ) {
+    const rutEstudiante = request.user.rut;
+    return this.asignacionesService.verificarYConfirmarPago(idAsignacion, rutEstudiante);
+  }
+
   // PATCH http://localhost:3000/asignaciones/1/renunciar
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
