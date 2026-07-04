@@ -22,9 +22,6 @@ import { UsersModule } from './modules/users/users.module';
 
 import { AppService } from './app.service';
 import { AppController } from './app.controller';
-import { PlanAlimenticioService } from './modules/plan-alimenticio/plan-alimenticio.service';
-import { PlanAlimenticioController } from './modules/plan-alimenticio/plan-alimenticio.controller';
-import { PlanAlimenticioModule } from './modules/plan-alimenticio/plan-alimenticio.module';
 
 @Module({
   imports: [
@@ -37,7 +34,8 @@ import { PlanAlimenticioModule } from './modules/plan-alimenticio/plan-alimentic
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (configService: ConfigService) => getDatabaseConfig(configService),
+      useFactory: (configService: ConfigService) =>
+        getDatabaseConfig(configService),
     }),
 
     AuthModule,
@@ -53,12 +51,8 @@ import { PlanAlimenticioModule } from './modules/plan-alimenticio/plan-alimentic
     HabitacionesModule,
     PeriodosModule,
     EdificiosModule,
-    PlanAlimenticioModule
-
-
-
   ],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule { }
+export class AppModule {}

@@ -13,7 +13,6 @@ import { HabitacionEntity } from '../residencias/entities';
 import { EdificioEntity } from '../residencias/entities';
 import { PisoEntity } from '../residencias/entities';
 import { DataSource } from 'typeorm';
-import { PlanAlimenticioEntity } from '../solicitudes/entities';
 import { AsignacionDTO, RespuestaMiAsignacion } from './dto/asignacion.dto';
 
 @Injectable()
@@ -29,11 +28,9 @@ export class AsignacionesService {
     private readonly edificioRepo: Repository<EdificioEntity>,
     @InjectRepository(PisoEntity)
     private readonly pisoRepo: Repository<PisoEntity>,
-    @InjectRepository(PlanAlimenticioEntity)
-    private readonly planRepo: Repository<PlanAlimenticioEntity>,
 
     private dataSource: DataSource,
-  ) { }
+  ) {}
 
   private async verificarMatriculaActiva(rut: string): Promise<boolean> {
     return true;
@@ -43,20 +40,24 @@ export class AsignacionesService {
     return false;
   }
 
-  private async obtenerGeneroEstudiante(rutEstudiante: string): Promise<string> {
+  private async obtenerGeneroEstudiante(
+    rutEstudiante: string,
+  ): Promise<string> {
     try {
       const usuario = await this.dataSource
         .createQueryBuilder()
         .select('usuario.genero', 'genero')
-        .from('usuario', 'usuario') 
+        .from('usuario', 'usuario')
         .where('usuario.rut = :rut', { rut: rutEstudiante })
         .getRawOne();
 
       if (!usuario || !usuario.genero) {
-        throw new BadRequestException(`No se pudo determinar el género del estudiante con RUT ${rutEstudiante}.`);
+        throw new BadRequestException(
+          `No se pudo determinar el género del estudiante con RUT ${rutEstudiante}.`,
+        );
       }
 
-      return usuario.genero; 
+      return usuario.genero;
     } catch (error) {
       console.error('💥 Error en obtenerGeneroEstudiante:', error);
       throw error;
@@ -77,7 +78,10 @@ export class AsignacionesService {
         where: { idSolicitud },
       });
       if (!solicitud) throw new NotFoundException('La solicitud no existe.');
-      if (solicitud.estado !== 'Pendiente' && solicitud.estado !== 'En Revision' )
+      if (
+        solicitud.estado !== 'Pendiente' &&
+        solicitud.estado !== 'En Revision'
+      )
         throw new BadRequestException('Esta solicitud ya fue procesada.');
 
       const habitacion = await queryRunner.manager.findOne(HabitacionEntity, {
@@ -128,12 +132,6 @@ export class AsignacionesService {
       });
       const asignacionGuardada =
         await queryRunner.manager.save(nuevaAsignacion);
-
-      const nuevoPlan = queryRunner.manager.create(PlanAlimenticioEntity, {
-        tipoPlan: solicitud.planAlimenticio,
-        idPeriodo: solicitud.idPeriodo,
-        rutEstudiante: rutEstudiante, 
-      });
       await queryRunner.manager.save(nuevoPlan);
 
       solicitud.estado = 'Aprobada';
@@ -188,7 +186,7 @@ export class AsignacionesService {
           },
         },
       },
-      order: { fechaAsignacion: 'DESC' }, 
+      order: { fechaAsignacion: 'DESC' },
     });
 
     return asignaciones.map((asignacion) =>
@@ -196,7 +194,9 @@ export class AsignacionesService {
     );
   }
 
-  async obtenerMiAsignacion(rutEstudiante: string): Promise<RespuestaMiAsignacion> {
+  async obtenerMiAsignacion(
+    rutEstudiante: string,
+  ): Promise<RespuestaMiAsignacion> {
     const asignacion = await this.asignacionRepo.findOne({
       where: { rutEstudiante: rutEstudiante, estado: 'Activa' },
       relations: {
@@ -303,18 +303,18 @@ export class AsignacionesService {
     });
     if (habitacionAntigua) {
       habitacionAntigua.capacidadActual += 1;
-      habitacionAntigua.disponibilidad = true; 
+      habitacionAntigua.disponibilidad = true;
       await this.habitacionRepo.save(habitacionAntigua);
     }
 
     nuevaHabitacion.capacidadActual -= 1;
     if (nuevaHabitacion.capacidadActual === 0) {
-      nuevaHabitacion.disponibilidad = false; 
+      nuevaHabitacion.disponibilidad = false;
     }
     await this.habitacionRepo.save(nuevaHabitacion);
 
     asignacion.idHabitacion = idNuevaHabitacion;
-    asignacion.rutAdmin = rutAdmin; 
+    asignacion.rutAdmin = rutAdmin;
 
     return await this.asignacionRepo.save(asignacion);
   }
@@ -339,7 +339,7 @@ export class AsignacionesService {
     });
     if (habitacion) {
       habitacion.capacidadActual += 1;
-      habitacion.disponibilidad = true; 
+      habitacion.disponibilidad = true;
       await this.habitacionRepo.save(habitacion);
     }
 
@@ -347,24 +347,29 @@ export class AsignacionesService {
     const fechaLocal = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
 
     asignacion.estado = 'Renunciada';
-    asignacion.fechaCheckOut = fechaLocal as any; 
-    asignacion.rutAdmin = rutAdmin; 
+    asignacion.fechaCheckOut = fechaLocal as any;
+    asignacion.rutAdmin = rutAdmin;
 
     return await this.asignacionRepo.save(asignacion);
   }
 
   async registrarCheckIn(idAsignacion: number, rutAdmin: string) {
     try {
-      const asignacion = await this.asignacionRepo.findOne({ where: { idAsignacion } });
+      const asignacion = await this.asignacionRepo.findOne({
+        where: { idAsignacion },
+      });
       if (!asignacion) throw new NotFoundException('La asignación no existe.');
-      if (asignacion.estado !== 'Activa') throw new BadRequestException('La asignación no está pendiente de ingreso.');
+      if (asignacion.estado !== 'Activa')
+        throw new BadRequestException(
+          'La asignación no está pendiente de ingreso.',
+        );
 
       const hoy = new Date();
       const fechaLocal = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
 
-      asignacion.fechaCheckIn = fechaLocal as any; 
-      asignacion.rutAdmin = rutAdmin; 
-      
+      asignacion.fechaCheckIn = fechaLocal as any;
+      asignacion.rutAdmin = rutAdmin;
+
       return await this.asignacionRepo.save(asignacion);
     } catch (error) {
       console.error('💥 Error CRÍTICO en registrarCheckIn:', error);
@@ -374,12 +379,22 @@ export class AsignacionesService {
 
   async registrarCheckOut(idAsignacion: number, rutAdmin: string) {
     try {
-      const asignacion = await this.asignacionRepo.findOne({ where: { idAsignacion } });
+      const asignacion = await this.asignacionRepo.findOne({
+        where: { idAsignacion },
+      });
       if (!asignacion) throw new NotFoundException('La asignación no existe.');
-      if (asignacion.estado !== 'Activa') throw new BadRequestException('Solo se puede hacer Check-Out a residentes activos.');
-      if (!asignacion.fechaCheckIn) throw new BadRequestException('El estudiante aún no ha realizado el Check-In.');
-      
-      const habitacion = await this.habitacionRepo.findOne({ where: { idHabitacion: asignacion.idHabitacion } });
+      if (asignacion.estado !== 'Activa')
+        throw new BadRequestException(
+          'Solo se puede hacer Check-Out a residentes activos.',
+        );
+      if (!asignacion.fechaCheckIn)
+        throw new BadRequestException(
+          'El estudiante aún no ha realizado el Check-In.',
+        );
+
+      const habitacion = await this.habitacionRepo.findOne({
+        where: { idHabitacion: asignacion.idHabitacion },
+      });
       if (habitacion) {
         habitacion.capacidadActual += 1;
         habitacion.disponibilidad = true;
@@ -389,10 +404,10 @@ export class AsignacionesService {
       const hoy = new Date();
       const fechaLocal = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
 
-      asignacion.estado = 'Finalizada'; 
+      asignacion.estado = 'Finalizada';
       asignacion.fechaCheckOut = fechaLocal as any;
       asignacion.rutAdmin = rutAdmin;
-      
+
       return await this.asignacionRepo.save(asignacion);
     } catch (error) {
       console.error('💥 Error CRÍTICO en registrarCheckOut:', error);
@@ -400,9 +415,11 @@ export class AsignacionesService {
     }
   }
 
-  async obtenerTotalResidentesActivos(idPeriodo: number): Promise<{ total: number }> {
+  async obtenerTotalResidentesActivos(
+    idPeriodo: number,
+  ): Promise<{ total: number }> {
     const cantidad = await this.asignacionRepo.count({
-      where: { estado: 'Activa', idPeriodo: idPeriodo }
+      where: { estado: 'Activa', idPeriodo: idPeriodo },
     });
     return { total: cantidad };
   }

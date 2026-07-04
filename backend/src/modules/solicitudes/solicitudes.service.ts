@@ -18,7 +18,7 @@ export class SolicitudesService {
     private readonly solicitudRepository: Repository<SolicitudEntity>,
 
     private readonly periodosService: PeriodosService,
-  ) { }
+  ) {}
 
   getStatus() {
     return { module: 'solicitudes', status: 'ok' };
@@ -26,14 +26,12 @@ export class SolicitudesService {
 
   async createSolicitud(user: JwtPayload, body: CreateSolicitudDto) {
     try {
-
       const periodoActual = await this.periodosService.obtenerActual();
       if (!periodoActual) {
         throw new BadRequestException('No hay un periodo académico activo.');
       }
 
       const rutEstudianteStr = user.rut;
-
 
       const existing = await this.solicitudRepository.findOne({
         where: {
@@ -43,7 +41,9 @@ export class SolicitudesService {
       });
 
       if (existing) {
-        throw new ConflictException('Ya existe una postulacion para este semestre');
+        throw new ConflictException(
+          'Ya existe una postulacion para este semestre',
+        );
       }
 
       const solicitud = await this.solicitudRepository.save(
@@ -54,10 +54,8 @@ export class SolicitudesService {
           idAsignacion: null,
           rutEstudiante: rutEstudianteStr,
           rutAdmin: null,
-          planAlimenticio: body.planAlimenticio,
         }),
       );
-
 
       return {
         id_solicitud: solicitud.idSolicitud,
@@ -65,24 +63,22 @@ export class SolicitudesService {
         fecha_solicitud: solicitud.fechaSolicitud,
         id_periodo: solicitud.idPeriodo,
         rut_estudiante: solicitud.rutEstudiante,
-        plan_alimenticio: solicitud.planAlimenticio,
       };
-
     } catch (error) {
       if (error instanceof ConflictException) throw error;
 
+      const mensajeError =
+        error instanceof Error ? error.message : 'Error desconocido';
 
-      const mensajeError = error instanceof Error ? error.message : 'Error desconocido';
-
-      throw new BadRequestException('Error al procesar la solicitud: ' + mensajeError);
+      throw new BadRequestException(
+        'Error al procesar la solicitud: ' + mensajeError,
+      );
     }
   }
 
   async getMySolicitud(user: JwtPayload) {
-
     const periodoActual = await this.periodosService.obtenerActual();
     if (!periodoActual) return null;
-
 
     return await this.solicitudRepository.findOne({
       where: {
@@ -91,24 +87,29 @@ export class SolicitudesService {
       },
     });
   }
-async getAllMySolicitudes(user: JwtPayload) {
-  const solicitudes = await this.solicitudRepository.createQueryBuilder('solicitud')
-    .select([
-      'solicitud.idSolicitud AS "idSolicitud"',
-      'solicitud.estado AS "estado"',
-      'solicitud.fechaSolicitud AS "fechaSolicitud"',
-      'solicitud.idPeriodo AS "idPeriodo"',
-      'solicitud.idAsignacion AS "idAsignacion"',
-      'solicitud.rutEstudiante AS "rutEstudiante"',
-      'solicitud.planAlimenticio AS "planAlimenticio"',
-      'periodo.nombre AS "semester"' // 
-    ])
+  async getAllMySolicitudes(user: JwtPayload) {
+    const solicitudes = await this.solicitudRepository
+      .createQueryBuilder('solicitud')
+      .select([
+        'solicitud.idSolicitud AS "idSolicitud"',
+        'solicitud.estado AS "estado"',
+        'solicitud.fechaSolicitud AS "fechaSolicitud"',
+        'solicitud.idPeriodo AS "idPeriodo"',
+        'solicitud.idAsignacion AS "idAsignacion"',
+        'solicitud.rutEstudiante AS "rutEstudiante"',
+        'solicitud.planAlimenticio AS "planAlimenticio"',
+        'periodo.nombre AS "semester"', //
+      ])
 
-    .leftJoin(PeriodoEntity, 'periodo', 'periodo.idPeriodo = solicitud.idPeriodo') 
-    .where('solicitud.rutEstudiante = :rut', { rut: user.rut })
-    .orderBy('solicitud.fechaSolicitud', 'DESC')
-    .getRawMany(); 
+      .leftJoin(
+        PeriodoEntity,
+        'periodo',
+        'periodo.idPeriodo = solicitud.idPeriodo',
+      )
+      .where('solicitud.rutEstudiante = :rut', { rut: user.rut })
+      .orderBy('solicitud.fechaSolicitud', 'DESC')
+      .getRawMany();
 
-  return solicitudes.length > 0 ? solicitudes : null;
-}
+    return solicitudes.length > 0 ? solicitudes : null;
+  }
 }
