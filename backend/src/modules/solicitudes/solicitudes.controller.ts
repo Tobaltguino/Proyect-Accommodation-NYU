@@ -11,7 +11,6 @@ import { Roles } from '../../common/decorators/roles.decorator';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Role } from '../auth/enums/role.enum';
-import { CreateSolicitudDto } from './dto/create-solicitud.dto';
 import { SolicitudesService } from './solicitudes.service';
 
 @Controller('solicitudes')
@@ -47,11 +46,11 @@ export class SolicitudesController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.STUDENT)
   @Post()
-  async create(@Req() request: any, @Body() body: CreateSolicitudDto) {
+  async create(@Req() request: any) {
     if (!request.user) {
       throw new UnauthorizedException('Usuario no autenticado');
     }
 
-    return this.solicitudesService.createSolicitud(request.user, body);
+    return this.solicitudesService.createSolicitud(request.user);
   }
 }
