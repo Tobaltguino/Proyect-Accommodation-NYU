@@ -8,7 +8,7 @@ import {
 
 import { PeriodoEntity } from '../../solicitudes/entities';
 import { HabitacionEntity } from '../../residencias/entities';
-import { estadoPago } from './estadoPagos.enum';
+import { estadoPago } from '../../pagos/entities/estadoPagos.enum';
 
 @Entity({ name: 'asignacion_estancia' })
 export class AsignacionEntity {
@@ -38,6 +38,15 @@ export class AsignacionEntity {
 
   @Column({ name: 'rut_admin', type: 'varchar', length: 20 })
   rutAdmin!: string;
+
+  @Column({ name: 'fecha_pago', type: 'date', nullable: true })
+  fechaPago!: Date | null;
+
+  @Column({ name: 'id_pago', type: 'varchar', length: 20, nullable: true })
+  idPago!: string | null;
+
+  @Column({ name: 'estado_pago', type: 'enum', enum: estadoPago, nullable: true })
+  estadoPago!: estadoPago | null;
 
   @ManyToOne(() => PeriodoEntity)
   @JoinColumn({ name: 'id_periodo' })
