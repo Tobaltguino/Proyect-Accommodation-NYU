@@ -4,7 +4,9 @@ import { FormsModule } from '@angular/forms';
 import { forkJoin } from 'rxjs';
 import { AuthService } from '../../../core/auth/auth.service';
 import { AsignacionesService } from '../../../core/services/asignaciones.service';
-import { AdminIncidentsService } from './admin-incidents.service';
+
+import { IncidenciaService } from '../../../core/services/incidencia.service';
+
 import { 
   AsignacionDTO,
   IncidenciaApiResponse,
@@ -64,7 +66,8 @@ export class AdminIncidentsComponent implements OnInit {
   private lastLookupRut = '';
 
   constructor(
-    private readonly adminIncidentsService: AdminIncidentsService,
+    // 👇 Inyectamos la clase con el nuevo nombre
+    private readonly incidenciaService: IncidenciaService,
     private readonly asignacionesService: AsignacionesService,
     private readonly authService: AuthService,
   ) {}
@@ -174,7 +177,8 @@ export class AdminIncidentsComponent implements OnInit {
 
     forkJoin({
       asignacion: this.asignacionesService.obtenerAsignacionActivaPorRut(rut),
-      incidencias: this.adminIncidentsService.getIncidencias({ rut }),
+      // 👇 Actualizado al nuevo nombre
+      incidencias: this.incidenciaService.getIncidencias({ rut }),
     }).subscribe({
       next: ({ asignacion, incidencias }) => {
         this.studentLookupLoading = false;
@@ -227,7 +231,8 @@ export class AdminIncidentsComponent implements OnInit {
 
     this.closeCreateModal();
 
-    this.adminIncidentsService
+    // 👇 Actualizado al nuevo nombre
+    this.incidenciaService
       .createIncidencia(payload)
       .subscribe({
         next: () => {
@@ -247,7 +252,8 @@ export class AdminIncidentsComponent implements OnInit {
   }
 
   private cargarIncidencias(): void {
-    this.adminIncidentsService.getIncidencias().subscribe({
+    // 👇 Actualizado al nuevo nombre
+    this.incidenciaService.getIncidencias().subscribe({
         next: (rows) => {
           this.incidencias = rows.map((row) => this.mapApiToDto(row));
           this.periodos = this.resolvePeriods(this.incidencias);
