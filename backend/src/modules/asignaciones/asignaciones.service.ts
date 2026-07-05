@@ -13,9 +13,9 @@ import { HabitacionEntity } from '../residencias/entities';
 import { EdificioEntity } from '../residencias/entities';
 import { PisoEntity } from '../residencias/entities';
 import { DataSource } from 'typeorm';
-import { PlanAlimenticioEntity } from '../solicitudes/entities';
 import { AsignacionDTO, RespuestaMiAsignacion } from './dto/asignacion.dto';
 import { PeriodosService } from '../periodos/periodos.service';
+import { PlanAlimenticioEntity } from 'dist/modules/solicitudes/entities';
 
 @Injectable()
 export class AsignacionesService {
@@ -30,8 +30,6 @@ export class AsignacionesService {
     private readonly edificioRepo: Repository<EdificioEntity>,
     @InjectRepository(PisoEntity)
     private readonly pisoRepo: Repository<PisoEntity>,
-    @InjectRepository(PlanAlimenticioEntity)
-    private readonly planRepo: Repository<PlanAlimenticioEntity>,
     private readonly periodosService: PeriodosService,
     private dataSource: DataSource,
   ) { }
@@ -129,13 +127,6 @@ export class AsignacionesService {
       });
       const asignacionGuardada =
         await queryRunner.manager.save(nuevaAsignacion);
-
-      const nuevoPlan = queryRunner.manager.create(PlanAlimenticioEntity, {
-        tipoPlan: solicitud.planAlimenticio,
-        idPeriodo: solicitud.idPeriodo,
-        rutEstudiante: rutEstudiante,
-      });
-      await queryRunner.manager.save(nuevoPlan);
 
       solicitud.estado = 'Aprobada';
       solicitud.idAsignacion = asignacionGuardada.idAsignacion;
@@ -454,7 +445,7 @@ export class AsignacionesService {
   }
 
 
-  async verificarResidenciaActivaBooleano(rutEstudiante: string): Promise<boolean> {
+  async obtenerEstadoResidencia(rutEstudiante: string): Promise<boolean> {
 
     const periodoActual = await this.periodosService.obtenerActual();
 

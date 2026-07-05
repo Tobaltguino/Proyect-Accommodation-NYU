@@ -24,7 +24,7 @@
             type="text" 
             id="rut" 
             class="form-control custom-control" 
-            placeholder="Ej: 12.345.678-9" 
+            placeholder="Ej: 12345678-9" 
             [(ngModel)]="filtroRut" 
             (input)="aplicarFiltros()"
           />
@@ -65,7 +65,7 @@
               <th>Ubicación</th>
               <th>Reportado por</th>
               <th>Gravedad</th>
-              <th>Atendido por</th> <th class="actions-col text-center">Acciones</th>
+              <th class="actions-col text-center">Acciones</th>
             </tr>
           </thead>
           <tbody>
@@ -90,16 +90,6 @@
                   <span class="badge rounded-pill severity" [ngClass]="incidencia.gravedad | lowercase">
                     {{ incidencia.gravedad }}
                   </span>
-                </td>
-
-                <td>
-                  @if (incidencia.rutAdmin) {
-                    <div class="d-flex flex-column" style="font-size: 0.85rem;">
-                      <span class="text-dark fw-semibold">{{ incidencia.nombreAdmin }}</span>
-                    </div>
-                  } @else {
-                    <span class="text-muted small">Sin asignar</span>
-                  }
                 </td>
 
                 <td class="text-center">

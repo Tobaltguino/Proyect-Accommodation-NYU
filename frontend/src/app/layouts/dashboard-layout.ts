@@ -4,7 +4,7 @@ import { CommonModule } from '@angular/common';
 import { AuthService } from '../core/auth/auth.service';
 import { SessionUser } from '../core/auth/auth.models';
 
-// 1. Creamos una interfaz para tipar los items del menú
+// Formato menu
 interface MenuItem {
   label: string;
   icon: string;
@@ -22,21 +22,18 @@ interface MenuItem {
 export class DashboardLayoutComponent implements OnInit {
   readonly currentUser: SessionUser | null;
   
-  // 2. Variable que guardará solo los items permitidos para el usuario actual
   menuItems: MenuItem[] = [];
 
-  // 3. Diccionario maestro con todas las rutas posibles del sistema
   private readonly allMenuItems: MenuItem[] = [
-    // --- RUTAS DEL ADMINISTRADOR ---
+    // Admin
     { label: 'Inicio', icon: 'pi pi-home', route: '/admin/home', roles: ['ADMIN'] },
     { label: 'Solicitudes', icon: 'pi pi-inbox', route: '/admin/requests', roles: ['ADMIN'] },
     { label: 'Asignaciones', icon: 'pi pi-users', route: '/admin/assignments', roles: ['ADMIN'] },
     { label: 'Check In/Out', icon: 'pi pi-key', route: '/admin/stay-management', roles: ['ADMIN'] },
     { label: 'Incidencias', icon: 'pi pi-exclamation-triangle', route: '/admin/incidents', roles: ['ADMIN'] },
     { label: 'Infraestructura', icon: 'pi pi-building', route: '/admin/infrastructure', roles: ['ADMIN'] },
-    { label: 'Plan Alimenticio', icon: 'pi pi-apple', route: '/admin/diet-management', roles: ['ADMIN'] },
     
-    // --- RUTAS DEL ESTUDIANTE ---
+    // Estudiante
     { label: 'Inicio', icon: 'pi pi-home', route: '/student/home', roles: ['STUDENT'] },
     { label: 'Postulación', icon: 'pi pi-file-edit', route: '/student/postulation', roles: ['STUDENT'] },
     { label: 'Estado Solicitud', icon: 'pi pi-info-circle', route: '/student/status', roles: ['STUDENT'] },
@@ -56,10 +53,7 @@ export class DashboardLayoutComponent implements OnInit {
     this.buildMenu();
   }
 
-  // 4. Lógica de filtrado al iniciar el componente
   private buildMenu(): void {
-    // Asumimos que tu SessionUser tiene una propiedad 'role'
-    // Si no existe el usuario, evitamos que rompa asignando un string vacío
     const userRole = this.currentUser?.role ?? ''; 
     
     this.menuItems = this.allMenuItems.filter(item => 

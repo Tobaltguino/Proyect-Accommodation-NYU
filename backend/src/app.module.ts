@@ -22,9 +22,7 @@ import { UsersModule } from './modules/users/users.module';
 
 import { AppService } from './app.service';
 import { AppController } from './app.controller';
-import { PlanAlimenticioService } from './modules/plan-alimenticio/plan-alimenticio.service';
-import { PlanAlimenticioController } from './modules/plan-alimenticio/plan-alimenticio.controller';
-import { PlanAlimenticioModule } from './modules/plan-alimenticio/plan-alimenticio.module';
+import { PagosModule } from './modules/pagos/pagos.module';
 
 @Module({
   imports: [
@@ -54,7 +52,7 @@ import { PlanAlimenticioModule } from './modules/plan-alimenticio/plan-alimentic
     HabitacionesModule,
     PeriodosModule,
     EdificiosModule,
-    PlanAlimenticioModule,
+    PagosModule,
   ],
   controllers: [AppController],
   providers: [AppService],

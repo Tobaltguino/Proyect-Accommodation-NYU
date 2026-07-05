@@ -9,13 +9,14 @@ import { SolicitudEntity } from '../solicitudes/entities';
 import { EdificioEntity } from '../residencias/entities';
 import { PisoEntity } from '../residencias/entities';
 import { AuthModule } from '../auth/auth.module';
-import { PlanAlimenticioEntity } from '../solicitudes/entities';
+import { PagosService } from '../pagos/pagos.service';
+import { PagosModule } from '../pagos/pagos.module';
 import { PeriodosModule } from '../periodos/periodos.module';
+
 @Module({
   imports: [
     TypeOrmModule.forFeature([
       AsignacionEntity,
-      PlanAlimenticioEntity,
       HabitacionEntity,
       SolicitudEntity,
       EdificioEntity,
@@ -23,6 +24,7 @@ import { PeriodosModule } from '../periodos/periodos.module';
     ]),
     AuthModule,
     PeriodosModule,
+    PagosModule,
   ],
   controllers: [AsignacionesController],
   providers: [AsignacionesService],

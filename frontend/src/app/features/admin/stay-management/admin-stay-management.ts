@@ -3,7 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { finalize } from 'rxjs';
 import { AsignacionDTO, EstadoAsignacion } from '../../../shared/models';
-import { AdminStayManagementService } from './admin-stay-management.service';
+
+import { CheckInOutService } from '../../../core/services/checkInOut.service';
 
 @Component({
   selector: 'app-admin-stay-management',
@@ -25,7 +26,7 @@ export class AdminStayManagementComponent {
   accionPendiente: { tipo: 'CHECKOUT' | 'RENUNCIA', asignacion: AsignacionDTO } | null = null;
 
   constructor(
-    private readonly stayService: AdminStayManagementService,
+    private readonly stayService: CheckInOutService,
     private readonly cdr: ChangeDetectorRef
   ) {}
 
