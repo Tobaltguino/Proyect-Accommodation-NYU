@@ -1,29 +1,30 @@
 <main class="student-status-page">
   <section class="status-shell">
-    <header class="status-header">
-      <div>
+    
+    <header class="main-header mb-4 d-flex justify-content-between align-items-center">
+      <div class="header-copy">
         <h1>Historial de Postulaciones</h1>
         <p>Consulta el avance y resultado de todas tus solicitudes de residencia.</p>
       </div>
-
-      <button type="button" class="back-btn" (click)="goBack()">Volver al panel</button>
+      <button type="button" class="module-btn alt" (click)="goBack()">Volver al panel</button>
     </header>
 
     @if (isLoading) {
-      <section class="status-card loading">
+      <div class="card module-box loading-card">
         <p>Cargando historial de postulaciones...</p>
-      </section>
+      </div>
     } @else if (loadError) {
-      <section class="status-card error">
+      <div class="card module-box error-card">
         <h2>No se pudo cargar el historial</h2>
         <p>{{ loadError }}</p>
-        <div class="actions">
-          <button type="button" class="ghost" (click)="retry()">Reintentar</button>
+        <div class="actions justify-content-center mt-3">
+          <button type="button" class="module-btn alt" (click)="retry()">Reintentar</button>
         </div>
-      </section>
+      </div>
     } @else {
-      <section class="status-card" style="margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 2px solid #eee;">
-        <div class="status-top" style="border: none; padding: 0;">
+      
+      <section class="card module-box p-4 mb-4">
+        <div class="status-top m-0">
           <div>
             <span class="label">Estudiante</span>
             <strong>{{ currentUser?.fullName ?? 'Estudiante' }}</strong>
@@ -33,23 +34,27 @@
       </section>
 
       @if (solicitudes.length === 0) {
-        <section class="status-card" style="text-align: center; padding: 3rem 1rem;">
+        
+        <section class="card module-box text-center p-5 mx-auto">
           <h2 style="margin-bottom: 0.5rem;">Sin postulaciones previas</h2>
-          <p class="description">Aún no tienes solicitudes de residencia registradas en el sistema.</p>
-          <div class="actions" style="justify-content: center; margin-top: 1.5rem;">
-            <button type="button" class="primary" (click)="goToPostulation()">
-              Ir a postular
-            </button>
+          <p class="description mx-auto mb-4" style="max-width: 500px;">
+            Aún no tienes solicitudes de residencia registradas en el sistema.
+          </p>
+          <div class="actions justify-content-center">
+            <button type="button" class="module-btn" (click)="goToPostulation()">Ir a postular</button>
           </div>
         </section>
+
       } @else {
-        <div class="solicitudes-list" style="display: flex; flex-direction: column; gap: 1rem;">
+        
+        <div class="d-flex flex-column gap-4">
           @for (solicitud of solicitudes; track solicitud.id) {
-            <section class="status-card">
-              <div class="status-top">
+            <section class="card module-box p-4">
+              
+              <div class="status-top border-bottom pb-3 mb-3">
                 <div>
                   <span class="label">Semestre de postulación</span>
-                  <strong>{{ solicitud.semester }}</strong>
+                  <strong style="color: #1e3a8a; font-size: 1.25rem;">{{ solicitud.semester }}</strong>
                 </div>
 
                 <div class="chip" 
@@ -61,7 +66,7 @@
                 </div>
               </div>
 
-              <p class="description">{{ solicitud.statusDescription }}</p>
+              <p class="description mb-4">{{ solicitud.statusDescription }}</p>
 
               <div class="detail-grid">
                 <article>
@@ -73,6 +78,7 @@
                   <strong>{{ formatTimestamp(solicitud.updatedAt) }}</strong>
                 </article>
               </div>
+
             </section>
           }
         </div>
