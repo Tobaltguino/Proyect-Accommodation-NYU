@@ -1,10 +1,10 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
-import { AuthService } from '../../auth/auth.service'; 
-import { environment } from '../../../../environments/environment';
+import { AuthService } from '../auth/auth.service';
+import { environment } from '../../../environments/environment';
 
-import { AsignacionDTO, AsignacionActivaResponse } from '../../../shared/models';
+import { AsignacionDTO, AsignacionActivaResponse } from '../../shared/models';
 
 @Injectable({
   providedIn: 'root'
