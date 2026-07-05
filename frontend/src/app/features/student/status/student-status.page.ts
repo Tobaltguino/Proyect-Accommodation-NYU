@@ -4,7 +4,7 @@ import { Router } from '@angular/router';
 import { finalize, TimeoutError, timeout } from 'rxjs';
 import { AuthService } from '../../../core/auth/auth.service';
 import { SessionUser } from '../../../core/auth/auth.models';
-import { StudentPostulationService } from '../postulation/student-postulation.service';
+import { SolicitudesService } from '../../../core/services/solicitudes.service';
 
 // Interfaz definida localmente sin depender de fuentes externas
 export interface MappedSolicitud {
@@ -36,7 +36,7 @@ export class StudentStatusPageComponent implements OnInit {
   constructor(
     private readonly authService: AuthService,
     private readonly router: Router,
-    private readonly postulationService: StudentPostulationService,
+    private readonly postulationService: SolicitudesService,
   ) {
     this.currentUser = this.authService.getCurrentUser();
   }

@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { environment } from '../../../../environments/environment';
+import { environment } from '../../../environments/environment';
 import { 
   EdificioDTO, 
   PisoDTO, 
@@ -9,8 +9,8 @@ import {
   HabitacionDetalleDTO, 
   CrearPisoRequest, 
   CrearHabitacionRequest 
-} from '../../../shared/models';
-import { AuthService } from '../../auth/auth.service'; 
+} from '../../shared/models';
+import { AuthService } from '../auth/auth.service'; 
 
 @Injectable({
   providedIn: 'root'

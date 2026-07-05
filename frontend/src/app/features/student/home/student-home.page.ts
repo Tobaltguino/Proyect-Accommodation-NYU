@@ -3,7 +3,6 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { AuthService } from '../../../core/auth/auth.service';
 import { SessionUser } from '../../../core/auth/auth.models';
-import { DietaDTO, TipoDieta } from '../../../shared/models'; 
 
 @Component({
   selector: 'app-student-home',
@@ -17,14 +16,6 @@ export class StudentHomePageComponent implements OnInit {
   
   tieneAsignacion: boolean = true; 
 
-  miPlanDieta: DietaDTO = {
-    idPlan: 1,
-    tipoPlan: TipoDieta.VEGANO,
-    idPeriodo: 1,
-    rutEstudiante: '', 
-    nombreEstudiante: '' 
-  };
-
   // 👇 Agregamos 'fechaAsignacion' al mock para tener un punto de partida
   miAsignacion: any = {
     edificio: 'Residencia Norte',
@@ -37,10 +28,6 @@ export class StudentHomePageComponent implements OnInit {
 
   constructor(private authService: AuthService) {
     this.currentUser = this.authService.getCurrentUser();
-    
-    if (this.currentUser) {
-      this.miPlanDieta.rutEstudiante = (this.currentUser as any).rut || '12.345.678-9';
-    }
   }
 
   ngOnInit(): void {

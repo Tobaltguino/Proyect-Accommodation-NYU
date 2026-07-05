@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
 import { EdificioDTO, Genero } from '../../../shared/models'; 
-import { InfraestructuraService } from '../../../core/services/infraestructura/infraestructura.service';
+import { InfraestructuraService } from '../../../core/services/infraestructura.service';
 import { AuthService } from '../../../core/auth/auth.service';
 
 @Component({

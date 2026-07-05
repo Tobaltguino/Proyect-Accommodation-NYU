@@ -12,7 +12,7 @@ import {
   Gender,
   MealPlan,
   SolicitudesService,
-} from '../../../core/services/solicitudes/solicitudes.service';
+} from '../../../core/services/solicitudes.service';
 
 @Component({
   selector: 'app-student-postulation-page',

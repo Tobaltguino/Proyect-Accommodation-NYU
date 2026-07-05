@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { finalize } from 'rxjs';
 import { AsignacionDTO, EstadoAsignacion } from '../../../shared/models';
 
-import { CheckInOutService } from '../../../core/services/checkInOut/checkInOut.service';
+import { CheckInOutService } from '../../../core/services/checkInOut.service';
 
 @Component({
   selector: 'app-admin-stay-management',

@@ -2,9 +2,9 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
-import { AuthService } from '../../auth/auth.service';
-import { environment } from '../../../../environments/environment';
-import { SolicitudDTO, CambiarEstadoSolicitudRequest } from '../../../shared/models';
+import { AuthService } from '../auth/auth.service';
+import { environment } from '../../../environments/environment';
+import { SolicitudDTO, CambiarEstadoSolicitudRequest } from '../../shared/models';
 
 export type Gender = 'MUJER' | 'HOMBRE';
 export type MealPlan = 'Sin preferencia' | 'Vegetariano' | 'Vegano';

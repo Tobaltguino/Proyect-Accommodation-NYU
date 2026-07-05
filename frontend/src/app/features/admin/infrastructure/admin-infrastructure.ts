@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
 import { EdificioDTO, PisoDTO, HabitacionDTO, Genero } from '../../../shared/models';
-import { InfraestructuraService } from '../../../core/services/infraestructura/infraestructura.service';
+import { InfraestructuraService } from '../../../core/services/infraestructura.service';
 
 type ModalType = 'EDIFICIO' | 'PISO' | 'HABITACION' | 'DELETE' | null;
 type ModalMode = 'CREATE' | 'EDIT';

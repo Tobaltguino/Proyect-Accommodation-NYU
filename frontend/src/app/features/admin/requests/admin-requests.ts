@@ -3,10 +3,10 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { finalize } from 'rxjs';
 
-import { SolicitudesService } from '../../../core/services/solicitudes/solicitudes.service';
-import { AsignacionesService } from '../../../core/services/asignaciones/asignaciones.service';
-import { InfraestructuraService } from '../../../core/services/infraestructura/infraestructura.service';
-import { IncidenciaService } from '../../../core/services/incidencias/incidencia.service';
+import { SolicitudesService } from '../../../core/services/solicitudes.service';
+import { AsignacionesService } from '../../../core/services/asignaciones.service';
+import { InfraestructuraService } from '../../../core/services/infraestructura.service';
+import { IncidenciaService } from '../../../core/services/incidencia.service';
 
 import { 
   SolicitudDTO, 
