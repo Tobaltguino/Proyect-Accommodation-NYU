@@ -7,7 +7,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { JwtPayload } from '../auth/types/auth.types';
 import { PeriodosService } from '../periodos/periodos.service';
-import { CreateSolicitudDto } from './dto';
 import { SolicitudEntity } from './entities';
 import { PeriodoEntity } from './entities';
 
@@ -24,7 +23,7 @@ export class SolicitudesService {
     return { module: 'solicitudes', status: 'ok' };
   }
 
-  async createSolicitud(user: JwtPayload, body: CreateSolicitudDto) {
+  async createSolicitud(user: JwtPayload, body: {}) {
     try {
       const periodoActual = await this.periodosService.obtenerActual();
       if (!periodoActual) {
@@ -54,7 +53,6 @@ export class SolicitudesService {
           idAsignacion: null,
           rutEstudiante: rutEstudianteStr,
           rutAdmin: null,
-          planAlimenticio: body.planAlimenticio,
         }),
       );
 
@@ -64,7 +62,6 @@ export class SolicitudesService {
         fecha_solicitud: solicitud.fechaSolicitud,
         id_periodo: solicitud.idPeriodo,
         rut_estudiante: solicitud.rutEstudiante,
-        plan_alimenticio: solicitud.planAlimenticio,
       };
     } catch (error) {
       if (error instanceof ConflictException) throw error;
@@ -89,24 +86,28 @@ export class SolicitudesService {
       },
     });
   }
-async getAllMySolicitudes(user: JwtPayload) {
-  const solicitudes = await this.solicitudRepository.createQueryBuilder('solicitud')
-    .select([
-      'solicitud.idSolicitud AS "idSolicitud"',
-      'solicitud.estado AS "estado"',
-      'solicitud.fechaSolicitud AS "fechaSolicitud"',
-      'solicitud.idPeriodo AS "idPeriodo"',
-      'solicitud.idAsignacion AS "idAsignacion"',
-      'solicitud.rutEstudiante AS "rutEstudiante"',
-      'solicitud.planAlimenticio AS "planAlimenticio"',
-      'periodo.nombre AS "semester"' // 
-    ])
+  async getAllMySolicitudes(user: JwtPayload) {
+    const solicitudes = await this.solicitudRepository
+      .createQueryBuilder('solicitud')
+      .select([
+        'solicitud.idSolicitud AS "idSolicitud"',
+        'solicitud.estado AS "estado"',
+        'solicitud.fechaSolicitud AS "fechaSolicitud"',
+        'solicitud.idPeriodo AS "idPeriodo"',
+        'solicitud.idAsignacion AS "idAsignacion"',
+        'solicitud.rutEstudiante AS "rutEstudiante"',
+        'periodo.nombre AS "semester"', //
+      ])
 
-    .leftJoin(PeriodoEntity, 'periodo', 'periodo.idPeriodo = solicitud.idPeriodo') 
-    .where('solicitud.rutEstudiante = :rut', { rut: user.rut })
-    .orderBy('solicitud.fechaSolicitud', 'DESC')
-    .getRawMany(); 
+      .leftJoin(
+        PeriodoEntity,
+        'periodo',
+        'periodo.idPeriodo = solicitud.idPeriodo',
+      )
+      .where('solicitud.rutEstudiante = :rut', { rut: user.rut })
+      .orderBy('solicitud.fechaSolicitud', 'DESC')
+      .getRawMany();
 
-  return solicitudes.length > 0 ? solicitudes : null;
+    return solicitudes.length > 0 ? solicitudes : null;
   }
 }

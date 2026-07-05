@@ -29,7 +29,4 @@ export class SolicitudEntity {
 
   @Column({ name: 'rut_admin', type: 'varchar', nullable: true })
   rutAdmin!: string | null;
-
-  @Column({ name: 'plan_alimenticio', type: 'varchar' })
-  planAlimenticio!: string;
 }
