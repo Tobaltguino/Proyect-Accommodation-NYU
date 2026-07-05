@@ -10,6 +10,7 @@ import { EdificioEntity } from '../residencias/entities';
 import { PisoEntity } from '../residencias/entities';
 import { AuthModule } from '../auth/auth.module';
 import { PlanAlimenticioEntity } from '../solicitudes/entities';
+import { PeriodosModule } from '../periodos/periodos.module';
 @Module({
   imports: [
     TypeOrmModule.forFeature([
@@ -21,8 +22,9 @@ import { PlanAlimenticioEntity } from '../solicitudes/entities';
       PisoEntity,
     ]),
     AuthModule,
+    PeriodosModule,
   ],
   controllers: [AsignacionesController],
   providers: [AsignacionesService],
 })
-export class AsignacionesModule {}
+export class AsignacionesModule { }

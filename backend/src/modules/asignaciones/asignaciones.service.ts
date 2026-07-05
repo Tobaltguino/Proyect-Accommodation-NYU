@@ -15,6 +15,7 @@ import { PisoEntity } from '../residencias/entities';
 import { DataSource } from 'typeorm';
 import { PlanAlimenticioEntity } from '../solicitudes/entities';
 import { AsignacionDTO, RespuestaMiAsignacion } from './dto/asignacion.dto';
+import { PeriodosService } from '../periodos/periodos.service';
 
 @Injectable()
 export class AsignacionesService {
@@ -31,7 +32,7 @@ export class AsignacionesService {
     private readonly pisoRepo: Repository<PisoEntity>,
     @InjectRepository(PlanAlimenticioEntity)
     private readonly planRepo: Repository<PlanAlimenticioEntity>,
-
+    private readonly periodosService: PeriodosService,
     private dataSource: DataSource,
   ) { }
 
@@ -451,6 +452,25 @@ export class AsignacionesService {
     });
     return { total: cantidad };
   }
+
+
+  async verificarResidenciaActivaBooleano(rutEstudiante: string): Promise<boolean> {
+
+    const periodoActual = await this.periodosService.obtenerActual();
+
+    if (!periodoActual) {
+      return false;
+    }
+
+    return await this.asignacionRepo.exists({
+      where: {
+        rutEstudiante: rutEstudiante,
+        estado: 'Activa',
+        idPeriodo: periodoActual.idPeriodo
+      }
+    });
+  }
+
 
   private mapAsignacionToDTO(asignacion: any): AsignacionDTO {
     return {

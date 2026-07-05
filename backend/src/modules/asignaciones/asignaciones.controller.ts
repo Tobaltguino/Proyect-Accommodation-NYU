@@ -13,11 +13,15 @@ import {
   Delete
 } from '@nestjs/common';
 import { AsignacionesService } from './asignaciones.service';
-import { RolesGuard } from 'src/common/guards/roles.guard';
-import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
-import { Roles } from 'src/common/decorators/roles.decorator';
+import { RolesGuard } from '../../common/guards/roles.guard';
+import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { Roles } from '../../common/decorators/roles.decorator';
 import { Role } from '../auth/enums/role.enum';
-import type { AuthenticatedRequest } from 'src/common/types/authenticated-request.type';
+import type { AuthenticatedRequest } from '../../common/types/authenticated-request.type';
+
+//api
+import { ApiKeyGuard } from '../../common/guards/api-key.guard';
+
 import { CrearAsignacionDTO } from './dto/crearAsignacion.dto';
 
 @Controller('asignaciones')
@@ -206,4 +210,14 @@ export class AsignacionesController {
 
     return this.asignacionesService.registrarCheckOut(idAsignacion, rutAdmin);
   }
+
+  // GET http://localhost:3000/asignaciones/estudiantes/12345678-9/estado
+  @UseGuards(ApiKeyGuard)
+  @Get('estudiantes/:rut/estado')
+  obtenerEstadoResidencia(@Param('rut') rut: string): Promise<boolean> {
+    return this.asignacionesService.obtenerEstadoResidencia(rut);
+  }
+
+
+
 }
