@@ -11,6 +11,17 @@ export interface AsignacionDTO {
   nombreEdificio: string;
   idPeriodo: number;
   idHabitacion: number;
+
+  capacidadActual: number;
+  capacidadTotal: number;
+  disponibilidadHabitacion: boolean;
+
+  idPiso?: number;
+  numeroPiso?: number;
+  nombrePiso?: string;
+
+  idEdificio?: number;
+  generoEdificio?: string;
 }
 
 export interface RespuestaMiAsignacion {
