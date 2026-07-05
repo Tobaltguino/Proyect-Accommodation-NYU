@@ -19,6 +19,9 @@ import { Roles } from '../../common/decorators/roles.decorator';
 import { Role } from '../auth/enums/role.enum';
 import type { AuthenticatedRequest } from '../../common/types/authenticated-request.type';
 
+//api
+import { ApiKeyGuard } from '../../common/guards/api-key.guard';
+
 import { CrearAsignacionDTO } from './dto/crearAsignacion.dto';
 
 @Controller('asignaciones')
@@ -206,5 +209,11 @@ export class AsignacionesController {
     if (!rutAdmin) throw new UnauthorizedException('No se pudo obtener el RUT del administrador');
 
     return this.asignacionesService.registrarCheckOut(idAsignacion, rutAdmin);
+  }
+  
+  @UseGuards(ApiKeyGuard)
+  @Get('verificar-residencia/:rut')
+  verificarResidenciaExterna(@Param('rut') rut: string): Promise<boolean> {
+    return this.asignacionesService.verificarResidenciaActivaBooleano(rut);
   }
 }

@@ -551,6 +551,23 @@ export class AsignacionesService {
       message: 'El pago aún está pendiente de confirmación.'
     };
   }
+  
+  // VERIFICAR SI UN ESTUDIANTE TIENE RESIDENCIA ACTIVA (API)
+  async verificarResidenciaActivaBooleano(rutEstudiante: string): Promise<boolean> {
+    // Normalizamos el RUT (quitamos puntos y pasamos a mayúsculas) igual que en tu otro método
+    const rutNormalizado = rutEstudiante.replace(/\./g, '').toUpperCase();
+    
+    // Contamos si existe al menos 1 asignación activa para este RUT
+    const cantidad = await this.asignacionRepo.count({
+      where: [
+        { rutEstudiante: rutEstudiante, estado: 'Activa' },
+        { rutEstudiante: rutNormalizado, estado: 'Activa' },
+      ],
+    });
+
+    // Si la cantidad es mayor a 0, retorna true, de lo contrario false
+    return cantidad > 0;
+  }
 
   private mapAsignacionToDTO(asignacion: any): AsignacionDTO {
     return {
