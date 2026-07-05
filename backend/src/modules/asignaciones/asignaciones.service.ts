@@ -15,7 +15,6 @@ import { PisoEntity } from '../residencias/entities';
 import { DataSource } from 'typeorm';
 import { AsignacionDTO, RespuestaMiAsignacion } from './dto/asignacion.dto';
 import { PeriodosService } from '../periodos/periodos.service';
-import { PlanAlimenticioEntity } from 'dist/modules/solicitudes/entities';
 
 @Injectable()
 export class AsignacionesService {
@@ -473,15 +472,34 @@ export class AsignacionesService {
       rutEstudiante: asignacion.rutEstudiante,
       rutAdmin: asignacion.rutAdmin,
 
+      // --- PERIODO ---
       idPeriodo: asignacion.periodo?.idPeriodo || asignacion.idPeriodo,
       nombrePeriodo: asignacion.periodo?.nombre || 'Sin periodo',
 
-      idHabitacion:
-        asignacion.habitacion?.idHabitacion || asignacion.idHabitacion,
-      numeroHabitacion:
-        asignacion.habitacion?.nroHabitacion?.toString() || 'Sin asignar',
-      nombreEdificio:
-        asignacion.habitacion?.piso?.edificio?.nombre || 'Sin edificio',
+      // --- INFORMACIÓN DE LA HABITACIÓN ---
+      idHabitacion: asignacion.habitacion?.idHabitacion || asignacion.idHabitacion,
+      numeroHabitacion: asignacion.habitacion?.nroHabitacion?.toString() || 'Sin asignar',
+      capacidadActual: asignacion.habitacion?.capacidadActual,
+      capacidadTotal: asignacion.habitacion?.capacidadTotal, // La nueva regla que agregamos
+      disponibilidadHabitacion: asignacion.habitacion?.disponibilidad,
+
+      // --- INFORMACIÓN DEL PISO ---
+      idPiso: asignacion.habitacion?.piso?.idPiso,
+      numeroPiso: asignacion.habitacion?.piso?.nroPiso,
+      nombrePiso: asignacion.habitacion?.piso?.nombre,
+
+      // --- INFORMACIÓN DEL EDIFICIO ---
+      idEdificio: asignacion.habitacion?.piso?.edificio?.idEdificio,
+      nombreEdificio: asignacion.habitacion?.piso?.edificio?.nombre || 'Sin edificio',
+      generoEdificio: asignacion.habitacion?.piso?.edificio?.genero,
+
+      //pago
+      fechaPago: asignacion.fechaPago,
+      idPago: asignacion.idPago,
+      estadoPago: asignacion.estadoPago,
+
     };
   }
+
+
 }
