@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
 import { AsignacionDTO, EstadoAsignacion } from '../../../shared/models';
-import { AsignacionesService } from '../../../core/services/asignaciones.service'; 
+import { AsignacionesService } from '../../../core/services/asignaciones/asignaciones.service';
 
 @Component({
   selector: 'app-student-stay-history',

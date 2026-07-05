@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../../core/auth/auth.service';
 
-import { IncidenciaService } from '../../../core/services/incidencia.service';
+import { IncidenciaService } from '../../../core/services/incidencias/incidencia.service';
 
 import { 
   IncidenciaApiResponse,

@@ -1,5 +1,6 @@
 import { Genero } from './infraestructura.dto';
 
+// Enums
 export enum EstadoSolicitud {
   PENDIENTE = 'Pendiente',
   EN_REVISION = 'En Revision',
@@ -7,6 +8,7 @@ export enum EstadoSolicitud {
   RECHAZADA = 'Rechazada'
 }
 
+// DTO Solicitudes
 export interface SolicitudDTO {
   idSolicitud: number;
   estado: EstadoSolicitud;
@@ -20,4 +22,9 @@ export interface SolicitudDTO {
   nombreEstudiante?: string; 
   generoEstudiante?: Genero; 
   nombreAdmin?: string;
+}
+
+// REQUESTS
+export interface CambiarEstadoSolicitudRequest {
+  estado: string;
 }

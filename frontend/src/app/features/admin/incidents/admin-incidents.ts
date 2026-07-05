@@ -3,9 +3,9 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { forkJoin } from 'rxjs';
 import { AuthService } from '../../../core/auth/auth.service';
-import { AsignacionesService } from '../../../core/services/asignaciones.service';
+import { AsignacionesService } from '../../../core/services/asignaciones/asignaciones.service';
 
-import { IncidenciaService } from '../../../core/services/incidencia.service';
+import { IncidenciaService } from '../../../core/services/incidencias/incidencia.service';
 
 import { 
   AsignacionDTO,

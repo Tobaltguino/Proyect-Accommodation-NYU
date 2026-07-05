@@ -1,14 +1,14 @@
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { AuthService } from '../auth/auth.service';
+import { AuthService } from '../../auth/auth.service';
 import {
   CreateIncidenciaRequest,
   IncidenciaApiResponse,
   IncidenciaFilters,
-} from '../../shared/models';
+} from '../../../shared/models';
 
-import { environment } from '../../../environments/environment';
+import { environment } from '../../../../environments/environment';
 
 
 @Injectable({ providedIn: 'root' })

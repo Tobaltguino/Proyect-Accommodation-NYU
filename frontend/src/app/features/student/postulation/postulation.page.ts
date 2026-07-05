@@ -4,13 +4,15 @@ import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { finalize } from 'rxjs';
+
 import { AuthService } from '../../../core/auth/auth.service';
 import { SessionUser } from '../../../core/auth/auth.models';
+
 import {
   Gender,
   MealPlan,
-  StudentPostulationService,
-} from './student-postulation.service';
+  SolicitudesService,
+} from '../../../core/services/solicitudes/solicitudes.service';
 
 @Component({
   selector: 'app-student-postulation-page',
@@ -44,7 +46,8 @@ export class StudentPostulationPageComponent implements OnInit {
   constructor(
     private readonly authService: AuthService,
     private readonly router: Router,
-    private readonly postulationService: StudentPostulationService,
+    // 👇 Inyectamos la clase con el nuevo nombre
+    private readonly postulationService: SolicitudesService,
   ) {
     this.currentUser = this.authService.getCurrentUser();
     const user = this.currentUser as any; 
@@ -129,7 +132,6 @@ export class StudentPostulationPageComponent implements OnInit {
   private loadMySolicitud(): void {
     this.isLoadingSolicitud = true;
 
-    // Ya no es necesario pasar el 'activeSemester' como parámetro
     this.postulationService
       .getMySolicitud()
       .pipe(
@@ -175,7 +177,6 @@ export class StudentPostulationPageComponent implements OnInit {
       });
   }
 
-  // Se encarga de extraer el plan alimenticio independientemente de si viene de GET (camelCase) o POST (snake_case)
   private syncFormWithSolicitud(solicitud: any): void {
     if (!solicitud) return;
     

@@ -1,9 +1,12 @@
+
+// Enums
 export enum EstadoAsignacion {
   ACTIVA = 'Activa',
   FINALIZADA = 'Finalizada',
   RENUNCIADA = 'Renunciada'
 }
 
+// DTO Asignacion
 export interface AsignacionDTO {
   idAsignacion: number;
   fechaAsignacion: string;
@@ -23,4 +26,27 @@ export interface AsignacionDTO {
   nombrePeriodo?: string;
   nombreEstudiante?: string;
   nombreAdmin?: string;
+}
+
+// REQUESTS 
+export interface CrearAsignacionRequest {
+  idSolicitud: number;
+  idHabitacion: number;
+}
+
+export interface ReasignarHabitacionRequest {
+  idNuevaHabitacion: number;
+}
+
+// RESPONSES
+export interface AsignacionActivaResponse {
+  tieneAsignacion: boolean;
+  message?: string;
+  asignacion?: AsignacionDTO;
+}
+
+export interface MiAsignacionResponse {
+  tieneAsignacion?: boolean;
+  asignacion?: AsignacionDTO; 
+  planDieta?: any;
 }
