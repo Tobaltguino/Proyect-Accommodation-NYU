@@ -46,7 +46,6 @@ export class StudentPostulationPageComponent implements OnInit {
   constructor(
     private readonly authService: AuthService,
     private readonly router: Router,
-    // 👇 Inyectamos la clase con el nuevo nombre
     private readonly postulationService: SolicitudesService,
   ) {
     this.currentUser = this.authService.getCurrentUser();

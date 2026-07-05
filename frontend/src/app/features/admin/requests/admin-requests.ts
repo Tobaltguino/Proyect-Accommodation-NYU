@@ -56,6 +56,11 @@ export class AdminRequestsComponent implements OnInit {
   matriculaActiva: boolean = false;
   habitacionSeleccionadaId: number | null = null;
 
+  seleccionarEdificio(edificio: EdificioDTO): void {
+    this.edificioSeleccionadoMapa = edificio;
+    this.habitacionSeleccionadaId = null;
+  }
+
   constructor(
     private readonly solicitudesService: SolicitudesService,
     private readonly asignacionesService: AsignacionesService,
@@ -124,7 +129,7 @@ export class AdminRequestsComponent implements OnInit {
       nombrePeriodo: String(periodoReal), 
       rutEstudiante: String(rutReal),
       nombreEstudiante: String(nombreReal), 
-      generoEstudiante: Genero.MIXTO, 
+      generoEstudiante: Genero.MASCULINO, 
       rutAdmin: dbSol.rutAdmin || dbSol.rut_admin || undefined,
       nombreAdmin: (dbSol.rutAdmin || dbSol.rut_admin) ? 'Admin Asignado' : undefined
     };
