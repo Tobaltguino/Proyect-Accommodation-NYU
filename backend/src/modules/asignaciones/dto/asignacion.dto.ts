@@ -22,6 +22,12 @@ export interface AsignacionDTO {
 
   idEdificio?: number;
   generoEdificio?: string;
+
+  //pago
+  fechaPago?: Date | null;
+  idPago?: string | null;
+  estadoPago?: string | null;
+
 }
 
 export interface RespuestaMiAsignacion {

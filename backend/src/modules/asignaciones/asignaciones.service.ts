@@ -571,6 +571,12 @@ export class AsignacionesService {
       idEdificio: asignacion.habitacion?.piso?.edificio?.idEdificio,
       nombreEdificio: asignacion.habitacion?.piso?.edificio?.nombre || 'Sin edificio',
       generoEdificio: asignacion.habitacion?.piso?.edificio?.genero,
+
+      //pago
+      fechaPago: asignacion.fechaPago,
+      idPago: asignacion.idPago,
+      estadoPago: asignacion.estadoPago,
+
     };
   }
 }
