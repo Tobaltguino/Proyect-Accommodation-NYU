@@ -2,7 +2,12 @@ import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { finalize } from 'rxjs';
-import { AdminRequestsService } from './admin-request.service';
+
+import { SolicitudesService } from '../../../core/services/solicitudes.service';
+import { AsignacionesService } from '../../../core/services/asignaciones.service';
+import { InfraestructuraService } from '../../../core/services/infraestructura.service';
+import { IncidenciaService } from '../../../core/services/incidencia.service';
+
 import { 
   SolicitudDTO, 
   EstadoSolicitud, 
@@ -11,8 +16,7 @@ import {
   HabitacionDTO, 
   IncidenciaDTO,
   GravedadIncidencia,
-  AsignacionDTO,
-  EstadoAsignacion
+  IncidenciaApiResponse 
 } from '../../../shared/models'; 
 
 @Component({
@@ -43,50 +47,58 @@ export class AdminRequestsComponent implements OnInit {
 
   isModalOpen: boolean = false;
   solicitudSeleccionada: SolicitudDTO | null = null;
-  incidenciasEstudiante: IncidenciaDTO[] = [];
   
-  edificiosDisponibles: EdificioDTO[] = [
-    {
-      idEdificio: 1, nombre: 'Residencia Norte', ubicacion: 'Campus Norte', genero: Genero.MIXTO,
-      pisos: [
-        {
-          idPiso: 1, nroPiso: 1, nombre: 'Piso 1', idEdificio: 1, habitaciones: [
-            { idHabitacion: 10, nroHabitacion: 101, capacidadActual: 2, capacidadTotal: 2, disponibilidad: true, idPiso: 1 },
-            { idHabitacion: 11, nroHabitacion: 102, capacidadActual: 1, capacidadTotal: 2, disponibilidad: true, idPiso: 1 },
-            { idHabitacion: 12, nroHabitacion: 103, capacidadActual: 0, capacidadTotal: 2, disponibilidad: true, idPiso: 1 }
-          ]
-        }
-      ]
-    }
-  ];
+  incidenciasEstudiante: IncidenciaDTO[] = [];
+  edificiosDisponibles: EdificioDTO[] = []; 
 
   edificiosFiltrados: EdificioDTO[] = [];
   edificioSeleccionadoMapa: EdificioDTO | null = null;
   matriculaActiva: boolean = false;
   habitacionSeleccionadaId: number | null = null;
 
+  seleccionarEdificio(edificio: EdificioDTO): void {
+    this.edificioSeleccionadoMapa = edificio;
+    this.habitacionSeleccionadaId = null;
+  }
+
   constructor(
-    private readonly adminService: AdminRequestsService,
+    private readonly solicitudesService: SolicitudesService,
+    private readonly asignacionesService: AsignacionesService,
+    private readonly infraestructuraService: InfraestructuraService,
+    private readonly incidenciaService: IncidenciaService,
     private readonly cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
     this.cargarSolicitudes();
+    this.cargarInfraestructura(); 
+  }
+
+  cargarInfraestructura(): void {
+    this.infraestructuraService.obtenerInfraestructuraCompleta().subscribe({
+      next: (edificios) => {
+        this.edificiosDisponibles = edificios;
+      },
+      error: (err) => {
+        console.error('Error al cargar la infraestructura:', err);
+      }
+    });
   }
 
   cargarSolicitudes(): void {
     this.isLoading = true;
-    this.adminService.obtenerTodasLasSolicitudes()
+    this.solicitudesService.obtenerTodasLasSolicitudes()
       .pipe(finalize(() => {
         this.isLoading = false;
         this.cdr.detectChanges();
       }))
       .subscribe({
-        next: (dataCruda: any) => {
+        next: (dataCruda: any[]) => {
+          console.log('👀 SOLICITUDES DEL BACKEND:', dataCruda);
           if (!dataCruda || !Array.isArray(dataCruda)) {
             this.solicitudes = [];
           } else {
-            this.solicitudes = dataCruda.map((dbSol: any) => this.mapearSolicitudDelBackend(dbSol));
+            this.solicitudes = dataCruda.map(dbSol => this.mapearSolicitudDelBackend(dbSol));
           }
           
           this.solicitudesFiltradas = [...this.solicitudes];
@@ -117,12 +129,13 @@ export class AdminRequestsComponent implements OnInit {
       nombrePeriodo: String(periodoReal), 
       rutEstudiante: String(rutReal),
       nombreEstudiante: String(nombreReal), 
-      generoEstudiante: Genero.MIXTO, 
+      generoEstudiante: Genero.MASCULINO, 
       rutAdmin: dbSol.rutAdmin || dbSol.rut_admin || undefined,
       nombreAdmin: (dbSol.rutAdmin || dbSol.rut_admin) ? 'Admin Asignado' : undefined
     };
   }
 
+  // ... (getters de paginación y filtros se mantienen igual) ...
   get solicitudesPaginadas(): SolicitudDTO[] {
     const inicio = (this.paginaActual - 1) * this.itemsPorPagina;
     const fin = inicio + this.itemsPorPagina;
@@ -162,28 +175,30 @@ export class AdminRequestsComponent implements OnInit {
   abrirModal(solicitud: SolicitudDTO): void {
     this.solicitudSeleccionada = solicitud;
     
+    // 1. Cambiar estado a En Revisión si estaba Pendiente
     if (solicitud.estado === EstadoSolicitud.PENDIENTE) {
       solicitud.estado = EstadoSolicitud.EN_REVISION;
       solicitud.rutAdmin = this.RUT_ADMIN_ACTUAL;
       solicitud.nombreAdmin = this.NOMBRE_ADMIN_ACTUAL;
 
-      this.adminService.cambiarEstadoSolicitud(solicitud.idSolicitud, 'En Revision')
+      this.solicitudesService.cambiarEstadoSolicitud(solicitud.idSolicitud, 'En Revision')
         .subscribe({
           next: () => console.log(`BD actualizada: Solicitud ${solicitud.idSolicitud} en revisión.`),
           error: (err) => console.error('Error al actualizar estado a En Revisión:', err)
         });
     }
 
-    this.incidenciasEstudiante = [
-      { 
-        idIncidencia: 1, fecha: '2025-10-12', descripcion: 'Ruido excesivo en horario de descanso', 
-        gravedad: GravedadIncidencia.MODERADO,
-        idHabitacion: 10, nroHabitacion: 101, nombreEdificio: 'Residencia Norte',
-        rutEstudiante: solicitud.rutEstudiante, nombreEstudiante: solicitud.nombreEstudiante,
-        rutAdmin: '12.888.777-6', nombreAdmin: 'Admin Guardia', periodo: '2025-2'
-      }
-    ];
+    // 👇 2. Cargar Incidencias Reales del estudiante
+    this.incidenciasEstudiante = []; 
+    this.incidenciaService.getIncidencias({ rut: solicitud.rutEstudiante }).subscribe({
+      next: (rows) => {
+        this.incidenciasEstudiante = rows.map(row => this.mapearIncidenciaDelBackend(row, solicitud));
+        this.cdr.detectChanges();
+      },
+      error: (err) => console.error('Error al cargar incidencias del estudiante:', err)
+    });
 
+    // 3. Filtrar edificios (ahora usa los datos reales traídos en ngOnInit)
     this.edificiosFiltrados = this.edificiosDisponibles.filter(
       e => e.genero === Genero.MIXTO || e.genero === solicitud.generoEstudiante
     );
@@ -192,6 +207,23 @@ export class AdminRequestsComponent implements OnInit {
     this.matriculaActiva = false;
     this.habitacionSeleccionadaId = null;
     this.isModalOpen = true;
+  }
+
+  // 👇 Helper para mapear la incidencia real a tu DTO de la vista
+  private mapearIncidenciaDelBackend(row: IncidenciaApiResponse, solicitud: SolicitudDTO): IncidenciaDTO {
+    return {
+      idIncidencia: row.idIncidencia,
+      descripcion: row.descripcion,
+      fecha: row.fecha,
+      gravedad: row.gravedad,
+      idHabitacion: row.idHabitacion,
+      nroHabitacion: row.habitacion?.nroHabitacion ?? row.idHabitacion,
+      rutEstudiante: row.rutEstudiante,
+      nombreEstudiante: solicitud.nombreEstudiante || 'Estudiante',
+      rutAdmin: row.rutAdmin,
+      periodo: 'Histórico', // Puedes ajustarlo si tu backend te envía el periodo
+      nombreEdificio: row.habitacion?.piso?.edificio?.nombre ?? 'Sin edificio',
+    };
   }
 
   cerrarModal(): void {
@@ -216,7 +248,7 @@ export class AdminRequestsComponent implements OnInit {
     if (accion === 'Aprobar') {
       if (!this.habitacionSeleccionadaId) return;
 
-      this.adminService.crearAsignacion(idSolicitud, this.habitacionSeleccionadaId).subscribe({
+      this.asignacionesService.crearAsignacion(idSolicitud, this.habitacionSeleccionadaId).subscribe({
         next: (res) => {
           if (this.solicitudSeleccionada) {
             this.solicitudSeleccionada.estado = EstadoSolicitud.APROBADA;
@@ -226,11 +258,11 @@ export class AdminRequestsComponent implements OnInit {
         },
         error: (err) => {
           console.error('Error al crear la asignación:', err);
-          alert('Ocurrió un error al intentar aprobar y asignar la habitación. Revisa la consola para más detalles.');
+          alert('Ocurrió un error al intentar aprobar y asignar la habitación.');
         }
       });
     } else if (accion === 'Rechazar') {
-      this.adminService.cambiarEstadoSolicitud(idSolicitud, 'Rechazada').subscribe({
+      this.solicitudesService.cambiarEstadoSolicitud(idSolicitud, 'Rechazada').subscribe({
         next: (res) => {
           if (this.solicitudSeleccionada) {
             this.solicitudSeleccionada.estado = EstadoSolicitud.RECHAZADA;

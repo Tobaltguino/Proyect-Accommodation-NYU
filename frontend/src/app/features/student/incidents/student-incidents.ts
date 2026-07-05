@@ -2,7 +2,9 @@ import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../../core/auth/auth.service';
-import { StudentIncidentsService } from './student-incidents.service';
+
+import { IncidenciaService } from '../../../core/services/incidencia.service';
+
 import { 
   IncidenciaApiResponse,
   IncidenciaDTO, 
@@ -42,7 +44,8 @@ export class StudentIncidentsComponent implements OnInit {
   private userRut = '';
 
   constructor(
-    private readonly studentIncidentsService: StudentIncidentsService,
+    // 👇 Inyectamos el servicio centralizado
+    private readonly incidenciaService: IncidenciaService,
     private readonly authService: AuthService,
   ) {}
 
@@ -99,8 +102,10 @@ export class StudentIncidentsComponent implements OnInit {
   }
 
   private async cargarIncidencias(): Promise<void> {
-    this.studentIncidentsService
+    // 👇 Llamamos al método getIncidencias del servicio centralizado
+    this.incidenciaService
       .getIncidencias({
+        // Como es la vista del estudiante, le pasamos su RUT para que el backend filtre
         rut: this.userRut || undefined,
       })
       .subscribe({

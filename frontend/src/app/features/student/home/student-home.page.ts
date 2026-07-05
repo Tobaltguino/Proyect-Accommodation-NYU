@@ -1,9 +1,12 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { finalize } from 'rxjs';
+
 import { AuthService } from '../../../core/auth/auth.service';
 import { SessionUser } from '../../../core/auth/auth.models';
-import { DietaDTO, TipoDieta } from '../../../shared/models'; 
+import { AsignacionesService } from '../../../core/services/asignaciones.service';
+import { MiAsignacionResponse, AsignacionDTO, EstadoPago } from '../../../shared/models';
 
 @Component({
   selector: 'app-student-home',
@@ -13,60 +16,78 @@ import { DietaDTO, TipoDieta } from '../../../shared/models';
   styleUrl: './student-home.page.scss'
 })
 export class StudentHomePageComponent implements OnInit {
+  private readonly cdr = inject(ChangeDetectorRef);
+  
   currentUser: SessionUser | null = null;
   
-  tieneAsignacion: boolean = true; 
+  isLoading: boolean = true;
+  tieneAsignacion: boolean = false; 
+  miAsignacion: AsignacionDTO | null = null;
 
-  miPlanDieta: DietaDTO = {
-    idPlan: 1,
-    tipoPlan: TipoDieta.VEGANO,
-    idPeriodo: 1,
-    rutEstudiante: '', 
-    nombreEstudiante: '' 
-  };
-
-  // 👇 Agregamos 'fechaAsignacion' al mock para tener un punto de partida
-  miAsignacion: any = {
-    edificio: 'Residencia Norte',
-    piso: 2,
-    habitacion: 204,
-    fechaIngreso: '2026-03-01',
-    fechaAsignacion: '2026-06-25', // Fecha en que se le otorgó la habitación
-    fechaPago: null
-  };
-
-  constructor(private authService: AuthService) {
+  constructor(
+    private readonly authService: AuthService,
+    private readonly asignacionesService: AsignacionesService
+  ) {
     this.currentUser = this.authService.getCurrentUser();
-    
-    if (this.currentUser) {
-      this.miPlanDieta.rutEstudiante = (this.currentUser as any).rut || '12.345.678-9';
-    }
   }
 
   ngOnInit(): void {
-    // Aquí irían tus llamadas HTTP reales
+    this.cargarMiAsignacion();
   }
 
-  // 👇 NUEVO: Calculamos dinámicamente los días restantes
+  cargarMiAsignacion(): void {
+    this.isLoading = true;
+    
+    this.asignacionesService.obtenerMiAsignacion()
+      .pipe(finalize(() => {
+        this.isLoading = false;
+        this.cdr.detectChanges();
+      }))
+      .subscribe({
+        next: (response: MiAsignacionResponse) => {
+          if (response && response.tieneAsignacion && response.asignacion) {
+            this.tieneAsignacion = true;
+            
+            // 👇 ASIGNACIÓN DIRECTA. Cero mapeo manual.
+            this.miAsignacion = response.asignacion; 
+            
+          } else {
+            this.tieneAsignacion = false;
+            this.miAsignacion = null;
+          }
+        },
+        error: (err) => {
+          console.error('Error al cargar la asignación del estudiante:', err);
+          this.tieneAsignacion = false;
+          this.miAsignacion = null;
+        }
+      });
+  }
+
   get diasRestantesPago(): number {
+    if (!this.miAsignacion || !this.miAsignacion.fechaAsignacion) return 0;
+
     const fechaAsig = new Date(this.miAsignacion.fechaAsignacion);
     
-    // Le sumamos los 15 días de plazo
+    // Sumamos los 15 días reglamentarios de plazo para el arancel
     const fechaLimite = new Date(fechaAsig);
     fechaLimite.setDate(fechaLimite.getDate() + 15);
 
     const hoy = new Date();
     
-    // Calculamos la diferencia en milisegundos y la pasamos a días
+    // Calculamos la diferencia de tiempo neta para determinar el estado de vigencia
     const diferenciaMs = fechaLimite.getTime() - hoy.getTime();
     const dias = Math.ceil(diferenciaMs / (1000 * 60 * 60 * 24));
 
     return dias;
   }
 
-  
   pagarAsignacion(): void {
-    const hoy = new Date();
-    this.miAsignacion.fechaPago = hoy.toISOString().split('T')[0];
+    if (this.miAsignacion) {
+      const hoy = new Date();
+      this.miAsignacion.fechaPago = hoy.toISOString().split('T')[0];
+      this.miAsignacion.estadoPago = EstadoPago.PAGADO;
+      this.cdr.detectChanges();
+    }
   }
 }

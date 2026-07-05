@@ -4,13 +4,14 @@ import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { finalize } from 'rxjs';
+
 import { AuthService } from '../../../core/auth/auth.service';
 import { SessionUser } from '../../../core/auth/auth.models';
+
 import {
   Gender,
-  MealPlan,
-  StudentPostulationService,
-} from './student-postulation.service';
+  SolicitudesService,
+} from '../../../core/services/solicitudes.service';
 
 @Component({
   selector: 'app-student-postulation-page',
@@ -30,9 +31,7 @@ export class StudentPostulationPageComponent implements OnInit {
     fullName: [{ value: '', disabled: true }, [Validators.required]],
     rut: [{ value: '', disabled: true }, [Validators.required]],
     semester: [{ value: this.activeSemester, disabled: true }, [Validators.required]],
-    career: [{ value: '', disabled: true }, [Validators.required]],
     gender: [{ value: 'MUJER' as Gender, disabled: true }, [Validators.required]],
-    mealPlan: ['Sin preferencia' as MealPlan, [Validators.required]],
     declaration: [false, [Validators.requiredTrue]],
   });
 
@@ -44,7 +43,7 @@ export class StudentPostulationPageComponent implements OnInit {
   constructor(
     private readonly authService: AuthService,
     private readonly router: Router,
-    private readonly postulationService: StudentPostulationService,
+    private readonly postulationService: SolicitudesService,
   ) {
     this.currentUser = this.authService.getCurrentUser();
     const user = this.currentUser as any; 
@@ -52,7 +51,6 @@ export class StudentPostulationPageComponent implements OnInit {
     this.postulationForm.patchValue({
       fullName: user?.fullName ?? '',
       rut: user?.rut ?? '',
-      career: user?.career ?? 'No especificada', 
       gender: user?.gender ?? 'MUJER',
       semester: this.activeSemester,
     });
@@ -62,16 +60,6 @@ export class StudentPostulationPageComponent implements OnInit {
     this.loadMySolicitud();
   }
 
-  saveDraft(): void {
-    if (this.postulationForm.invalid) {
-      this.postulationForm.markAllAsTouched();
-      this.formMessage = 'Completa los campos obligatorios para guardar el borrador.';
-      return;
-    }
-
-    this.formMessage = `Borrador local guardado exitosamente.`;
-  }
-
   submitPostulation(): void {
     if (this.postulationForm.invalid) {
       this.postulationForm.markAllAsTouched();
@@ -79,14 +67,10 @@ export class StudentPostulationPageComponent implements OnInit {
       return;
     }
 
-    const payload = this.postulationForm.getRawValue();
     this.formMessage = '';
     this.isSubmitting = true;
 
-    // Solo enviamos lo que el backend realmente está pidiendo
-    const payloadParaBackend: any = {
-      planAlimenticio: payload.mealPlan,
-    };
+    const payloadParaBackend = {};
 
     this.postulationService
       .createSolicitud(payloadParaBackend)
@@ -95,8 +79,7 @@ export class StudentPostulationPageComponent implements OnInit {
         this.cdr.detectChanges(); 
       }))
       .subscribe({
-        next: (response) => {
-          this.syncFormWithSolicitud(response);
+        next: () => {
           this.hasExistingPostulation = true; 
           this.postulationForm.disable(); 
           this.formMessage = '¡Postulacion enviada exitosamente!';
@@ -129,7 +112,6 @@ export class StudentPostulationPageComponent implements OnInit {
   private loadMySolicitud(): void {
     this.isLoadingSolicitud = true;
 
-    // Ya no es necesario pasar el 'activeSemester' como parámetro
     this.postulationService
       .getMySolicitud()
       .pipe(
@@ -164,26 +146,11 @@ export class StudentPostulationPageComponent implements OnInit {
             return;
           }
 
-          this.syncFormWithSolicitud(dataReal);
           this.formMessage = `Ya tienes una postulacion registrada. Estado actual: ${estadoReal}.`;
           this.cdr.detectChanges();
         },
         error: () => {
-          this.formMessage = 'No se pudo recuperar tu postulacion actual.';
-          this.cdr.detectChanges();
         },
       });
-  }
-
-  // Se encarga de extraer el plan alimenticio independientemente de si viene de GET (camelCase) o POST (snake_case)
-  private syncFormWithSolicitud(solicitud: any): void {
-    if (!solicitud) return;
-    
-    const plan = solicitud.planAlimenticio || solicitud.plan_alimenticio;
-    if (plan) {
-      this.postulationForm.patchValue({
-        mealPlan: plan as MealPlan,
-      });
-    }
   }
 }

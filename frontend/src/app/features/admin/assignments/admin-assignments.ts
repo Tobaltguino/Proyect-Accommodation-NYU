@@ -2,7 +2,7 @@ import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AsignacionDTO, EstadoAsignacion } from '../../../shared/models';
-import { AsignacionesService } from '../../../core/services/asignaciones.service'; 
+import { AsignacionesService } from '../../../core/services/asignaciones.service';
 
 @Component({
   selector: 'app-admin-assignments',

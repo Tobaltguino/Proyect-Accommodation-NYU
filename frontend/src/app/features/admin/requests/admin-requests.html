@@ -221,8 +221,29 @@
             <span class="text-secondary fw-semibold" style="font-size: 0.85rem;">{{ edificioSeleccionadoMapa?.nombre }}</span>
           </div>
 
+          <div class="edificios-list mb-4">
+            <label for="edificioSelect" class="form-label mb-1 fw-bold text-dark" style="font-size: 0.9rem;">1. Selecciona un Edificio</label>
+            
+            @if (edificiosFiltrados.length > 0) {
+              <select 
+                id="edificioSelect"
+                class="form-select custom-control" 
+                [ngModel]="edificioSeleccionadoMapa"
+                (ngModelChange)="seleccionarEdificio($event)">
+                <option [ngValue]="null" disabled>Elige una residencia...</option>
+                
+                @for (edificio of edificiosFiltrados; track edificio.idEdificio) {
+                  <option [ngValue]="edificio">{{ edificio.nombre }} ({{ edificio.genero }})</option>
+                }
+              </select>
+            } @else {
+              <p class="text-danger small m-0 mt-2">No hay edificios disponibles para el género del estudiante.</p>
+            }
+          </div>
+
           @if (edificioSeleccionadoMapa) {
             <section class="d-flex flex-column gap-3">
+              <h5 class="fs-6 fw-semibold mb-1">2. Selecciona una Habitación</h5>
               @for (piso of edificioSeleccionadoMapa.pisos; track piso.idPiso) {
                 <article class="border rounded-3 p-3 bg-white">
                   <h5 class="m-0 mb-3 text-secondary fs-6">Piso {{ piso.nroPiso }}</h5>
@@ -242,6 +263,8 @@
                     }
                   </div>
                 </article>
+              } @empty {
+                <p class="text-muted small">Este edificio aún no tiene pisos registrados.</p>
               }
             </section>
           }

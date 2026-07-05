@@ -3,7 +3,13 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
-import { AsignacionDTO } from '../../shared/models';
+import { 
+  AsignacionDTO, 
+  CrearAsignacionRequest, 
+  ReasignarHabitacionRequest, 
+  AsignacionActivaResponse,
+  MiAsignacionResponse 
+} from '../../shared/models';
 import { AuthService } from '../auth/auth.service';
 
 @Injectable({
@@ -24,17 +30,17 @@ export class AsignacionesService {
 
   // ADMINISTRADOR
 
-  crearAsignacion(idSolicitud: number, idHabitacion: number): Observable<any> {
-    const payload = { idSolicitud, idHabitacion };
-    return this.http.post(this.apiUrl, payload, { headers: this.getHeaders() });
+  crearAsignacion(idSolicitud: number, idHabitacion: number): Observable<AsignacionDTO> {
+    const payload: CrearAsignacionRequest = { idSolicitud, idHabitacion };
+    return this.http.post<AsignacionDTO>(this.apiUrl, payload, { headers: this.getHeaders() });
   }
 
   obtenerTodas(): Observable<AsignacionDTO[]> {
     return this.http.get<AsignacionDTO[]>(this.apiUrl, { headers: this.getHeaders() });
   }
 
-  obtenerAsignacionActivaPorRut(rut: string): Observable<{ tieneAsignacion: boolean; message?: string; asignacion?: AsignacionDTO }> {
-    return this.http.get<{ tieneAsignacion: boolean; message?: string; asignacion?: AsignacionDTO }>(
+  obtenerAsignacionActivaPorRut(rut: string): Observable<AsignacionActivaResponse> {
+    return this.http.get<AsignacionActivaResponse>(
       `${this.apiUrl}/estudiante/${encodeURIComponent(rut)}/activa`,
       { headers: this.getHeaders() }
     );
@@ -44,19 +50,19 @@ export class AsignacionesService {
     return this.http.get<AsignacionDTO[]>(`${this.apiUrl}/periodo/${idPeriodo}`, { headers: this.getHeaders() });
   }
 
-  reasignarHabitacion(idAsignacion: number, idNuevaHabitacion: number): Observable<any> {
-    const payload = { idNuevaHabitacion };
-    return this.http.patch(`${this.apiUrl}/${idAsignacion}/reasignar`, payload, { headers: this.getHeaders() });
+  reasignarHabitacion(idAsignacion: number, idNuevaHabitacion: number): Observable<AsignacionDTO> {
+    const payload: ReasignarHabitacionRequest = { idNuevaHabitacion };
+    return this.http.patch<AsignacionDTO>(`${this.apiUrl}/${idAsignacion}/reasignar`, payload, { headers: this.getHeaders() });
   }
 
-  renunciarAsignacion(idAsignacion: number): Observable<any> {
-    return this.http.patch(`${this.apiUrl}/${idAsignacion}/renunciar`, {}, { headers: this.getHeaders() });
+  renunciarAsignacion(idAsignacion: number): Observable<AsignacionDTO> {
+    return this.http.patch<AsignacionDTO>(`${this.apiUrl}/${idAsignacion}/renunciar`, {}, { headers: this.getHeaders() });
   }
 
   // ESTUDIANTE
 
-  obtenerMiAsignacion(): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/mi-asignacion`, { headers: this.getHeaders() });
+  obtenerMiAsignacion(): Observable<MiAsignacionResponse> {
+    return this.http.get<MiAsignacionResponse>(`${this.apiUrl}/activa`, { headers: this.getHeaders() });
   }
 
   obtenerMiHistorial(): Observable<AsignacionDTO[]> {
