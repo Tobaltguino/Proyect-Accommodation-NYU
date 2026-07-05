@@ -1,0 +1,112 @@
+<div class="admin-home-page"> 
+  
+  <header class="main-header mb-4 d-flex justify-content-between align-items-center">
+    <div class="header-copy">
+      <h1>¡Hola, {{ currentUser?.fullName || 'Estudiante' }}!</h1>
+      <p>Bienvenido a tu portal de alojamiento estudiantil.</p>
+    </div>
+  </header>
+
+  @if (tieneAsignacion) {
+    
+    <div class="d-flex flex-column align-items-center gap-4">
+      
+      <section class="card module-box p-4 assignment-card" style="width: 100%; max-width: 900px;">
+        
+        <div class="d-flex flex-column align-items-center mb-4 text-center">
+          <div class="stat-icon rooms mb-2">
+            <i class="pi pi-key"></i>
+          </div>
+          <h2 class="m-0 fs-5" style="color: #1e3a8a; font-weight: 700;">Tu Asignación Actual</h2>
+          <p class="m-0 text-muted" style="font-size: 0.9rem;">Periodo 2026-1</p>
+        </div>
+
+        <div class="d-flex flex-column flex-lg-row gap-4">
+          
+          <div class="info-grid flex-grow-1" style="margin: 0;">
+            <div class="info-item">
+              <span class="label">Edificio</span>
+              <strong class="value">{{ miAsignacion.edificio }}</strong>
+            </div>
+            <div class="info-item">
+              <span class="label">Piso</span>
+              <strong class="value">{{ miAsignacion.piso }}</strong>
+            </div>
+            <div class="info-item">
+              <span class="label">Habitación</span>
+              <strong class="value highlight">Nº {{ miAsignacion.habitacion }}</strong>
+            </div>
+            <div class="info-item">
+              <span class="label">Plan de Dieta</span>
+              <strong class="value">{{ miPlanDieta.tipoPlan }}</strong>
+            </div>
+          </div>
+
+          <div class="d-flex flex-column justify-content-center align-items-lg-end text-lg-end" style="background: #f8fafc; padding: 1.5rem; border-radius: 12px; border: 1px solid #f1f5f9; min-width: 280px;">
+            <span class="label mb-3" style="font-size: 0.85rem; color: #64748b; text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px;">Estado del Arancel</span>
+            
+            @if (miAsignacion.fechaPago === null) {
+              
+              <button class="module-btn pay mb-2" (click)="pagarAsignacion()">
+                <i class="pi pi-credit-card"></i> Pagar Arancel
+              </button>
+              
+              @if (diasRestantesPago > 0) {
+                <span style="color: #dc2626; font-weight: 600; font-size: 0.95rem;">
+                  <i class="pi pi-clock"></i> Plazo: {{ diasRestantesPago }} días restantes
+                </span>
+              } @else {
+                <span style="color: #dc2626; font-weight: 800; font-size: 0.95rem;">
+                  <i class="pi pi-exclamation-triangle"></i> ¡Plazo vencido!
+                </span>
+              }
+
+            } @else {
+              <strong class="value text-success d-inline-flex align-items-center gap-2">
+                <i class="pi pi-check-circle"></i> Pagado el {{ miAsignacion.fechaPago | date:'dd/MM/yyyy' }}
+              </strong>
+            }
+          </div>
+
+        </div>
+
+        <div class="mt-4 pt-3 border-top d-flex justify-content-center gap-3">
+          <button class="module-btn" routerLink="/student/incidents">
+            <i class="pi pi-wrench"></i> Reportar Problema
+          </button>
+          <button class="module-btn alt" routerLink="/student/stay-history">
+            <i class="pi pi-history"></i> Ver Historial
+          </button>
+        </div>
+      </section>
+
+      <section class="card module-box p-3 text-center" style="width: 100%; max-width: 900px;">
+        <h3 class="mb-2 fs-6">Normativa de Convivencia</h3>
+        <ul class="list-unstyled mb-0 d-flex justify-content-center gap-4 flex-wrap text-muted" style="font-size: 0.9rem;">
+          <li><i class="pi pi-moon"></i> Horario de silencio: 23:00 hrs.</li>
+          <li><i class="pi pi-users"></i> Visitas hasta las 20:00 hrs.</li>
+          <li><i class="pi pi-ban"></i> Prohibido cocinillas eléctricas</li>
+        </ul>
+      </section>
+
+    </div>
+
+  } @else {
+    
+    <div class="card module-box empty-state-card text-center p-5 mx-auto" style="max-width: 800px;">
+      <div class="empty-icon mx-auto mb-3">
+        <i class="pi pi-home"></i>
+      </div>
+      <h2 style="color: #0f172a; font-weight: 700; margin-bottom: 0.5rem;">No tienes alojamiento asignado</h2>
+      <p class="text-muted mx-auto mb-4" style="max-width: 500px;">
+        Actualmente no cuentas con una habitación para el periodo en curso. Si cumples con los requisitos, puedes iniciar tu proceso de solicitud ahora mismo.
+      </p>
+      
+      <button class="module-btn mx-auto" routerLink="/student/postulation" style="padding: 0.8rem 1.5rem; font-size: 1.05rem;">
+        <i class="pi pi-file-edit"></i> Postular a Residencia
+      </button>
+    </div>
+
+  }
+  
+</div>

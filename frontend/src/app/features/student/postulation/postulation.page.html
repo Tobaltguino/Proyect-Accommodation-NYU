@@ -1,0 +1,93 @@
+<main class="postulation-page">
+  <section class="postulation-shell">
+    <header class="postulation-header">
+      <div>
+        <h1>Postulacion de Alojamiento</h1>
+        <p>Completa tus datos y selecciona tu plan alimenticio.</p>
+      </div>
+
+      <button type="button" class="back-btn" (click)="goBack()">Volver al panel</button>
+    </header>
+
+    @if (isLoadingSolicitud) {
+      <div style="text-align: center; padding: 3rem;">
+        <p>Verificando estado actual...</p>
+      </div>
+    } @else {
+      <form [formGroup]="postulationForm" novalidate>
+        <section class="block">
+          <div class="block-title">
+            <h2>Perfil del estudiante</h2>
+            <span>Datos sincronizados desde tu sesion</span>
+          </div>
+
+          <div class="form-grid profile-grid">
+            <div class="form-group">
+              <label for="fullName">Nombre completo</label>
+              <input id="fullName" type="text" formControlName="fullName" readonly />
+            </div>
+
+            <div class="form-group">
+              <label for="rut">RUT</label>
+              <input id="rut" type="text" formControlName="rut" readonly />
+            </div>
+
+            <div class="form-group">
+              <label for="semester">Semestre de postulacion</label>
+              <input id="semester" type="text" formControlName="semester" readonly />
+            </div>
+
+            <div class="form-group">
+              <label for="career">Carrera</label>
+              <input id="career" type="text" formControlName="career" readonly />
+            </div>
+
+            <div class="form-group">
+              <label for="gender">Genero</label>
+              <input id="gender" type="text" formControlName="gender" readonly />
+            </div>
+          </div>
+        </section>
+
+        <section class="extra-block">
+          <div class="form-group">
+            <label for="mealPlan">Plan alimenticio</label>
+            <select id="mealPlan" formControlName="mealPlan">
+              <option value="VEGANA">Dieta vegana</option>
+              <option value="VEGETARIANA">Dieta vegetariana</option>
+              <option value="OMNIVORA">Dieta omnivora</option>
+            </select>
+            @if (postulationForm.controls.mealPlan.touched && postulationForm.controls.mealPlan.invalid) {
+              <small class="error">Debes seleccionar un plan alimenticio.</small>
+            }
+          </div>
+        </section>
+
+        <section class="extra-block">
+          <label class="check-row" for="declaration">
+            <input id="declaration" type="checkbox" formControlName="declaration" />
+            <span>Declaro que la informacion ingresada es real y verificable.</span>
+          </label>
+          @if (postulationForm.controls.declaration.touched && postulationForm.controls.declaration.invalid) {
+            <small class="error">Debes aceptar la declaracion para continuar.</small>
+          }
+        </section>
+
+        @if (formMessage) {
+          <p class="submit-message" style="font-weight: bold; color: #1e3a8a; text-align: center; margin-bottom: 1rem;">
+            {{ formMessage }}
+          </p>
+        }
+
+        @if (!hasExistingPostulation) {
+          <footer class="actions">
+            <button type="button" class="ghost" (click)="saveDraft()">Guardar borrador</button>
+            <button type="button" class="primary" [disabled]="isSubmitting || postulationForm.invalid" (click)="submitPostulation()">
+              {{ isSubmitting ? 'Enviando...' : 'Enviar postulacion' }}
+            </button>
+          </footer>
+        }
+      </form>
+    }
+  </section>
+</main>

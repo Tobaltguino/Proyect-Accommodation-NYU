@@ -1,0 +1,101 @@
+/* =========================================
+   CONTENEDORES PRINCIPALES (Estándar 1400px)
+========================================= */
+.diet-management-shell {
+  max-width: 1400px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.05);
+  padding: 2rem;
+}
+
+.page-title { color: #1e3a8a; font-size: 1.45rem; font-weight: 700; }
+.page-subtitle { color: #64748b; }
+.text-primary-custom { color: #1e3a8a; }
+
+/* =========================================
+   BLOQUE DE BÚSQUEDA
+========================================= */
+.filters-block { background: #fcfdff; }
+.block-title { color: #1e3a8a; }
+.form-label { color: #0f172a; font-weight: 600; font-size: 0.9rem; }
+
+.custom-control {
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 0.6rem 0.8rem;
+  font-size: 0.95rem;
+  color: #0f172a;
+  &:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.14); }
+}
+
+.text-btn { background: transparent; border: none; color: #3b82f6; font-weight: 600; font-size: 0.85rem; padding: 0; &:hover { text-decoration: underline; } }
+
+/* =========================================
+   TABLA DE DATOS
+========================================= */
+.custom-table-container { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
+
+.custom-table {
+  min-width: 800px;
+  --bs-table-border-color: #f1f5f9;
+  --bs-table-hover-bg: #f8fafc;
+
+  th {
+    background-color: #f8fafc; color: #475569; font-weight: 600; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.02em; padding: 1rem 1.2rem; border-bottom: 2px solid #e2e8f0;
+    &:first-child { border-top-left-radius: 12px; }
+    &:last-child { border-top-right-radius: 12px; }
+  }
+
+  td { padding: 1rem 1.2rem; }
+}
+
+.user-name { color: #0f172a; font-weight: 600; font-size: 0.95rem; }
+.user-sub { color: #64748b; font-size: 0.82rem; font-family: monospace; }
+.actions-col { width: 120px; }
+
+/* BADGES ESPECÍFICOS DE DIETAS */
+.dieta-badge {
+  padding: 0.4rem 0.85rem; 
+  font-size: 0.75rem; 
+  font-weight: 700; 
+  text-transform: uppercase; 
+  letter-spacing: 0.03em;
+  border: 1px solid rgba(0,0,0,0.1);
+}
+
+.bg-teal { background-color: #0d9488; } /* Turquesa oscuro para Vegetariano */
+
+/* =========================================
+   BOTONES Y ACCIONES
+========================================= */
+button { font-family: inherit; transition: all 0.2s ease; cursor: pointer; }
+
+.primary {
+  background: #1e3a8a; color: #ffffff; font-weight: 600; padding: 0.7rem 1.1rem; border-radius: 10px; display: flex; align-items: center; justify-content: center;
+  &:hover { background: #1e40af; }
+}
+
+.ghost {
+  background: #f1f5f9; border: none; color: #0f172a; font-weight: 600; border-radius: 8px; display: flex; align-items: center; justify-content: center; padding: 0.6rem 1rem;
+  &:hover:not(:disabled) { background: #e2e8f0; }
+}
+
+.icon-only { padding: 0.5rem; width: 34px; height: 34px; i { margin: 0; font-size: 1.05rem; } }
+
+/* =========================================
+   ESTADOS VACÍOS Y MODAL
+========================================= */
+.empty-state { padding: 4rem 1rem; color: #64748b; background: #f8fafc; border-radius: 10px; border: 1px dashed #cbd5e1; }
+.empty-icon { font-size: 2.5rem; color: #cbd5e1; }
+
+.modal-overlay { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); }
+.modal-box { width: 100%; max-width: 450px; border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); animation: slideUp 0.2s ease-out forwards; }
+@keyframes slideUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+
+.modal-header { padding: 1.2rem 1.5rem; border-bottom: 1px solid #e2e8f0; h2 { font-size: 1.15rem; color: #1e3a8a; } .close-btn { background: transparent; color: #64748b; font-size: 1.2rem; padding: 0.5rem; border-radius: 8px; &:hover { background: #f1f5f9; color: #0f172a; } } }
+.modal-body { p { line-height: 1.5; font-size: 0.95rem; } }
+.modal-footer { padding: 1.2rem 1.5rem; background: #f8fafc; border-bottom-left-radius: 16px; border-bottom-right-radius: 16px; }
+
+@media (max-width: 820px) { .diet-management-shell { padding: 1.2rem; } .modal-box { margin: 1rem; width: auto; } }

@@ -1,0 +1,259 @@
+<div class="container-fluid requests-page">
+  <section class="requests-shell mx-auto">
+    
+    <header class="d-flex flex-column flex-md-row justify-content-between align-items-md-start gap-3 mb-4">
+      <div>
+        <h1 class="page-title m-0">Gestión de Solicitudes</h1>
+        <p class="page-subtitle mt-1 mb-0">Administra las postulaciones de alojamiento de los estudiantes.</p>
+      </div>
+    </header>
+
+    <section class="filters-block border rounded-4 p-3 p-md-4 mb-4">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="m-0 fs-6 fw-bold block-title">Filtros de Búsqueda</h2>
+        <button type="button" class="text-btn border-0 bg-transparent text-primary" (click)="limpiarFiltros()">Limpiar filtros</button>
+      </div>
+      
+      <div class="row g-3 align-items-end">
+        <div class="col-12 col-md-4">
+          <label for="buscarRut" class="form-label mb-1 fw-bold text-dark" style="font-size: 0.9rem;">Buscar por RUT</label>
+          <div class="input-group">
+            <input 
+              id="buscarRut" 
+              type="text" 
+              class="form-control custom-control" 
+              placeholder="Ej: 12.345.678-9" 
+              [(ngModel)]="filtroRut"
+              (keyup.enter)="aplicarFiltros()"
+            />
+          </div>
+        </div>
+
+        <div class="col-12 col-md-3">
+          <label for="periodo" class="form-label mb-1 fw-bold text-dark" style="font-size: 0.9rem;">Periodo</label>
+          <select id="periodo" class="form-select custom-control" [(ngModel)]="filtroPeriodo">
+            <option value="">Todos</option>
+            @for (p of periodos; track p) {
+              <option [value]="p">{{ p }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="col-12 col-md-3">
+          <label for="estado" class="form-label mb-1 fw-bold text-dark" style="font-size: 0.9rem;">Estado</label>
+          <select id="estado" class="form-select custom-control" [(ngModel)]="filtroEstado">
+            <option value="">Todos los estados</option>
+            <option [value]="EstadoEnum.PENDIENTE">Pendiente</option>
+            <option [value]="EstadoEnum.EN_REVISION">En Revisión</option>
+            <option [value]="EstadoEnum.APROBADA">Aprobada</option>
+            <option [value]="EstadoEnum.RECHAZADA">Rechazada</option>
+          </select>
+        </div>
+
+        <div class="col-12 col-md-2">
+          <button type="button" class="primary w-100 border-0 d-flex align-items-center justify-content-center gap-2" style="height: 38px;" (click)="aplicarFiltros()">
+            <i class="pi pi-search"></i> Buscar
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <div class="table-responsive bg-white border rounded-3 custom-table-container">
+      @if (solicitudesFiltradas.length === 0) {
+        <div class="empty-state d-flex flex-column align-items-center justify-content-center py-5">
+          <i class="pi pi-inbox empty-icon mb-2 fs-3 text-muted"></i>
+          <p class="m-0 text-muted">No hay solicitudes que coincidan con los filtros seleccionados.</p>
+        </div>
+      } @else {
+        <table class="table custom-table align-middle mb-0">
+          <thead>
+            <tr>
+              <th>Periodo</th>
+              <th>Fecha Solicitud</th>
+              <th>Estudiante</th>
+              <th>Estado</th>
+              <th>Gestionado por</th> 
+              <th class="actions-col">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (solicitud of solicitudesPaginadas; track solicitud.idSolicitud) {
+              <tr>
+                <td><strong class="text-dark">{{ solicitud.nombrePeriodo }}</strong></td>
+                <td class="date-cell">{{ solicitud.fechaSolicitud }}</td>
+                <td>
+                  <div class="d-flex flex-column">
+                    <span class="user-name fw-semibold text-dark">{{ solicitud.nombreEstudiante }}</span>
+                    <span class="rut text-muted small">{{ solicitud.rutEstudiante }}</span>
+                  </div>
+                </td>
+                <td>
+                  <span class="badge rounded-pill status" [ngClass]="getClassForEstado(solicitud.estado)">
+                    {{ solicitud.estado }}
+                  </span>
+                </td>
+                <td>
+                  @if (solicitud.nombreAdmin) {
+                    <div class="d-flex flex-column" style="font-size: 0.85rem;">
+                      <span class="text-dark fw-semibold">{{ solicitud.nombreAdmin }}</span>
+                      <span class="text-muted">{{ solicitud.rutAdmin }}</span>
+                    </div>
+                  } @else {
+                    <span class="text-muted small">Sin asignar</span>
+                  }
+                </td>
+                <td>
+                  <button 
+                    type="button" 
+                    class="ghost small icon-only primary-btn border-0" 
+                    (click)="abrirModal(solicitud)">
+                    <i class="pi pi-search"></i>
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+
+        @if (totalPaginas > 1) {
+          <div class="pagination-footer d-flex flex-column flex-sm-row justify-content-between align-items-center p-3 bg-white border-top">
+            <span class="text-muted small mb-3 mb-sm-0">
+              Mostrando {{ solicitudesPaginadas.length }} de {{ solicitudesFiltradas.length }} registros
+            </span>
+
+            <div class="primeng-pagination d-flex align-items-center gap-1">
+              <button type="button" class="page-btn nav-btn" [disabled]="paginaActual === 1" (click)="cambiarPagina(1)">
+                <i class="pi pi-angle-double-left"></i>
+              </button>
+              <button type="button" class="page-btn nav-btn" [disabled]="paginaActual === 1" (click)="cambiarPagina(paginaActual - 1)">
+                <i class="pi pi-angle-left"></i>
+              </button>
+
+              @for (i of [].constructor(totalPaginas); track $index) {
+                <button type="button" class="page-btn num-btn" 
+                        [class.active]="paginaActual === ($index + 1)" 
+                        (click)="cambiarPagina($index + 1)">
+                  {{ $index + 1 }}
+                </button>
+              }
+
+              <button type="button" class="page-btn nav-btn" [disabled]="paginaActual === totalPaginas" (click)="cambiarPagina(paginaActual + 1)">
+                <i class="pi pi-angle-right"></i>
+              </button>
+              <button type="button" class="page-btn nav-btn" [disabled]="paginaActual === totalPaginas" (click)="cambiarPagina(totalPaginas)">
+                <i class="pi pi-angle-double-right"></i>
+              </button>
+            </div>
+          </div>
+        }
+      }
+    </div>
+  </section>
+</div>
+
+@if (isModalOpen && solicitudSeleccionada) {
+  <div class="modal-overlay position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center z-3 p-3" (click)="cerrarModal()">
+    <div class="modal-box modal-large bg-white d-flex flex-column" (click)="$event.stopPropagation()">
+      <header class="modal-header d-flex justify-content-between align-items-center p-3 border-bottom">
+        <h2 class="m-0 fs-5 text-primary-custom">Revisión de Solicitud y Asignación</h2>
+        <button type="button" class="close-btn border-0 bg-transparent" (click)="cerrarModal()">
+          <i class="pi pi-times"></i>
+        </button>
+      </header>
+
+      <div class="modal-body custom-scrollbar p-4 d-flex flex-column gap-4">
+        <div class="student-info bg-light p-3 rounded-3 border-start border-primary border-4">
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <h3 class="m-0 mb-1 fs-5 text-dark fw-bold">{{ solicitudSeleccionada.nombreEstudiante }}</h3>
+              <p class="m-0 text-secondary" style="font-size: 0.9rem;">
+                <strong class="text-dark">RUT:</strong> {{ solicitudSeleccionada.rutEstudiante }} | 
+                <strong class="text-dark">Género:</strong> {{ solicitudSeleccionada.generoEstudiante }} | 
+                <strong class="text-dark">Periodo:</strong> {{ solicitudSeleccionada.nombrePeriodo }}
+              </p>
+            </div>
+            @if (solicitudSeleccionada.rutAdmin) {
+              <div class="text-end">
+                <span class="d-block text-uppercase text-muted fw-bold" style="font-size: 0.7rem;">Administrador Asignado</span>
+                <span class="text-dark small fw-semibold">{{ solicitudSeleccionada.nombreAdmin }}</span>
+              </div>
+            }
+          </div>
+        </div>
+
+        <div class="incidencias-section">
+          <h4 class="fs-6 fw-bold mb-3 border-bottom pb-2">Historial de Incidencias</h4>
+          @if (incidenciasEstudiante.length === 0) {
+            <p class="text-success m-0" style="font-size: 0.9rem; font-style: italic;">El estudiante no registra incidencias previas.</p>
+          } @else {
+            <ul class="incidencias-list list-unstyled m-0 d-flex flex-column gap-2">
+              @for (inc of incidenciasEstudiante; track inc.idIncidencia) {
+                <li class="d-flex align-items-center gap-3 bg-white border rounded-3 p-2 px-3">
+                  <span class="inc-date text-muted" style="font-size: 0.8rem; min-width: 80px;">{{ inc.fecha }}</span>
+                  <div class="flex-grow-1">
+                    <span class="inc-desc d-block text-dark" style="font-size: 0.9rem;">{{ inc.descripcion }}</span>
+                    <small class="text-muted">Por: {{ inc.nombreAdmin }}</small>
+                  </div>
+                  <span class="badge rounded-pill" 
+                    [ngClass]="{'bg-red': inc.gravedad === GravedadEnum.GRAVE, 'bg-yellow': inc.gravedad === GravedadEnum.MODERADO, 'bg-green': inc.gravedad === GravedadEnum.LEVE}">
+                    {{ inc.gravedad }}
+                  </span>
+                </li>
+              }
+            </ul>
+          }
+        </div>
+
+        <div class="decision-section bg-light p-3 rounded-3">
+          <label class="d-flex align-items-center gap-2 m-0 fw-semibold text-dark" style="cursor: pointer;">
+            <input type="checkbox" class="form-check-input mt-0" [(ngModel)]="matriculaActiva">
+            El estudiante cuenta con matrícula activa validada.
+          </label>
+        </div>
+
+        <div class="building-selection-block border rounded-3 p-3 bg-white">
+          <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-baseline border-bottom pb-2 mb-3 gap-2">
+            <h4 class="m-0 fs-6 fw-bold text-primary-custom">Selección de Habitación</h4>
+            <span class="text-secondary fw-semibold" style="font-size: 0.85rem;">{{ edificioSeleccionadoMapa?.nombre }}</span>
+          </div>
+
+          @if (edificioSeleccionadoMapa) {
+            <section class="d-flex flex-column gap-3">
+              @for (piso of edificioSeleccionadoMapa.pisos; track piso.idPiso) {
+                <article class="border rounded-3 p-3 bg-white">
+                  <h5 class="m-0 mb-3 text-secondary fs-6">Piso {{ piso.nroPiso }}</h5>
+                  <div class="room-grid">
+                    @for (room of piso.habitaciones; track room.idHabitacion) {
+                      <button
+                        type="button"
+                        class="room-chip"
+                        [class.selected]="esHabitacionSeleccionada(room.idHabitacion)"
+                        [class.full]="room.capacidadActual === room.capacidadTotal"
+                        [disabled]="room.capacidadActual === room.capacidadTotal || !room.disponibilidad"
+                        (click)="seleccionarHabitacion(room)"
+                      >
+                        <strong class="text-dark">Hab {{ room.nroHabitacion }}</strong>
+                        <small>{{ room.capacidadActual }}/{{ room.capacidadTotal }} camas</small>
+                      </button>
+                    }
+                  </div>
+                </article>
+              }
+            </section>
+          }
+        </div>
+      </div>
+
+      <footer class="modal-footer d-flex justify-content-end p-3 bg-light border-top rounded-bottom-4 gap-2">
+        <button type="button" class="ghost danger-text border-0" (click)="procesarSolicitud('Rechazar')">
+          <i class="pi pi-times"></i> Rechazar Solicitud
+        </button>
+        <button type="button" class="primary success-bg border-0" 
+                [disabled]="!matriculaActiva || !habitacionSeleccionadaId"
+                (click)="procesarSolicitud('Aprobar')">
+          <i class="pi pi-check"></i> Aprobar y Asignar
+        </button>
+      </footer>
+    </div>
+  </div>
+}

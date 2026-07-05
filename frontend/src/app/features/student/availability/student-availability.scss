@@ -1,0 +1,117 @@
+/* =========================================
+   CONTENEDORES PRINCIPALES
+========================================= */
+.infrastructure-shell {
+  max-width: 1400px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.05);
+  padding: 2rem;
+}
+
+.page-title { color: #1e3a8a; font-size: 1.45rem; }
+.page-subtitle { color: #64748b; }
+.block-title { color: #1e3a8a; }
+
+/* =========================================
+   LISTA DE EDIFICIOS (IZQUIERDA)
+========================================= */
+.building-card {
+  cursor: pointer; 
+  transition: all 0.2s ease; 
+  
+  &:hover { 
+    border-color: #cbd5e1 !important; 
+    background: #f8fafc !important; 
+  } 
+  
+  &.active { 
+    border-color: #1d4ed8 !important; 
+    box-shadow: 0 0 0 2px rgba(29, 78, 216, 0.15); 
+    background: #eff6ff !important; 
+  }
+}
+
+/* Badges para Género del Edificio */
+.status-badge { 
+  font-size: 0.7rem; 
+  padding: 0.2rem 0.5rem; 
+  border-radius: 999px; 
+  font-weight: 700; 
+  text-transform: uppercase; 
+  
+  &.mixto { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+  &.femenino { background: #fce7f3; color: #9d174d; border: 1px solid #fbcfe8; }
+  &.masculino { background: #e0f2fe; color: #075985; border: 1px solid #bae6fd; }
+}
+
+/* =========================================
+   MAPA Y HABITACIONES (DERECHA)
+========================================= */
+.floor-card { 
+  border: 1px solid #dbeafe; 
+  border-radius: 12px; 
+  background: #ffffff; 
+  padding: 1.2rem; 
+}
+
+.room-grid { 
+  display: grid; 
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); 
+  gap: 0.8rem; 
+}
+
+.room-chip.config-mode {
+  border: 1px solid #cbd5e1; 
+  border-radius: 10px; 
+  background: #f8fafc; 
+  padding: 0.8rem; /* Un poco más de padding ya que quitamos los botones */
+  display: flex; 
+  flex-direction: column;
+  gap: 0.4rem; 
+  position: relative; 
+  transition: all 0.2s ease;
+  height: 100%;
+
+  .room-status { 
+    font-size: 0.65rem; 
+    padding: 0.15rem 0.4rem; 
+    border-radius: 4px; 
+    font-weight: 700; 
+    text-transform: uppercase; 
+    
+    &.libre { background: #dcfce7; color: #16a34a; } 
+    &.ocupado { background: #fee2e2; color: #dc2626; } 
+  }
+
+  .beds-info { 
+    color: #475569; 
+    font-size: 0.8rem; 
+    display: flex; 
+    align-items: center; 
+    gap: 0.3rem; 
+    font-weight: 500; 
+    i { font-size: 0.85rem; color: #94a3b8; } 
+  }
+  
+  /* ESTADO DE HABITACIÓN DESHABILITADA O LLENA (isLocked) */
+  &.locked {
+    background: #f1f5f9; border-color: #cbd5e1; opacity: 0.8;
+    strong { color: #64748b !important; }
+    .room-status { filter: grayscale(20%); opacity: 0.8; }
+  }
+}
+
+/* =========================================
+   ESTADOS VACÍOS
+========================================= */
+.empty-state { 
+  padding: 3rem 1rem; color: #64748b; background: #f8fafc; border-radius: 10px; border: 1px dashed #cbd5e1; 
+}
+.empty-icon { font-size: 2.5rem; color: #cbd5e1; }
+
+/* RESPONSIVE AJUSTES MENORES */
+@media (max-width: 820px) { 
+  .infrastructure-shell { padding: 1.2rem; } 
+}

@@ -1,0 +1,202 @@
+<div class="container-fluid p-3 p-lg-4">
+  <section class="assignments-shell mx-auto">
+    
+    <header class="d-flex flex-column flex-md-row justify-content-between align-items-md-start gap-3 mb-4">
+      <div>
+        <h1 class="page-title m-0">Registro General de Asignaciones</h1>
+        <p class="page-subtitle mt-1 mb-0">Visualiza todas las estancias históricas y activas. Para gestionar llegadas/salidas, usa el módulo "Control de Estancias".</p>
+      </div>
+    </header>
+
+    <section class="filters-block border rounded-4 p-3 p-md-4 mb-4">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="m-0 fs-6 fw-bold block-title">Filtros y Búsqueda</h2>
+        <button type="button" class="text-btn border-0" (click)="limpiarFiltros()">Limpiar filtros</button>
+      </div>
+      
+      <div class="row g-3 align-items-end">
+        <div class="col-12 col-md-4 col-lg-4">
+          <label for="searchRut" class="form-label mb-1">Buscar por RUT</label>
+          <div class="position-relative d-flex align-items-center">
+            <i class="pi pi-id-card position-absolute ms-3 text-muted"></i>
+            <input id="searchRut" type="text" class="form-control custom-control ps-5" [(ngModel)]="filtroRut" (keyup.enter)="aplicarFiltros()" placeholder="Ej: 12.345.678-9">
+          </div>
+        </div>
+
+        <div class="col-12 col-md-3 col-lg-3">
+          <label for="periodo" class="form-label mb-1">Periodo</label>
+          <select id="periodo" class="form-select custom-control" [(ngModel)]="filtroPeriodo" (change)="aplicarFiltros()">
+            <option value="">Todos</option>
+            @for (p of periodos; track p) {
+              <option [value]="p">{{ p }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="col-12 col-md-3 col-lg-3">
+          <label for="estado" class="form-label mb-1">Estado</label>
+          <select id="estado" class="form-select custom-control" [(ngModel)]="filtroEstado" (change)="aplicarFiltros()">
+            <option value="">Todos los estados</option>
+            <option [value]="EstadoAsignacionEnum.ACTIVA">Activa</option>
+            <option [value]="EstadoAsignacionEnum.FINALIZADA">Finalizada</option>
+            <option [value]="EstadoAsignacionEnum.RENUNCIADA">Renunciada</option>
+          </select>
+        </div>
+
+        <div class="col-12 col-md-2 col-lg-2">
+          <button type="button" class="primary border-0 w-100 d-flex justify-content-center align-items-center gap-2" style="height: 42px; border-radius: 8px;" (click)="aplicarFiltros()">
+            <i class="pi pi-search"></i> Buscar
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <div class="table-responsive bg-white border rounded-3 custom-table-container">
+      @if (asignacionesFiltradas.length === 0) {
+        <div class="empty-state d-flex flex-column align-items-center justify-content-center">
+          <i class="pi pi-folder-open empty-icon mb-2"></i>
+          <p class="m-0">No hay asignaciones que coincidan con tu búsqueda.</p>
+        </div>
+      } @else {
+        <table class="table custom-table align-middle mb-0">
+          <thead>
+            <tr>
+              <th>Residente (RUT)</th>
+              <th>Ubicación</th>
+              <th>Periodo</th>
+              <th>Ingreso/Salida</th>
+              <th>Estado</th>
+              <th>Última Acción (RUT)</th> 
+              <th class="actions-col text-center">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (asig of asignacionesPaginadas; track asig.idAsignacion) {
+              <tr>
+                <td>
+                  <strong>{{ asig.rutEstudiante }}</strong>
+                </td>
+                
+                <td>
+                  <div class="d-flex flex-column">
+                    <span class="room">Hab {{ asig.numeroHabitacion }}</span>
+                    <span class="building">{{ asig.nombreEdificio }}</span>
+                  </div>
+                </td>
+
+                <td><strong>{{ asig.nombrePeriodo }}</strong></td>
+
+                <td>
+                  <div class="dates-meta d-flex flex-column gap-1">
+                    <span [class.missing]="!asig.fechaCheckIn">
+                      <i class="pi pi-sign-in"></i> {{ asig.fechaCheckIn || 'Pendiente' }}
+                    </span>
+                    <span [class.missing]="!asig.fechaCheckOut && asig.estado !== EstadoAsignacionEnum.ACTIVA">
+                      <i class="pi pi-sign-out"></i> {{ asig.fechaCheckOut || '--/--/----' }}
+                    </span>
+                  </div>
+                </td>
+
+                <td>
+                  <span class="badge rounded-pill" [ngClass]="getClassForEstado(asig.estado)">
+                    {{ asig.estado }}
+                  </span>
+                </td>
+
+                <td>
+                  @if (asig.rutAdmin) {
+                    <div class="d-flex flex-column" style="font-size: 0.85rem;">
+                      <span class="text-uppercase text-muted fw-bold" style="font-size: 0.7rem;">{{ obtenerAccionAdmin(asig) }}</span>
+                      <span class="text-dark fw-semibold" [title]="asig.rutAdmin">{{ asig.rutAdmin }}</span>
+                    </div>
+                  } @else {
+                    <div class="d-flex flex-column" style="font-size: 0.85rem;">
+                      <span class="text-muted small fw-semibold">Pendiente de ingreso</span>
+                      <span class="text-muted" style="font-size: 0.7rem;">(Sin acciones)</span>
+                    </div>
+                  }
+                </td>
+
+                <td class="text-center">
+                  @if (asig.estado === EstadoAsignacionEnum.ACTIVA) {
+                    <button type="button" class="ghost small icon-only danger-text mx-auto border-0" title="Registrar Renuncia" (click)="prepararAccion('RENUNCIA', asig)">
+                      <i class="pi pi-ban"></i>
+                    </button>
+                  } @else {
+                    <span class="text-muted small">-</span>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+
+        @if (totalPaginas > 1) {
+          <div class="pagination-footer d-flex flex-column flex-sm-row justify-content-between align-items-center p-3 bg-white border-top">
+            
+            <span class="text-muted small mb-3 mb-sm-0">
+              Mostrando {{ asignacionesPaginadas.length }} de {{ asignacionesFiltradas.length }} registros
+            </span>
+
+            <div class="primeng-pagination d-flex align-items-center gap-1">
+              <button type="button" class="page-btn nav-btn" [disabled]="paginaActual === 1" (click)="cambiarPagina(1)" title="Primera página">
+                <i class="pi pi-angle-double-left"></i>
+              </button>
+              
+              <button type="button" class="page-btn nav-btn" [disabled]="paginaActual === 1" (click)="cambiarPagina(paginaActual - 1)" title="Anterior">
+                <i class="pi pi-angle-left"></i>
+              </button>
+
+              @for (i of [].constructor(totalPaginas); track $index) {
+                <button type="button" class="page-btn num-btn" 
+                        [class.active]="paginaActual === ($index + 1)" 
+                        (click)="cambiarPagina($index + 1)">
+                  {{ $index + 1 }}
+                </button>
+              }
+
+              <button type="button" class="page-btn nav-btn" [disabled]="paginaActual === totalPaginas" (click)="cambiarPagina(paginaActual + 1)" title="Siguiente">
+                <i class="pi pi-angle-right"></i>
+              </button>
+              
+              <button type="button" class="page-btn nav-btn" [disabled]="paginaActual === totalPaginas" (click)="cambiarPagina(totalPaginas)" title="Última página">
+                <i class="pi pi-angle-double-right"></i>
+              </button>
+            </div>
+
+          </div>
+        }
+      }
+    </div>
+  </section>
+</div>
+
+@if (isConfirmModalOpen && accionPendiente) {
+  <div class="modal-overlay position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center z-3" (click)="cerrarModal()">
+    <div class="modal-box bg-white d-flex flex-column" (click)="$event.stopPropagation()">
+      
+      <header class="modal-header d-flex justify-content-between align-items-center danger-header">
+        <h2 class="m-0">Registrar Renuncia</h2>
+        <button type="button" class="close-btn border-0" (click)="cerrarModal()"><i class="pi pi-times"></i></button>
+      </header>
+      
+      <div class="modal-body p-4 d-flex flex-column gap-3">
+        <p class="m-0">
+          Estás a punto de <strong>registrar la renuncia</strong> 
+          del estudiante con RUT <strong class="text-highlight">{{ accionPendiente.asignacion.rutEstudiante }}</strong> 
+          en la habitación {{ accionPendiente.asignacion.numeroHabitacion }}.
+        </p>
+        <p class="warning-text m-0">
+          <i class="pi pi-info-circle mt-1"></i> Esta acción actualizará el estado de la asignación, liberará el cupo y quedará registrada bajo tu firma.
+        </p>
+      </div>
+
+      <footer class="modal-footer d-flex justify-content-end gap-2 p-3 bg-light border-top">
+        <button type="button" class="ghost border-0" (click)="cerrarModal()">Cancelar</button>
+        <button type="button" class="primary border-0 danger-bg" (click)="ejecutarAccionPendiente()">
+          Confirmar Renuncia
+        </button>
+      </footer>
+    </div>
+  </div>
+}
