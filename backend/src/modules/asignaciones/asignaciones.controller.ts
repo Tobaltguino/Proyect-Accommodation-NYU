@@ -17,6 +17,9 @@ import { Role } from '../auth/enums/role.enum';
 import type { AuthenticatedRequest } from '../../common/types/authenticated-request.type';
 import { UnauthorizedException } from '@nestjs/common';
 
+//api
+import { ApiKeyGuard } from '../../common/guards/api-key.guard';
+
 import { BadRequestException } from '@nestjs/common';
 import { CrearAsignacionDTO } from './dto/crearAsignacion.dto';
 
@@ -161,5 +164,11 @@ export class AsignacionesController {
     }
 
     return this.asignacionesService.renunciarAsignacion(idAsignacion, rutAdmin);
+  }
+  
+  @UseGuards(ApiKeyGuard)
+  @Get('verificar-residencia/:rut')
+  verificarResidenciaExterna(@Param('rut') rut: string): Promise<boolean> {
+    return this.asignacionesService.verificarResidenciaActivaBooleano(rut);
   }
 }
