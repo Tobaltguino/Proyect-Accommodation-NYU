@@ -17,6 +17,9 @@ import { Role } from '../auth/enums/role.enum';
 import type { AuthenticatedRequest } from '../../common/types/authenticated-request.type';
 import { UnauthorizedException } from '@nestjs/common';
 
+///APIS
+import { ApiKeyGuard } from '../../common/guards/api-key.guard';
+
 import { BadRequestException } from '@nestjs/common';
 import { CrearAsignacionDTO } from './dto/crearAsignacion.dto';
 
@@ -165,6 +168,7 @@ export class AsignacionesController {
 
   // GET http://localhost:3000/asignaciones/verificar-residencia/:rut
   // Nota: No usamos @UseGuards ni @Roles aquí para que otros equipos puedan acceder
+  @UseGuards(ApiKeyGuard)
   @Get('verificar-residencia/:rut')
   verificarResidenciaExterna(@Param('rut') rut: string): Promise<boolean> {
     return this.asignacionesService.verificarResidenciaActivaBooleano(rut);
