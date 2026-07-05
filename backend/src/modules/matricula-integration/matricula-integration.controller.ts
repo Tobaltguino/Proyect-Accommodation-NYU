@@ -11,7 +11,7 @@ export class MatriculaIntegrationController {
   constructor(private readonly service: MatriculaIntegrationService) {}
 
   @Roles(Role.ADMIN)
-  @Get('/matriculas/:rut/estado')
+  @Get('/:rut/estado')
   async verificar(@Param('rut') rut: string) {
     const esActivo = await this.service.verificarMatricula(rut);
     return { esActivo };
