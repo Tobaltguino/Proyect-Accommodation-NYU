@@ -186,4 +186,5 @@ export class StudentPostulationPageComponent implements OnInit {
       });
     }
   }
+  
 }
