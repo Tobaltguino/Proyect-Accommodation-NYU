@@ -45,34 +45,12 @@ export class StudentHomePageComponent implements OnInit {
       }))
       .subscribe({
         next: (response: MiAsignacionResponse) => {
-          // Evaluamos basándonos estrictamente en la estructura de tu MiAsignacionResponse
           if (response && response.tieneAsignacion && response.asignacion) {
             this.tieneAsignacion = true;
             
-            const dbAsig = response.asignacion as any;
-
-            // Mapeamos los datos respetando la nomenclatura del DTO e infraestructura anidada
-            this.miAsignacion = {
-              idAsignacion: dbAsig.idAsignacion || dbAsig.id_asignacion,
-              fechaAsignacion: dbAsig.fechaAsignacion || dbAsig.fecha_asignacion,
-              fechaCheckIn: dbAsig.fechaCheckIn || dbAsig.fecha_check_in || null,
-              fechaCheckOut: dbAsig.fechaCheckOut || dbAsig.fecha_check_out || null,
-              estado: dbAsig.estado,
-              idHabitacion: dbAsig.idHabitacion,
-              idPeriodo: dbAsig.idPeriodo,
-              rutEstudiante: dbAsig.rutEstudiante,
-              rutAdmin: dbAsig.rutAdmin,
-              
-              // Datos de infraestructura
-              nombreEdificio: dbAsig.habitacion?.piso?.edificio?.nombre || dbAsig.nombreEdificio || 'Desconocido',
-              numeroHabitacion: dbAsig.habitacion?.nroHabitacion || dbAsig.numeroHabitacion || dbAsig.idHabitacion || '-',
-              nombrePeriodo: dbAsig.nombrePeriodo || '-',
-
-              // Campos de pago del backend mapeados al DTO
-              fechaPago: dbAsig.fechaPago || dbAsig.fecha_pago || null,
-              idPago: dbAsig.idPago || dbAsig.id_pago || null,
-              estadoPago: dbAsig.estadoPago || dbAsig.estado_pago || null
-            };
+            // 👇 ASIGNACIÓN DIRECTA. Cero mapeo manual.
+            this.miAsignacion = response.asignacion; 
+            
           } else {
             this.tieneAsignacion = false;
             this.miAsignacion = null;

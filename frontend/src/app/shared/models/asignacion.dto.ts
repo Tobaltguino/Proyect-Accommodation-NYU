@@ -19,16 +19,17 @@ export interface AsignacionDTO {
   fechaCheckOut: string | null;
   estado: EstadoAsignacion;
   
-  idHabitacion: number;
   idPeriodo: number;
-  
+  idEdificio?: number;
+  idHabitacion: number;
+
+  nombrePeriodo?: string;
+  nombreEdificio?: string;
+  numeroHabitacion?: string; 
+
   rutEstudiante: string;
   rutAdmin: string | null;
 
-  numeroHabitacion?: string; 
-  idEdificio?: number;
-  nombreEdificio?: string;
-  nombrePeriodo?: string;
   nombreEstudiante?: string;
   nombreAdmin?: string;
 
