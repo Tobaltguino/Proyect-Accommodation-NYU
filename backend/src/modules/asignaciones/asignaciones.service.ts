@@ -33,7 +33,7 @@ export class AsignacionesService {
     private readonly planRepo: Repository<PlanAlimenticioEntity>,
 
     private dataSource: DataSource,
-  ) {}
+  ) { }
 
   private async verificarMatriculaActiva(rut: string): Promise<boolean> {
     return true;
@@ -48,7 +48,7 @@ export class AsignacionesService {
       const usuario = await this.dataSource
         .createQueryBuilder()
         .select('usuario.genero', 'genero')
-        .from('usuario', 'usuario') 
+        .from('usuario', 'usuario')
         .where('usuario.rut = :rut', { rut: rutEstudiante })
         .getRawOne();
 
@@ -56,7 +56,7 @@ export class AsignacionesService {
         throw new BadRequestException(`No se pudo determinar el género del estudiante con RUT ${rutEstudiante}.`);
       }
 
-      return usuario.genero; 
+      return usuario.genero;
     } catch (error) {
       console.error('💥 Error en obtenerGeneroEstudiante:', error);
       throw error;
@@ -77,7 +77,7 @@ export class AsignacionesService {
         where: { idSolicitud },
       });
       if (!solicitud) throw new NotFoundException('La solicitud no existe.');
-      if (solicitud.estado !== 'Pendiente' && solicitud.estado !== 'En Revision' )
+      if (solicitud.estado !== 'Pendiente' && solicitud.estado !== 'En Revision')
         throw new BadRequestException('Esta solicitud ya fue procesada.');
 
       const habitacion = await queryRunner.manager.findOne(HabitacionEntity, {
@@ -132,7 +132,7 @@ export class AsignacionesService {
       const nuevoPlan = queryRunner.manager.create(PlanAlimenticioEntity, {
         tipoPlan: solicitud.planAlimenticio,
         idPeriodo: solicitud.idPeriodo,
-        rutEstudiante: rutEstudiante, 
+        rutEstudiante: rutEstudiante,
       });
       await queryRunner.manager.save(nuevoPlan);
 
@@ -141,6 +141,9 @@ export class AsignacionesService {
       await queryRunner.manager.save(solicitud);
 
       habitacion.capacidadActual -= 1;
+      if (habitacion.capacidadActual === 0) {
+        habitacion.disponibilidad = false;
+      }
       await queryRunner.manager.save(habitacion);
 
       await queryRunner.commitTransaction();
@@ -188,7 +191,7 @@ export class AsignacionesService {
           },
         },
       },
-      order: { fechaAsignacion: 'DESC' }, 
+      order: { fechaAsignacion: 'DESC' },
     });
 
     return asignaciones.map((asignacion) =>
@@ -323,10 +326,8 @@ export class AsignacionesService {
       );
     }
 
-    if (
-      nuevaHabitacion.capacidadActual <= 0 ||
-      !nuevaHabitacion.disponibilidad
-    ) {
+    // VALIDACIÓN NUEVA HABITACIÓN: Límite inferior
+    if (nuevaHabitacion.capacidadActual <= 0 || !nuevaHabitacion.disponibilidad) {
       throw new BadRequestException(
         'La nueva habitación seleccionada no tiene camas disponibles.',
       );
@@ -335,20 +336,24 @@ export class AsignacionesService {
     const habitacionAntigua = await this.habitacionRepo.findOne({
       where: { idHabitacion: asignacion.idHabitacion },
     });
+    // LIBERACIÓN HABITACIÓN ANTIGUA: Límite superior
     if (habitacionAntigua) {
-      habitacionAntigua.capacidadActual += 1;
-      habitacionAntigua.disponibilidad = true; 
+      if (habitacionAntigua.capacidadActual < habitacionAntigua.capacidadTotal) {
+        habitacionAntigua.capacidadActual += 1;
+      }
+      habitacionAntigua.disponibilidad = true;
       await this.habitacionRepo.save(habitacionAntigua);
     }
 
+    // OCUPACIÓN NUEVA HABITACIÓN: Límite inferior
     nuevaHabitacion.capacidadActual -= 1;
     if (nuevaHabitacion.capacidadActual === 0) {
-      nuevaHabitacion.disponibilidad = false; 
+      nuevaHabitacion.disponibilidad = false;
     }
     await this.habitacionRepo.save(nuevaHabitacion);
 
     asignacion.idHabitacion = idNuevaHabitacion;
-    asignacion.rutAdmin = rutAdmin; 
+    asignacion.rutAdmin = rutAdmin;
 
     return await this.asignacionRepo.save(asignacion);
   }
@@ -372,8 +377,11 @@ export class AsignacionesService {
       where: { idHabitacion: asignacion.idHabitacion },
     });
     if (habitacion) {
-      habitacion.capacidadActual += 1;
-      habitacion.disponibilidad = true; 
+      // VALIDACIÓN LIBERACIÓN: No puede superar la capacidad máxima arquitectónica
+      if (habitacion.capacidadActual < habitacion.capacidadTotal) {
+        habitacion.capacidadActual += 1;
+      }
+      habitacion.disponibilidad = true;
       await this.habitacionRepo.save(habitacion);
     }
 
@@ -381,8 +389,8 @@ export class AsignacionesService {
     const fechaLocal = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
 
     asignacion.estado = 'Renunciada';
-    asignacion.fechaCheckOut = fechaLocal as any; 
-    asignacion.rutAdmin = rutAdmin; 
+    asignacion.fechaCheckOut = fechaLocal as any;
+    asignacion.rutAdmin = rutAdmin;
 
     return await this.asignacionRepo.save(asignacion);
   }
@@ -396,9 +404,9 @@ export class AsignacionesService {
       const hoy = new Date();
       const fechaLocal = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
 
-      asignacion.fechaCheckIn = fechaLocal as any; 
-      asignacion.rutAdmin = rutAdmin; 
-      
+      asignacion.fechaCheckIn = fechaLocal as any;
+      asignacion.rutAdmin = rutAdmin;
+
       return await this.asignacionRepo.save(asignacion);
     } catch (error) {
       console.error(' Error CRÍTICO en registrarCheckIn:', error);
@@ -412,10 +420,13 @@ export class AsignacionesService {
       if (!asignacion) throw new NotFoundException('La asignación no existe.');
       if (asignacion.estado !== 'Activa') throw new BadRequestException('Solo se puede hacer Check-Out a residentes activos.');
       if (!asignacion.fechaCheckIn) throw new BadRequestException('El estudiante aún no ha realizado el Check-In.');
-      
+
       const habitacion = await this.habitacionRepo.findOne({ where: { idHabitacion: asignacion.idHabitacion } });
       if (habitacion) {
-        habitacion.capacidadActual += 1;
+        // VALIDACIÓN LIBERACIÓN: No puede superar la capacidad máxima arquitectónica
+        if (habitacion.capacidadActual < habitacion.capacidadTotal) {
+          habitacion.capacidadActual += 1;
+        }
         habitacion.disponibilidad = true;
         await this.habitacionRepo.save(habitacion);
       }
@@ -423,10 +434,10 @@ export class AsignacionesService {
       const hoy = new Date();
       const fechaLocal = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
 
-      asignacion.estado = 'Finalizada'; 
+      asignacion.estado = 'Finalizada';
       asignacion.fechaCheckOut = fechaLocal as any;
       asignacion.rutAdmin = rutAdmin;
-      
+
       return await this.asignacionRepo.save(asignacion);
     } catch (error) {
       console.error('💥 Error CRÍTICO en registrarCheckOut:', error);
