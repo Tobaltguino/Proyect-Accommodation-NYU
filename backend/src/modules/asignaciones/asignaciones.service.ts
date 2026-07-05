@@ -144,6 +144,9 @@ export class AsignacionesService {
       await queryRunner.manager.save(solicitud);
 
       habitacion.capacidadActual -= 1;
+      if (habitacion.capacidadActual === 0) {
+        habitacion.disponibilidad = false;
+      }
       await queryRunner.manager.save(habitacion);
 
       await queryRunner.commitTransaction();
@@ -326,10 +329,8 @@ export class AsignacionesService {
       );
     }
 
-    if (
-      nuevaHabitacion.capacidadActual <= 0 ||
-      !nuevaHabitacion.disponibilidad
-    ) {
+    // VALIDACIÓN NUEVA HABITACIÓN: Límite inferior
+    if (nuevaHabitacion.capacidadActual <= 0 || !nuevaHabitacion.disponibilidad) {
       throw new BadRequestException(
         'La nueva habitación seleccionada no tiene camas disponibles.',
       );
@@ -338,12 +339,16 @@ export class AsignacionesService {
     const habitacionAntigua = await this.habitacionRepo.findOne({
       where: { idHabitacion: asignacion.idHabitacion },
     });
+    // LIBERACIÓN HABITACIÓN ANTIGUA: Límite superior
     if (habitacionAntigua) {
-      habitacionAntigua.capacidadActual += 1;
+      if (habitacionAntigua.capacidadActual < habitacionAntigua.capacidadTotal) {
+        habitacionAntigua.capacidadActual += 1;
+      }
       habitacionAntigua.disponibilidad = true;
       await this.habitacionRepo.save(habitacionAntigua);
     }
 
+    // OCUPACIÓN NUEVA HABITACIÓN: Límite inferior
     nuevaHabitacion.capacidadActual -= 1;
     if (nuevaHabitacion.capacidadActual === 0) {
       nuevaHabitacion.disponibilidad = false;
@@ -375,7 +380,10 @@ export class AsignacionesService {
       where: { idHabitacion: asignacion.idHabitacion },
     });
     if (habitacion) {
-      habitacion.capacidadActual += 1;
+      // VALIDACIÓN LIBERACIÓN: No puede superar la capacidad máxima arquitectónica
+      if (habitacion.capacidadActual < habitacion.capacidadTotal) {
+        habitacion.capacidadActual += 1;
+      }
       habitacion.disponibilidad = true;
       await this.habitacionRepo.save(habitacion);
     }
@@ -418,7 +426,10 @@ export class AsignacionesService {
 
       const habitacion = await this.habitacionRepo.findOne({ where: { idHabitacion: asignacion.idHabitacion } });
       if (habitacion) {
-        habitacion.capacidadActual += 1;
+        // VALIDACIÓN LIBERACIÓN: No puede superar la capacidad máxima arquitectónica
+        if (habitacion.capacidadActual < habitacion.capacidadTotal) {
+          habitacion.capacidadActual += 1;
+        }
         habitacion.disponibilidad = true;
         await this.habitacionRepo.save(habitacion);
       }
