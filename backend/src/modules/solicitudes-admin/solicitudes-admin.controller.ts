@@ -16,7 +16,7 @@ export class SolicitudesAdminController {
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
-  @Get('periodo/:idPeriodo')
+  @Get('periodos/:idPeriodo')
   async obtenerSolicitudAdmin(
     @Param('idPeriodo', ParseIntPipe) idPeriodo: number,
   ) {
@@ -25,7 +25,7 @@ export class SolicitudesAdminController {
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
-  @Get('todas')
+  @Get('')
   async obtenerTodasSolicitudAdmin() {
     return this.solicitudesAdminService.obtenerTodas();
   }
@@ -33,7 +33,7 @@ export class SolicitudesAdminController {
   //ELIMINAR
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
-  @Patch('idSolicitud/:idSolicitud')
+  @Patch('/solicitudes-admin/:idSolicitud')
   async cambiarEstadoSolicitudAdmin(
     @Param('idSolicitud', ParseIntPipe) idSolicitud: number,
     @Body() dto: UpdateSolicitudesAdminDto,

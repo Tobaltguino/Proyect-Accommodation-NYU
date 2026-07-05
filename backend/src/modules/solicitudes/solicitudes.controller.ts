@@ -24,7 +24,7 @@ export class SolicitudesController {
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.STUDENT)
-  @Get('all')
+  @Get()
   async getAll(@Req() request: any) {
     if (!request.user) {
       throw new UnauthorizedException('Usuario no autenticado');
@@ -34,7 +34,7 @@ export class SolicitudesController {
   }
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.STUDENT)
-  @Get('mia')
+  @Get('me')
   async getMine(@Req() request: any) {
     if (!request.user) {
       throw new UnauthorizedException('Usuario no autenticado');
