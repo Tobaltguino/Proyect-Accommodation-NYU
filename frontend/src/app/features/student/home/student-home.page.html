@@ -26,22 +26,19 @@
           <div class="info-grid flex-grow-1" style="margin: 0;">
             <div class="info-item">
               <span class="label">Edificio</span>
-              <strong class="value">{{ miAsignacion.edificio }}</strong>
+              <strong class="value">{{ miAsignacion?.nombreEdificio }}</strong>
             </div>
-            <div class="info-item">
-              <span class="label">Piso</span>
-              <strong class="value">{{ miAsignacion.piso }}</strong>
-            </div>
+            
             <div class="info-item">
               <span class="label">Habitación</span>
-              <strong class="value highlight">Nº {{ miAsignacion.habitacion }}</strong>
+              <strong class="value highlight">Nº {{ miAsignacion?.numeroHabitacion }}</strong>
             </div>
           </div>
 
           <div class="d-flex flex-column justify-content-center align-items-lg-end text-lg-end" style="background: #f8fafc; padding: 1.5rem; border-radius: 12px; border: 1px solid #f1f5f9; min-width: 280px;">
             <span class="label mb-3" style="font-size: 0.85rem; color: #64748b; text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px;">Estado del Arancel</span>
             
-            @if (miAsignacion.fechaPago === null) {
+            @if (!miAsignacion?.fechaPago) {
               
               <button class="module-btn pay mb-2" (click)="pagarAsignacion()">
                 <i class="pi pi-credit-card"></i> Pagar Arancel
@@ -59,7 +56,7 @@
 
             } @else {
               <strong class="value text-success d-inline-flex align-items-center gap-2">
-                <i class="pi pi-check-circle"></i> Pagado el {{ miAsignacion.fechaPago | date:'dd/MM/yyyy' }}
+                <i class="pi pi-check-circle"></i> Pagado el {{ miAsignacion?.fechaPago | date:'dd/MM/yyyy' }}
               </strong>
             }
           </div>

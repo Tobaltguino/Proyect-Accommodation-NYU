@@ -1,12 +1,12 @@
-<main class="student-status-page">
-  <section class="status-shell">
+<div class="container-fluid p-3 p-lg-4">
+  <section class="status-shell mx-auto">
     
-    <header class="main-header mb-4 d-flex justify-content-between align-items-center">
-      <div class="header-copy">
-        <h1>Historial de Postulaciones</h1>
-        <p>Consulta el avance y resultado de todas tus solicitudes de residencia.</p>
+    <header class="d-flex flex-column flex-md-row justify-content-between align-items-md-start gap-3 mb-4">
+      <div>
+        <h1 class="page-title">Historial de Postulaciones</h1>
+        <p class="page-subtitle mt-1 mb-0">Consulta el avance y resultado de todas tus solicitudes de residencia.</p>
       </div>
-      <button type="button" class="module-btn alt" (click)="goBack()">Volver al panel</button>
+      <button type="button" class="module-btn" (click)="goBack()">Volver al panel</button>
     </header>
 
     @if (isLoading) {
@@ -18,7 +18,7 @@
         <h2>No se pudo cargar el historial</h2>
         <p>{{ loadError }}</p>
         <div class="actions justify-content-center mt-3">
-          <button type="button" class="module-btn alt" (click)="retry()">Reintentar</button>
+          <button type="button" class="module-btn" (click)="retry()">Reintentar</button>
         </div>
       </div>
     } @else {
@@ -85,4 +85,4 @@
       }
     }
   </section>
-</main>
+</div>

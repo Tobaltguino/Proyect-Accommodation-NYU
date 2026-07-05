@@ -4,17 +4,16 @@
 .postulation-page {
   min-height: 100vh;
   background: linear-gradient(180deg, #f3f7ff 0%, #eef5ff 42%, #f8fafc 100%);
-  padding: 2rem 1rem;
+  padding: 2rem; /* <-- Cambiado a 2rem para igualar al home */
   box-sizing: border-box;
   width: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
+  
+  /* Eliminamos el display: flex y el centrado para que comience desde el margen */
 }
 
 .postulation-shell {
   width: 100%;
-  max-width: 900px;
+  /* Eliminamos el max-width: 900px para que el header ocupe todo el espacio disponible */
 }
 
 /* ========================================================

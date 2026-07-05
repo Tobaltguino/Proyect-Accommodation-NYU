@@ -1,9 +1,14 @@
-
 // Enums
 export enum EstadoAsignacion {
   ACTIVA = 'Activa',
   FINALIZADA = 'Finalizada',
   RENUNCIADA = 'Renunciada'
+}
+
+export enum EstadoPago {
+  PENDIENTE = 'Pendiente',
+  PAGADO = 'Pagado',
+  VENCIDO = 'Vencido'
 }
 
 // DTO Asignacion
@@ -26,6 +31,10 @@ export interface AsignacionDTO {
   nombrePeriodo?: string;
   nombreEstudiante?: string;
   nombreAdmin?: string;
+
+  fechaPago?: string | null;
+  idPago?: string | null;
+  estadoPago?: EstadoPago | string | null;
 }
 
 // REQUESTS 

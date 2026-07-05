@@ -1,8 +1,12 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { finalize } from 'rxjs';
+
 import { AuthService } from '../../../core/auth/auth.service';
 import { SessionUser } from '../../../core/auth/auth.models';
+import { AsignacionesService } from '../../../core/services/asignaciones.service';
+import { MiAsignacionResponse, AsignacionDTO, EstadoPago } from '../../../shared/models';
 
 @Component({
   selector: 'app-student-home',
@@ -12,48 +16,100 @@ import { SessionUser } from '../../../core/auth/auth.models';
   styleUrl: './student-home.page.scss'
 })
 export class StudentHomePageComponent implements OnInit {
+  private readonly cdr = inject(ChangeDetectorRef);
+  
   currentUser: SessionUser | null = null;
   
-  tieneAsignacion: boolean = true; 
+  isLoading: boolean = true;
+  tieneAsignacion: boolean = false; 
+  miAsignacion: AsignacionDTO | null = null;
 
-  // 👇 Agregamos 'fechaAsignacion' al mock para tener un punto de partida
-  miAsignacion: any = {
-    edificio: 'Residencia Norte',
-    piso: 2,
-    habitacion: 204,
-    fechaIngreso: '2026-03-01',
-    fechaAsignacion: '2026-06-25', // Fecha en que se le otorgó la habitación
-    fechaPago: null
-  };
-
-  constructor(private authService: AuthService) {
+  constructor(
+    private readonly authService: AuthService,
+    private readonly asignacionesService: AsignacionesService
+  ) {
     this.currentUser = this.authService.getCurrentUser();
   }
 
   ngOnInit(): void {
-    // Aquí irían tus llamadas HTTP reales
+    this.cargarMiAsignacion();
   }
 
-  // 👇 NUEVO: Calculamos dinámicamente los días restantes
+  cargarMiAsignacion(): void {
+    this.isLoading = true;
+    
+    this.asignacionesService.obtenerMiAsignacion()
+      .pipe(finalize(() => {
+        this.isLoading = false;
+        this.cdr.detectChanges();
+      }))
+      .subscribe({
+        next: (response: MiAsignacionResponse) => {
+          // Evaluamos basándonos estrictamente en la estructura de tu MiAsignacionResponse
+          if (response && response.tieneAsignacion && response.asignacion) {
+            this.tieneAsignacion = true;
+            
+            const dbAsig = response.asignacion as any;
+
+            // Mapeamos los datos respetando la nomenclatura del DTO e infraestructura anidada
+            this.miAsignacion = {
+              idAsignacion: dbAsig.idAsignacion || dbAsig.id_asignacion,
+              fechaAsignacion: dbAsig.fechaAsignacion || dbAsig.fecha_asignacion,
+              fechaCheckIn: dbAsig.fechaCheckIn || dbAsig.fecha_check_in || null,
+              fechaCheckOut: dbAsig.fechaCheckOut || dbAsig.fecha_check_out || null,
+              estado: dbAsig.estado,
+              idHabitacion: dbAsig.idHabitacion,
+              idPeriodo: dbAsig.idPeriodo,
+              rutEstudiante: dbAsig.rutEstudiante,
+              rutAdmin: dbAsig.rutAdmin,
+              
+              // Datos de infraestructura
+              nombreEdificio: dbAsig.habitacion?.piso?.edificio?.nombre || dbAsig.nombreEdificio || 'Desconocido',
+              numeroHabitacion: dbAsig.habitacion?.nroHabitacion || dbAsig.numeroHabitacion || dbAsig.idHabitacion || '-',
+              nombrePeriodo: dbAsig.nombrePeriodo || '-',
+
+              // Campos de pago del backend mapeados al DTO
+              fechaPago: dbAsig.fechaPago || dbAsig.fecha_pago || null,
+              idPago: dbAsig.idPago || dbAsig.id_pago || null,
+              estadoPago: dbAsig.estadoPago || dbAsig.estado_pago || null
+            };
+          } else {
+            this.tieneAsignacion = false;
+            this.miAsignacion = null;
+          }
+        },
+        error: (err) => {
+          console.error('Error al cargar la asignación del estudiante:', err);
+          this.tieneAsignacion = false;
+          this.miAsignacion = null;
+        }
+      });
+  }
+
   get diasRestantesPago(): number {
+    if (!this.miAsignacion || !this.miAsignacion.fechaAsignacion) return 0;
+
     const fechaAsig = new Date(this.miAsignacion.fechaAsignacion);
     
-    // Le sumamos los 15 días de plazo
+    // Sumamos los 15 días reglamentarios de plazo para el arancel
     const fechaLimite = new Date(fechaAsig);
     fechaLimite.setDate(fechaLimite.getDate() + 15);
 
     const hoy = new Date();
     
-    // Calculamos la diferencia en milisegundos y la pasamos a días
+    // Calculamos la diferencia de tiempo neta para determinar el estado de vigencia
     const diferenciaMs = fechaLimite.getTime() - hoy.getTime();
     const dias = Math.ceil(diferenciaMs / (1000 * 60 * 60 * 24));
 
     return dias;
   }
 
-  
   pagarAsignacion(): void {
-    const hoy = new Date();
-    this.miAsignacion.fechaPago = hoy.toISOString().split('T')[0];
+    if (this.miAsignacion) {
+      const hoy = new Date();
+      this.miAsignacion.fechaPago = hoy.toISOString().split('T')[0];
+      this.miAsignacion.estadoPago = EstadoPago.PAGADO;
+      this.cdr.detectChanges();
+    }
   }
 }

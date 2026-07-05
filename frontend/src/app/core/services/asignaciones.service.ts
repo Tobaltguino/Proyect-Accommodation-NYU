@@ -62,7 +62,7 @@ export class AsignacionesService {
   // ESTUDIANTE
 
   obtenerMiAsignacion(): Observable<MiAsignacionResponse> {
-    return this.http.get<MiAsignacionResponse>(`${this.apiUrl}/mi-asignacion`, { headers: this.getHeaders() });
+    return this.http.get<MiAsignacionResponse>(`${this.apiUrl}/activa`, { headers: this.getHeaders() });
   }
 
   obtenerMiHistorial(): Observable<AsignacionDTO[]> {
