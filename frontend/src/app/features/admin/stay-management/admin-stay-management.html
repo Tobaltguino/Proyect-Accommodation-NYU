@@ -19,16 +19,16 @@
             <i class="pi pi-id-card position-absolute ms-3 text-muted" style="font-size: 1.1rem;"></i>
             <input 
               type="text" 
-              class="form-control custom-control w-100 search-input" 
-              placeholder="Ej: 21.345.678-9" 
+              class="form-control custom-control w-100 search-input ps-5" 
+              placeholder="Ej: 21345678-9" 
               [(ngModel)]="rutBusqueda" 
               (keyup.enter)="buscarEstudiante()"
-              appRutFormat placeholder="Ej: 12345678-9"
+              appRutFormat
               maxlength="10">
           </div>
         </div>
         <div class="col-12 col-md-4 col-lg-3">
-          <button type="button" class="primary border-0 w-100" style="padding: 0.75rem 1rem;" (click)="buscarEstudiante()" [disabled]="!rutBusqueda">
+          <button type="button" class="primary border-0 w-100" style="padding: 0.75rem 1rem;" (click)="buscarEstudiante()">
             <i class="pi pi-search me-2"></i> Buscar
           </button>
         </div>

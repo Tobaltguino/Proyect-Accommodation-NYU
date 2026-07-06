@@ -165,20 +165,6 @@
   </section>
 </div>
 
-@if (successMessage) {
-  <div class="toast-feedback success-feedback d-flex align-items-center gap-2" role="status">
-    <i class="pi pi-check-circle"></i>
-    <span>{{ successMessage }}</span>
-  </div>
-}
-
-@if (errorMessage) {
-  <div class="toast-feedback error-feedback d-flex align-items-center gap-2" role="alert">
-    <i class="pi pi-exclamation-triangle"></i>
-    <span>{{ errorMessage }}</span>
-  </div>
-}
-
 @if (isModalOpen && selectedIncident) {
   <div class="modal-backdrop position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center z-3 p-3" (click)="closeModal()">
     <div class="modal-card bg-white d-flex flex-column" (click)="$event.stopPropagation()">
@@ -249,11 +235,13 @@
             <input
               type="text"
               class="form-control custom-control"
-              placeholder="Ejemplo: 12.345.678-9"
+              placeholder="Ejemplo: 12345678-9"
               [(ngModel)]="nuevaIncidencia.rutEstudiante"
               (input)="onRutInputChange()"
               (blur)="buscarDatosEstudiantePorRut()"
               (keyup.enter)="buscarDatosEstudiantePorRut()"
+              appRutFormat
+              maxlength="10"
             />
             <button type="button" class="ghost border-0" (click)="buscarDatosEstudiantePorRut()">
               Buscar

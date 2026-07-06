@@ -1,12 +1,12 @@
-import { Component, ChangeDetectorRef } from '@angular/core';
+import { Component, ChangeDetectorRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { finalize } from 'rxjs';
 import { AsignacionDTO, EstadoAsignacion } from '../../../shared/models';
 import { CheckInOutService } from '../../../core/services/checkInOut.service';
+import { ToastService } from '../../../core/toast/toast.service';
 
 import { RutFormatDirective } from '../../../shared/directives/rut-format.directive';
-
 
 @Component({
   selector: 'app-admin-stay-management',
@@ -18,6 +18,8 @@ import { RutFormatDirective } from '../../../shared/directives/rut-format.direct
 export class AdminStayManagementComponent {
   public EstadoAsignacionEnum = EstadoAsignacion;
   public readonly NOMBRE_ADMIN_ACTUAL = 'Administrador de Turno'; 
+
+  private toastService = inject(ToastService); 
 
   rutBusqueda: string = '';
   resultadoBusqueda: AsignacionDTO | null = null;
@@ -34,11 +36,11 @@ export class AdminStayManagementComponent {
 
   buscarEstudiante(): void {
     if (!this.rutBusqueda.trim()) {
+      this.toastService.mostrarToast('Debes ingresar un RUT para realizar la búsqueda.', 'danger');
       this.limpiarBusqueda();
       return;
     }
 
-    // Eliminamos los puntos pero MANTENEMOS el guion para que coincida con "22222222-2"
     const rutLimpiado = this.rutBusqueda.trim().replace(/\./g, '').toUpperCase();
     this.isLoading = true;
     this.busquedaRealizada = false;
@@ -60,6 +62,7 @@ export class AdminStayManagementComponent {
         },
         error: (err: any) => {
           console.error('Error buscando residente:', err);
+          this.toastService.mostrarToast('Error al conectar con el servidor durante la búsqueda.', 'danger'); 
           this.resultadoBusqueda = null;
         }
       });
@@ -74,11 +77,12 @@ export class AdminStayManagementComponent {
   marcarCheckIn(asignacion: AsignacionDTO): void {
     this.stayService.registrarCheckIn(asignacion.idAsignacion).subscribe({
       next: () => {
+        this.toastService.mostrarToast('Check-In registrado con éxito.', 'success'); 
         this.buscarEstudiante(); 
       },
       error: (err: any) => {
         console.error('Error registrando check-in:', err);
-        alert('Ocurrió un error al registrar el Check-In.');
+        this.toastService.mostrarToast('Ocurrió un error al registrar el Check-In.', 'danger'); 
       }
     });
   }
@@ -98,12 +102,15 @@ export class AdminStayManagementComponent {
 
     request.subscribe({
       next: () => {
+        const mensaje = tipo === 'CHECKOUT' ? 'Check-Out procesado con éxito.' : 'Renuncia registrada con éxito.';
+        this.toastService.mostrarToast(mensaje, 'success');
+        
         this.cerrarModal();
         this.limpiarBusqueda(); 
       },
       error: (err: any) => {
         console.error(`Error al procesar ${tipo}:`, err);
-        alert('Ocurrió un error al procesar la solicitud.');
+        this.toastService.mostrarToast(`Ocurrió un error al procesar ${tipo === 'CHECKOUT' ? 'el Check-Out' : 'la renuncia'}.`, 'danger'); 
         this.cerrarModal();
       }
     });

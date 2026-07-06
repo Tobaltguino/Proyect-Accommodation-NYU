@@ -5,6 +5,7 @@ import { forkJoin } from 'rxjs';
 import { AuthService } from '../../../core/auth/auth.service';
 import { AsignacionesService } from '../../../core/services/asignaciones.service';
 import { IncidenciaService } from '../../../core/services/incidencia.service';
+import { ToastService } from '../../../core/toast/toast.service';
 
 import { RutFormatDirective } from '../../../shared/directives/rut-format.directive';
 
@@ -24,18 +25,14 @@ import {
 })
 export class AdminIncidentsComponent implements OnInit {
   private cdr = inject(ChangeDetectorRef);
+  private toastService = inject(ToastService);
 
   public GravedadEnum = GravedadIncidencia;
 
-  // RUT del administrador simulado
   private readonly RUT_ADMIN_ACTUAL = '14.555.666-7'; 
 
   incidencias: IncidenciaDTO[] = [];
-
   incidenciasFiltradas: IncidenciaDTO[] = [];
-
-  public successMessage: string = '';
-  public errorMessage: string = '';
 
   // Filtros
   filtroPeriodo: string = '';
@@ -67,7 +64,6 @@ export class AdminIncidentsComponent implements OnInit {
   private lastLookupRut = '';
 
   constructor(
-    // 👇 Inyectamos la clase con el nuevo nombre
     private readonly incidenciaService: IncidenciaService,
     private readonly asignacionesService: AsignacionesService,
     private readonly authService: AuthService,
@@ -78,7 +74,6 @@ export class AdminIncidentsComponent implements OnInit {
     this.cargarIncidencias();
   }
 
-  // Getters de Paginación
   get incidenciasPaginadas(): IncidenciaDTO[] {
     const inicio = (this.paginaActual - 1) * this.itemsPorPagina;
     const fin = inicio + this.itemsPorPagina;
@@ -106,7 +101,6 @@ export class AdminIncidentsComponent implements OnInit {
       return matchPeriodo && matchGravedad && matchRut;
     });
 
-    // Reiniciar página al filtrar
     this.paginaActual = 1;
   }
 
@@ -130,8 +124,6 @@ export class AdminIncidentsComponent implements OnInit {
   }
 
   openCreateModal(): void {
-    this.successMessage = '';
-    this.errorMessage = '';
     this.nuevaIncidencia = {
       descripcion: '',
       gravedad: GravedadIncidencia.LEVE,
@@ -178,7 +170,6 @@ export class AdminIncidentsComponent implements OnInit {
 
     forkJoin({
       asignacion: this.asignacionesService.obtenerAsignacionActivaPorRut(rut),
-      // 👇 Actualizado al nuevo nombre
       incidencias: this.incidenciaService.getIncidencias({ rut }),
     }).subscribe({
       next: ({ asignacion, incidencias }) => {
@@ -208,17 +199,17 @@ export class AdminIncidentsComponent implements OnInit {
 
   enviarReporte(): void {
     if (!this.nuevaIncidencia.rutEstudiante.trim()) {
-      alert('El RUT del estudiante no puede estar vacio.');
+      this.toastService.mostrarToast('El RUT del estudiante no puede estar vacío.', 'danger');
       return;
     }
 
     if (!this.nuevaIncidencia.descripcion.trim()) {
-      alert('La descripción no puede estar vacía');
+      this.toastService.mostrarToast('La descripción no puede estar vacía.', 'danger');
       return;
     }
 
     if (!this.studentActiveAssignment) {
-      alert('No se puede crear la incidencia porque el estudiante no tiene una habitación activa.');
+      this.toastService.mostrarToast('El estudiante no tiene una habitación activa asignada.', 'danger');
       return;
     }
 
@@ -232,28 +223,20 @@ export class AdminIncidentsComponent implements OnInit {
 
     this.closeCreateModal();
 
-    // 👇 Actualizado al nuevo nombre
     this.incidenciaService
       .createIncidencia(payload)
       .subscribe({
         next: () => {
-          this.successMessage = 'Reporte enviado con exito.';
+          this.toastService.mostrarToast('Reporte enviado con éxito.', 'success');
           this.cargarIncidencias();
-          window.setTimeout(() => {
-            this.successMessage = '';
-          }, 6000);
         },
         error: () => {
-          this.errorMessage = 'No se pudo enviar el reporte. Revisa backend y datos del formulario.';
-          window.setTimeout(() => {
-            this.errorMessage = '';
-          }, 5000);
+          this.toastService.mostrarToast('No se pudo enviar el reporte. Revisa la conexión.', 'danger');
         },
       });
   }
 
   private cargarIncidencias(): void {
-    // 👇 Actualizado al nuevo nombre
     this.incidenciaService.getIncidencias().subscribe({
         next: (rows) => {
           this.incidencias = rows.map((row) => this.mapApiToDto(row));
@@ -264,6 +247,7 @@ export class AdminIncidentsComponent implements OnInit {
         error: () => {
           this.incidencias = [];
           this.incidenciasFiltradas = [];
+          this.toastService.mostrarToast('Error al cargar la lista de incidencias.', 'danger');
           this.cdr.detectChanges();
         },
       });
@@ -302,8 +286,6 @@ export class AdminIncidentsComponent implements OnInit {
       rutAdmin: row.rutAdmin,
       periodo: this.filtroPeriodo || 'Sin periodo',
       nombreEdificio: row.habitacion?.piso?.edificio?.nombre ?? 'Sin edificio',
-      
-      // 👇 3. Agregamos esta línea mágica para atrapar el piso
       numeroPiso: row.habitacion?.piso?.nroPiso
     };
   }
