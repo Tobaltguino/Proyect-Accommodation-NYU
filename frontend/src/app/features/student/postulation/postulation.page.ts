@@ -138,10 +138,10 @@ export class StudentPostulationPageComponent implements OnInit {
             estadoReal === 'En revision' || 
             estadoReal === 'EN_REVISION'
           ) {
-            this.formMessage = 'Ya tienes una postulacion en curso. Seras redirigido al panel.';
+            this.formMessage = 'Ya tienes una postulacion en curso. Seras redirigido para revisar tu estado.';
             this.cdr.detectChanges();
             setTimeout(() => {
-                void this.router.navigate(['/student/home']);
+                void this.router.navigate(['/student/status']);
             }, 3000);
             return;
           }

@@ -26,11 +26,11 @@ export class SolicitudesService {
   }
 
   getMySolicitud(): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/solicitudes/mia`, { headers: this.getAuthHeaders() });
+    return this.http.get<any>(`${this.apiUrl}/solicitudes/me`, { headers: this.getAuthHeaders() });
   }
 
   getHistorialSolicitudes(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiUrl}/solicitudes/all`, { headers: this.getAuthHeaders() });
+    return this.http.get<any[]>(`${this.apiUrl}/solicitudes`, { headers: this.getAuthHeaders() });
   }
 
   // ==========================================
