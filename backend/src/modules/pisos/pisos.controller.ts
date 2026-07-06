@@ -9,17 +9,22 @@ import {
   ParseIntPipe,
   UseGuards,
 } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiParam, ApiBody } from '@nestjs/swagger';
+
 import { PisosService } from './pisos.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { Role } from '../auth/enums/role.enum';
 
+@ApiTags('Gestión de Pisos')
+@ApiBearerAuth() // Exige el Token JWT de un administrador para todas las rutas
 @Controller('pisos')
 export class PisosController {
-  constructor(private readonly pisosService: PisosService) {}
+  constructor(private readonly pisosService: PisosService) { }
 
-  // GET http://localhost:3000/pisos
+  @ApiOperation({ summary: 'Obtener el listado general de todos los pisos registrados' })
+  @ApiResponse({ status: 200, description: 'Lista completa de pisos retornada exitosamente.' })
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
   @Get()
@@ -27,7 +32,19 @@ export class PisosController {
     return this.pisosService.obtenerTodos();
   }
 
-  // POST http://localhost:3000/pisos
+  @ApiOperation({ summary: 'Crear y asignar un nuevo piso a un edificio existente' })
+  @ApiBody({
+    description: 'Datos necesarios para la creación del piso',
+    schema: {
+      example: {
+        nroPiso: 1,
+        nombre: 'Primer Piso - Ala Norte',
+        idEdificio: 2
+      }
+    }
+  })
+  @ApiResponse({ status: 201, description: 'Piso creado y guardado exitosamente.' })
+  @ApiResponse({ status: 404, description: 'El idEdificio proporcionado no existe.' })
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
   @Post()
@@ -39,7 +56,9 @@ export class PisosController {
     return this.pisosService.crearPiso(nroPiso, nombre, idEdificio);
   }
 
-  // GET http://localhost:3000/pisos/edificio/1
+  @ApiOperation({ summary: 'Obtener todos los pisos que pertenecen a un edificio en particular' })
+  @ApiParam({ name: 'idEdificio', description: 'ID numérico del edificio a consultar' })
+  @ApiResponse({ status: 200, description: 'Lista de pisos filtrada por el edificio.' })
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
   @Get('edificio/:idEdificio')
@@ -47,7 +66,14 @@ export class PisosController {
     return this.pisosService.obtenerPorEdificio(idEdificio);
   }
 
-  // PATCH http://localhost:3000/pisos/5
+  @ApiOperation({ summary: 'Modificar atributos de un piso existente (como su nombre o número)' })
+  @ApiParam({ name: 'id', description: 'ID numérico del piso a modificar' })
+  @ApiBody({
+    description: 'Objeto parcial con los campos del piso que se desean actualizar',
+    schema: { example: { nombre: 'Piso Remodelado' } }
+  })
+  @ApiResponse({ status: 200, description: 'Piso actualizado correctamente.' })
+  @ApiResponse({ status: 404, description: 'Piso no encontrado.' })
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
   @Patch(':id')
@@ -58,7 +84,10 @@ export class PisosController {
     return this.pisosService.modificarPiso(id, datosActualizados);
   }
 
-  // DELETE http://localhost:3000/pisos/5
+  @ApiOperation({ summary: 'Eliminar definitivamente un piso del sistema' })
+  @ApiParam({ name: 'id', description: 'ID numérico del piso a eliminar' })
+  @ApiResponse({ status: 200, description: 'Piso eliminado de la base de datos.' })
+  @ApiResponse({ status: 404, description: 'Piso no encontrado.' })
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
   @Delete(':id')

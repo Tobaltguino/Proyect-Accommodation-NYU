@@ -10,6 +10,8 @@ import {
   ForbiddenException,
   UnauthorizedException,
 } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiParam, ApiBody } from '@nestjs/swagger';
+
 import { EdificiosService } from './edificios.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import type { AuthenticatedRequest } from '../../common/types/authenticated-request.type';
@@ -17,11 +19,18 @@ import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { Role } from '../auth/enums/role.enum';
 
+@ApiTags('Gestión de Edificios e Infraestructura')
+@ApiBearerAuth() // Exige el Token JWT en la interfaz de Swagger para todas estas rutas
 @Controller('edificios')
 export class EdificiosController {
-  constructor(private readonly edificiosService: EdificiosService) {}
+  constructor(private readonly edificiosService: EdificiosService) { }
 
-  // GET http://localhost:3000/edificios
+  // ==========================================
+  // RUTAS ADMINISTRATIVAS
+  // ==========================================
+
+  @ApiOperation({ summary: 'Obtener el listado básico de todos los edificios' })
+  @ApiResponse({ status: 200, description: 'Lista de edificios retornada exitosamente.' })
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
   @Get()
@@ -29,14 +38,39 @@ export class EdificiosController {
     return this.edificiosService.obtenerTodos();
   }
 
-  // GET http://localhost:3000/edificios/infraestructura
+  @ApiOperation({ summary: 'Modificar los datos de un edificio existente' })
+  @ApiParam({ name: 'id', description: 'ID numérico del edificio a modificar' })
+  @ApiBody({
+    description: 'Objeto con los campos del edificio que se desean actualizar',
+    schema: { example: { nombre: 'Edificio A Nuevo', genero: 'Mixto' } }
+  })
+  @ApiResponse({ status: 200, description: 'Edificio actualizado correctamente.' })
+  @ApiResponse({ status: 404, description: 'Edificio no encontrado.' })
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  @Patch(':id')
+  modificarEdificio(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() datosActualizados: any,
+  ) {
+    return this.edificiosService.modificarEdificio(id, datosActualizados);
+  }
+
+  // ==========================================
+  // RUTAS PÚBLICAS / ESTUDIANTES
+  // ==========================================
+
+  @ApiOperation({ summary: 'Obtener la jerarquía completa de infraestructura (Edificios > Pisos > Habitaciones)' })
+  @ApiResponse({ status: 200, description: 'Árbol completo de infraestructura retornado.' })
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Get('infraestructura')
   obtenerInfraestructuraCompleta() {
     return this.edificiosService.obtenerInfraestructuraCompleta();
   }
 
-  // GET http://localhost:3000/edificios/infraestructura/Masculino
+  @ApiOperation({ summary: 'Obtener la jerarquía de infraestructura filtrada por género' })
+  @ApiParam({ name: 'generoEdificio', description: 'Género del edificio (Masculino, Femenino, Mixto)' })
+  @ApiResponse({ status: 200, description: 'Árbol de infraestructura filtrado por género.' })
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Get('infraestructura/:generoEdificio')
   obtenerInfraestructuraCompletaPorGenero(
@@ -47,20 +81,24 @@ export class EdificiosController {
     );
   }
 
-  // GET http://localhost:3000/edificios/genero/Masculino
-  @UseGuards(JwtAuthGuard) // 1. Obliga a que la petición traiga un Token válido
+  @ApiOperation({
+    summary: 'Obtener listado de edificios por género (Con validación de acceso)',
+    description: 'Los administradores pueden ver todos. Los estudiantes solo pueden ver edificios "Mixtos" o aquellos que coincidan con su propio género.'
+  })
+  @ApiParam({ name: 'generoEdificio', description: 'Género del edificio a consultar' })
+  @ApiResponse({ status: 200, description: 'Lista de edificios retornada.' })
+  @ApiResponse({ status: 403, description: 'Acceso denegado (Forbidden) si un estudiante intenta ver edificios de un género distinto al suyo.' })
+  @UseGuards(JwtAuthGuard) // Obliga a que la petición traiga un Token válido
   @Get('genero/:generoEdificio')
   obtenerPorGenero(
     @Param('generoEdificio') generoEdificio: string,
-    @Req() request: AuthenticatedRequest, // 2. Capturamos al usuario que hizo la petición
+    @Req() request: AuthenticatedRequest, // Capturamos al usuario que hizo la petición
   ) {
     const user = request.user;
 
     if (!user) {
       throw new UnauthorizedException('Usuario no autenticado');
     }
-
-    // 3.
 
     // Si es Administrador, tiene pase libre para ver cualquier edificio
     if (user.role === 'ADMIN') {
@@ -87,30 +125,15 @@ export class EdificiosController {
     return this.edificiosService.obtenerPorGenero(generoEdificio);
   }
 
-  // PATCH http://localhost:3000/edificios/1
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.ADMIN)
-  @Patch(':id')
-  modificarEdificio(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() datosActualizados: any,
-  ) {
-    return this.edificiosService.modificarEdificio(id, datosActualizados);
-  }
+  // ==========================================
+  // MÉTODOS PRIVADOS
+  // ==========================================
 
   private mapEdificioToDTO(edificio: any) {
     return {
       idEdificio: edificio.idEdificio,
       nombre: edificio.nombre,
       genero: edificio.genero,
-
-      // Si tienes otras columnas básicas en tu entidad, agrégalas aquí.
-      // Por ejemplo, si tienes 'ubicacion' o 'estado':
-      // ubicacion: edificio.ubicacion,
-
-      // Ejemplo de cómo aplanar un dato extra: Si en el find() trajeras los pisos,
-      // podrías mandarle al frontend solo la cantidad de pisos así:
-      // totalPisos: edificio.pisos ? edificio.pisos.length : 0
     };
   }
 }
