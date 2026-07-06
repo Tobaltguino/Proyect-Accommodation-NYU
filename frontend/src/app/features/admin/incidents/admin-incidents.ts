@@ -277,6 +277,18 @@ export class AdminIncidentsComponent implements OnInit {
     this.lastLookupRut = '';
   }
 
+  private resolvePeriods(rows: IncidenciaDTO[]): string[] {
+    const dynamicPeriods = Array.from(
+      new Set(
+        rows
+          .map((row) => row.periodo)
+          .filter((periodo): periodo is string => Boolean(periodo)),
+      ),
+    );
+
+    return dynamicPeriods.length > 0 ? dynamicPeriods : ['2026-1'];
+  }
+
   private mapApiToDto(row: IncidenciaApiResponse): IncidenciaDTO {
     return {
       idIncidencia: row.idIncidencia,
@@ -289,18 +301,9 @@ export class AdminIncidentsComponent implements OnInit {
       rutAdmin: row.rutAdmin,
       periodo: this.filtroPeriodo || 'Sin periodo',
       nombreEdificio: row.habitacion?.piso?.edificio?.nombre ?? 'Sin edificio',
+      
+      // 👇 3. Agregamos esta línea mágica para atrapar el piso
+      numeroPiso: row.habitacion?.piso?.nroPiso
     };
-  }
-
-  private resolvePeriods(rows: IncidenciaDTO[]): string[] {
-    const dynamicPeriods = Array.from(
-      new Set(
-        rows
-          .map((row) => row.periodo)
-          .filter((periodo): periodo is string => Boolean(periodo)),
-      ),
-    );
-
-    return dynamicPeriods.length > 0 ? dynamicPeriods : ['2026-1'];
   }
 }

@@ -17,6 +17,7 @@ export interface IncidenciaDTO {
   rutAdmin: string | null;
 
   nroHabitacion?: number;
+  numeroPiso?: number;
   nombreEdificio?: string;
   nombreEstudiante?: string;
   periodo?: string;
@@ -47,6 +48,7 @@ export interface IncidenciaApiResponse {
     idHabitacion: number;
     nroHabitacion: number;
     piso?: {
+      nroPiso: number;
       edificio?: {
         nombre: string;
       };
