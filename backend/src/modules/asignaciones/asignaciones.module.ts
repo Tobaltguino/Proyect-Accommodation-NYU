@@ -11,6 +11,7 @@ import { PisoEntity } from '../residencias/entities';
 import { AuthModule } from '../auth/auth.module';
 import { PagosService } from '../pagos/pagos.service';
 import { PagosModule } from '../pagos/pagos.module';
+import { PeriodosModule } from '../periodos/periodos.module';
 
 @Module({
   imports: [
@@ -22,9 +23,10 @@ import { PagosModule } from '../pagos/pagos.module';
       PisoEntity,
     ]),
     AuthModule,
+    PeriodosModule,
     PagosModule,
   ],
   controllers: [AsignacionesController],
   providers: [AsignacionesService],
 })
-export class AsignacionesModule {}
+export class AsignacionesModule { }

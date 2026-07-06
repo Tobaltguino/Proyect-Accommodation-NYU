@@ -210,10 +210,14 @@ export class AsignacionesController {
 
     return this.asignacionesService.registrarCheckOut(idAsignacion, rutAdmin);
   }
-  
+
+  // GET http://localhost:3000/asignaciones/estudiantes/12345678-9/estado
   @UseGuards(ApiKeyGuard)
-  @Get('verificar-residencia/:rut')
-  verificarResidenciaExterna(@Param('rut') rut: string): Promise<boolean> {
-    return this.asignacionesService.verificarResidenciaActivaBooleano(rut);
+  @Get('estudiantes/:rut/estado')
+  obtenerEstadoResidencia(@Param('rut') rut: string): Promise<boolean> {
+    return this.asignacionesService.obtenerEstadoResidencia(rut);
   }
+
+
+
 }

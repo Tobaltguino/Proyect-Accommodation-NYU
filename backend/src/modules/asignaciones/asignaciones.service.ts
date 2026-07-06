@@ -14,8 +14,7 @@ import { EdificioEntity } from '../residencias/entities';
 import { PisoEntity } from '../residencias/entities';
 import { DataSource } from 'typeorm';
 import { AsignacionDTO, RespuestaMiAsignacion } from './dto/asignacion.dto';
-import { PagosService } from '../pagos/pagos.service';
-import { estadoPago } from '../pagos/entities/estadoPagos.enum';
+import { PeriodosService } from '../periodos/periodos.service';
 
 @Injectable()
 export class AsignacionesService {
@@ -30,10 +29,9 @@ export class AsignacionesService {
     private readonly edificioRepo: Repository<EdificioEntity>,
     @InjectRepository(PisoEntity)
     private readonly pisoRepo: Repository<PisoEntity>,
-    private pagos: PagosService,
-
+    private readonly periodosService: PeriodosService,
     private dataSource: DataSource,
-  ) {}
+  ) { }
 
   private async verificarMatriculaActiva(rut: string): Promise<boolean> {
     return true;
@@ -43,9 +41,7 @@ export class AsignacionesService {
     return false;
   }
 
-  private async obtenerGeneroEstudiante(
-    rutEstudiante: string,
-  ): Promise<string> {
+  private async obtenerGeneroEstudiante(rutEstudiante: string): Promise<string> {
     try {
       const usuario = await this.dataSource
         .createQueryBuilder()
@@ -55,9 +51,7 @@ export class AsignacionesService {
         .getRawOne();
 
       if (!usuario || !usuario.genero) {
-        throw new BadRequestException(
-          `No se pudo determinar el género del estudiante con RUT ${rutEstudiante}.`,
-        );
+        throw new BadRequestException(`No se pudo determinar el género del estudiante con RUT ${rutEstudiante}.`);
       }
 
       return usuario.genero;
@@ -81,10 +75,7 @@ export class AsignacionesService {
         where: { idSolicitud },
       });
       if (!solicitud) throw new NotFoundException('La solicitud no existe.');
-      if (
-        solicitud.estado !== 'Pendiente' &&
-        solicitud.estado !== 'En Revision'
-      )
+      if (solicitud.estado !== 'Pendiente' && solicitud.estado !== 'En Revision')
         throw new BadRequestException('Esta solicitud ya fue procesada.');
 
       const habitacion = await queryRunner.manager.findOne(HabitacionEntity, {
@@ -199,9 +190,7 @@ export class AsignacionesService {
     );
   }
 
-  async obtenerMiAsignacion(
-    rutEstudiante: string,
-  ): Promise<RespuestaMiAsignacion> {
+  async obtenerMiAsignacion(rutEstudiante: string): Promise<RespuestaMiAsignacion> {
     const asignacion = await this.asignacionRepo.findOne({
       where: { rutEstudiante: rutEstudiante, estado: 'Activa' },
       relations: {
@@ -329,10 +318,7 @@ export class AsignacionesService {
     }
 
     // VALIDACIÓN NUEVA HABITACIÓN: Límite inferior
-    if (
-      nuevaHabitacion.capacidadActual <= 0 ||
-      !nuevaHabitacion.disponibilidad
-    ) {
+    if (nuevaHabitacion.capacidadActual <= 0 || !nuevaHabitacion.disponibilidad) {
       throw new BadRequestException(
         'La nueva habitación seleccionada no tiene camas disponibles.',
       );
@@ -343,9 +329,7 @@ export class AsignacionesService {
     });
     // LIBERACIÓN HABITACIÓN ANTIGUA: Límite superior
     if (habitacionAntigua) {
-      if (
-        habitacionAntigua.capacidadActual < habitacionAntigua.capacidadTotal
-      ) {
+      if (habitacionAntigua.capacidadActual < habitacionAntigua.capacidadTotal) {
         habitacionAntigua.capacidadActual += 1;
       }
       habitacionAntigua.disponibilidad = true;
@@ -404,14 +388,9 @@ export class AsignacionesService {
 
   async registrarCheckIn(idAsignacion: number, rutAdmin: string) {
     try {
-      const asignacion = await this.asignacionRepo.findOne({
-        where: { idAsignacion },
-      });
+      const asignacion = await this.asignacionRepo.findOne({ where: { idAsignacion } });
       if (!asignacion) throw new NotFoundException('La asignación no existe.');
-      if (asignacion.estado !== 'Activa')
-        throw new BadRequestException(
-          'La asignación no está pendiente de ingreso.',
-        );
+      if (asignacion.estado !== 'Activa') throw new BadRequestException('La asignación no está pendiente de ingreso.');
 
       const hoy = new Date();
       const fechaLocal = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
@@ -428,22 +407,12 @@ export class AsignacionesService {
 
   async registrarCheckOut(idAsignacion: number, rutAdmin: string) {
     try {
-      const asignacion = await this.asignacionRepo.findOne({
-        where: { idAsignacion },
-      });
+      const asignacion = await this.asignacionRepo.findOne({ where: { idAsignacion } });
       if (!asignacion) throw new NotFoundException('La asignación no existe.');
-      if (asignacion.estado !== 'Activa')
-        throw new BadRequestException(
-          'Solo se puede hacer Check-Out a residentes activos.',
-        );
-      if (!asignacion.fechaCheckIn)
-        throw new BadRequestException(
-          'El estudiante aún no ha realizado el Check-In.',
-        );
+      if (asignacion.estado !== 'Activa') throw new BadRequestException('Solo se puede hacer Check-Out a residentes activos.');
+      if (!asignacion.fechaCheckIn) throw new BadRequestException('El estudiante aún no ha realizado el Check-In.');
 
-      const habitacion = await this.habitacionRepo.findOne({
-        where: { idHabitacion: asignacion.idHabitacion },
-      });
+      const habitacion = await this.habitacionRepo.findOne({ where: { idHabitacion: asignacion.idHabitacion } });
       if (habitacion) {
         // VALIDACIÓN LIBERACIÓN: No puede superar la capacidad máxima arquitectónica
         if (habitacion.capacidadActual < habitacion.capacidadTotal) {
@@ -467,136 +436,31 @@ export class AsignacionesService {
     }
   }
 
-  async obtenerTotalResidentesActivos(
-    idPeriodo: number,
-  ): Promise<{ total: number }> {
+  async obtenerTotalResidentesActivos(idPeriodo: number): Promise<{ total: number }> {
     const cantidad = await this.asignacionRepo.count({
-      where: { estado: 'Activa', idPeriodo: idPeriodo },
+      where: { estado: 'Activa', idPeriodo: idPeriodo }
     });
     return { total: cantidad };
   }
 
-  // =====================================================================
-  // FASE 1: Preparar la orden de pago antes de redirigir al estudiante
-  // =====================================================================
-  async prepararOrdenPago(idAsignacion: number, rutEstudiante: string) {
-    const asignacion = await this.asignacionRepo.findOne({
-      where: { idAsignacion, rutEstudiante },
-      relations: { habitacion: { piso: { edificio: true } } }, // Si necesitas sacar el precio del edificio
+
+  async obtenerEstadoResidencia(rutEstudiante: string): Promise<boolean> {
+
+    const periodoActual = await this.periodosService.obtenerActual();
+
+    if (!periodoActual) {
+      return false;
+    }
+
+    return await this.asignacionRepo.exists({
+      where: {
+        rutEstudiante: rutEstudiante,
+        estado: 'Activa',
+        idPeriodo: periodoActual.idPeriodo
+      }
     });
-
-    if (!asignacion) {
-      throw new NotFoundException('No se encontró la asignación activa.');
-    }
-
-    if (asignacion.estado === 'PAGADO') {
-      throw new BadRequestException('Esta estancia ya se encuentra pagada.');
-    }
-
-    // 1. Validar la regla de negocio de los 15 días
-    const hoy = new Date();
-    const fechaAsignacion = new Date(asignacion.fechaAsignacion);
-    const msPorDia = 1000 * 60 * 60 * 24;
-    const diasTranscurridos = Math.floor(
-      (hoy.getTime() - fechaAsignacion.getTime()) / msPorDia,
-    );
-
-    if (diasTranscurridos > 15) {
-      asignacion.estado = 'EXPIRADO';
-      await this.asignacionRepo.save(asignacion);
-      throw new BadRequestException(
-        'El plazo máximo de 15 días para pagar ha expirado.',
-      );
-    }
-
-    // 2. Generar un referenceId único
-    // El PDF exige un referenceId único para evitar error 409 [cite: 129]
-    const referenceId = `RES-${idAsignacion}-${Date.now()}`;
-
-    // Asumimos un monto fijo o lo sacas de la entidad edificio
-    const montoAPagar = 150000;
-    const descripcion = `Pago de residencia - Asignación #${idAsignacion}`;
-
-    // 3. Crear la orden en el API del equipo de pagos (Quedará en PENDING) [cite: 66]
-    await this.pagos.crearOrdenPago(referenceId, montoAPagar, descripcion);
-
-    // 4. Guardamos temporalmente el referenceId en nuestra BD para saber qué consultar después
-    asignacion.idPago = referenceId;
-    await this.asignacionRepo.save(asignacion);
-
-    // 5. Devolvemos el referenceId al frontend para que arme su URL de redirección
-    return {
-      success: true,
-      referenceId: referenceId,
-      message: 'Orden de pago creada exitosamente. Redirigiendo a pasarela...',
-    };
   }
 
-  // =====================================================================
-  // FASE 3: Verificar si el estudiante realmente pagó al volver
-  // =====================================================================
-  async verificarYConfirmarPago(idAsignacion: number, rutEstudiante: string) {
-    const asignacion = await this.asignacionRepo.findOne({
-      where: { idAsignacion, rutEstudiante },
-    });
-
-    if (!asignacion) throw new NotFoundException('Asignación no encontrada.');
-    if (!asignacion.idPago)
-      throw new BadRequestException('No hay ninguna orden de pago en curso.');
-    if (asignacion.estado === 'PAGADO')
-      return { success: true, message: 'Ya estaba pagado.' };
-
-    // 1. Consultamos el estado real al API de pagos
-    const estadoPago = await this.pagos.consultarEstado(asignacion.idPago);
-
-    // 2. Evaluamos la respuesta según el documento de integración [cite: 119]
-    if (estadoPago === 'APPROVED') {
-      asignacion.estado = 'PAGADO';
-      asignacion.fechaPago = new Date(); // Fecha exacta en que confirmamos el pago
-      await this.asignacionRepo.save(asignacion);
-
-      return {
-        success: true,
-        estado: 'APPROVED',
-        message: '¡Pago confirmado exitosamente!',
-      };
-    }
-
-    if (estadoPago === 'REJECTED' || estadoPago === 'CANCELLED') {
-      // Opcional: Podrías limpiar el idPago si quieres que intenten de nuevo desde cero
-      return {
-        success: false,
-        estado: estadoPago,
-        message: 'El pago fue rechazado o cancelado en la pasarela.',
-      };
-    }
-
-    // Si sigue PENDING [cite: 119]
-    return {
-      success: false,
-      estado: 'PENDING',
-      message: 'El pago aún está pendiente de confirmación.',
-    };
-  }
-
-  // VERIFICAR SI UN ESTUDIANTE TIENE RESIDENCIA ACTIVA (API)
-  async verificarResidenciaActivaBooleano(
-    rutEstudiante: string,
-  ): Promise<boolean> {
-    // Normalizamos el RUT (quitamos puntos y pasamos a mayúsculas) igual que en tu otro método
-    const rutNormalizado = rutEstudiante.replace(/\./g, '').toUpperCase();
-
-    // Contamos si existe al menos 1 asignación activa para este RUT
-    const cantidad = await this.asignacionRepo.count({
-      where: [
-        { rutEstudiante: rutEstudiante, estado: 'Activa' },
-        { rutEstudiante: rutNormalizado, estado: 'Activa' },
-      ],
-    });
-
-    // Si la cantidad es mayor a 0, retorna true, de lo contrario false
-    return cantidad > 0;
-  }
 
   private mapAsignacionToDTO(asignacion: any): AsignacionDTO {
     return {
@@ -608,15 +472,34 @@ export class AsignacionesService {
       rutEstudiante: asignacion.rutEstudiante,
       rutAdmin: asignacion.rutAdmin,
 
+      // --- PERIODO ---
       idPeriodo: asignacion.periodo?.idPeriodo || asignacion.idPeriodo,
       nombrePeriodo: asignacion.periodo?.nombre || 'Sin periodo',
 
-      idHabitacion:
-        asignacion.habitacion?.idHabitacion || asignacion.idHabitacion,
-      numeroHabitacion:
-        asignacion.habitacion?.nroHabitacion?.toString() || 'Sin asignar',
-      nombreEdificio:
-        asignacion.habitacion?.piso?.edificio?.nombre || 'Sin edificio',
+      // --- INFORMACIÓN DE LA HABITACIÓN ---
+      idHabitacion: asignacion.habitacion?.idHabitacion || asignacion.idHabitacion,
+      numeroHabitacion: asignacion.habitacion?.nroHabitacion?.toString() || 'Sin asignar',
+      capacidadActual: asignacion.habitacion?.capacidadActual,
+      capacidadTotal: asignacion.habitacion?.capacidadTotal, // La nueva regla que agregamos
+      disponibilidadHabitacion: asignacion.habitacion?.disponibilidad,
+
+      // --- INFORMACIÓN DEL PISO ---
+      idPiso: asignacion.habitacion?.piso?.idPiso,
+      numeroPiso: asignacion.habitacion?.piso?.nroPiso,
+      nombrePiso: asignacion.habitacion?.piso?.nombre,
+
+      // --- INFORMACIÓN DEL EDIFICIO ---
+      idEdificio: asignacion.habitacion?.piso?.edificio?.idEdificio,
+      nombreEdificio: asignacion.habitacion?.piso?.edificio?.nombre || 'Sin edificio',
+      generoEdificio: asignacion.habitacion?.piso?.edificio?.genero,
+
+      //pago
+      fechaPago: asignacion.fechaPago,
+      idPago: asignacion.idPago,
+      estadoPago: asignacion.estadoPago,
+
     };
   }
+
+
 }
