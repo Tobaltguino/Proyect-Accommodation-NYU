@@ -208,11 +208,28 @@
           }
         </div>
 
-        <div class="decision-section bg-light p-3 rounded-3">
-          <label class="d-flex align-items-center gap-2 m-0 fw-semibold text-dark" style="cursor: pointer;">
-            <input type="checkbox" class="form-check-input mt-0" [(ngModel)]="matriculaActiva">
-            El estudiante cuenta con matrícula activa validada.
-          </label>
+        <div class="decision-section bg-light p-3 rounded-3 border" [ngClass]="{'border-success': matriculaActiva && !isVerificandoMatricula, 'border-danger': !matriculaActiva && !isVerificandoMatricula && !errorMatricula}">
+          
+          <h4 class="fs-6 fw-bold mb-2 text-dark d-flex align-items-center gap-2">
+            <i class="pi pi-id-card text-primary-custom"></i> Verificación Académica
+          </h4>
+
+          @if (isVerificandoMatricula) {
+            <p class="m-0 text-muted small d-flex align-items-center gap-2">
+              <i class="pi pi-spin pi-spinner text-primary-custom"></i> Consultando sistema de matrículas...
+            </p>
+          } @else if (errorMatricula) {
+            <p class="m-0 text-danger small"><i class="pi pi-exclamation-triangle"></i> {{ errorMatricula }}</p>
+            <label class="d-flex align-items-center gap-2 m-0 mt-2 fw-semibold text-dark" style="cursor: pointer;">
+              <input type="checkbox" class="form-check-input mt-0" [(ngModel)]="matriculaActiva">
+              Validar matrícula manualmente (Solo en caso de error del sistema)
+            </label>
+          } @else {
+            <label class="d-flex align-items-center gap-2 m-0 fw-semibold" [ngClass]="matriculaActiva ? 'text-success' : 'text-danger'">
+              <input type="checkbox" class="form-check-input mt-0" [ngModel]="matriculaActiva" disabled>
+              {{ matriculaActiva ? 'El estudiante cuenta con matrícula activa validada.' : 'El estudiante NO posee una matrícula activa.' }}
+            </label>
+          }
         </div>
 
         <div class="building-selection-block border rounded-3 p-3 bg-white">

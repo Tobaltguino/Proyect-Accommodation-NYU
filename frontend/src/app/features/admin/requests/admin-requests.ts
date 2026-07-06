@@ -53,8 +53,12 @@ export class AdminRequestsComponent implements OnInit {
 
   edificiosFiltrados: EdificioDTO[] = [];
   edificioSeleccionadoMapa: EdificioDTO | null = null;
-  matriculaActiva: boolean = false;
   habitacionSeleccionadaId: number | null = null;
+
+  // 👇 Estados para la verificación de matrícula
+  matriculaActiva: boolean = false;
+  isVerificandoMatricula: boolean = false;
+  errorMatricula: string = '';
 
   seleccionarEdificio(edificio: EdificioDTO): void {
     this.edificioSeleccionadoMapa = edificio;
@@ -94,7 +98,6 @@ export class AdminRequestsComponent implements OnInit {
       }))
       .subscribe({
         next: (dataCruda: any[]) => {
-          console.log('👀 SOLICITUDES DEL BACKEND:', dataCruda);
           if (!dataCruda || !Array.isArray(dataCruda)) {
             this.solicitudes = [];
           } else {
@@ -129,13 +132,12 @@ export class AdminRequestsComponent implements OnInit {
       nombrePeriodo: String(periodoReal), 
       rutEstudiante: String(rutReal),
       nombreEstudiante: String(nombreReal), 
-      generoEstudiante: Genero.MASCULINO, 
+      generoEstudiante: Genero.MASCULINO, // ⚠️ Asume Masculino por ahora, asegúrate de conectarlo si el backend te lo manda
       rutAdmin: dbSol.rutAdmin || dbSol.rut_admin || undefined,
       nombreAdmin: (dbSol.rutAdmin || dbSol.rut_admin) ? 'Admin Asignado' : undefined
     };
   }
 
-  // ... (getters de paginación y filtros se mantienen igual) ...
   get solicitudesPaginadas(): SolicitudDTO[] {
     const inicio = (this.paginaActual - 1) * this.itemsPorPagina;
     const fin = inicio + this.itemsPorPagina;
@@ -188,7 +190,7 @@ export class AdminRequestsComponent implements OnInit {
         });
     }
 
-    // 👇 2. Cargar Incidencias Reales del estudiante
+    // 2. Cargar Incidencias Reales del estudiante
     this.incidenciasEstudiante = []; 
     this.incidenciaService.getIncidencias({ rut: solicitud.rutEstudiante }).subscribe({
       next: (rows) => {
@@ -198,18 +200,37 @@ export class AdminRequestsComponent implements OnInit {
       error: (err) => console.error('Error al cargar incidencias del estudiante:', err)
     });
 
-    // 3. Filtrar edificios (ahora usa los datos reales traídos en ngOnInit)
+    // 👇 3. Verificar Matrícula Activa en el Backend
+    this.isVerificandoMatricula = true;
+    this.matriculaActiva = false;
+    this.errorMatricula = '';
+
+    this.solicitudesService.verificarMatricula(solicitud.rutEstudiante)
+      .pipe(finalize(() => {
+        this.isVerificandoMatricula = false;
+        this.cdr.detectChanges();
+      }))
+      .subscribe({
+        next: (res) => {
+          this.matriculaActiva = res.esActivo;
+        },
+        error: (err) => {
+          console.error('Error al verificar matrícula:', err);
+          this.errorMatricula = 'No se pudo verificar la matrícula automáticamente.';
+          this.matriculaActiva = false;
+        }
+      });
+
+    // 4. Filtrar edificios
     this.edificiosFiltrados = this.edificiosDisponibles.filter(
       e => e.genero === Genero.MIXTO || e.genero === solicitud.generoEstudiante
     );
 
     this.edificioSeleccionadoMapa = this.edificiosFiltrados.length > 0 ? this.edificiosFiltrados[0] : null;
-    this.matriculaActiva = false;
     this.habitacionSeleccionadaId = null;
     this.isModalOpen = true;
   }
 
-  // 👇 Helper para mapear la incidencia real a tu DTO de la vista
   private mapearIncidenciaDelBackend(row: IncidenciaApiResponse, solicitud: SolicitudDTO): IncidenciaDTO {
     return {
       idIncidencia: row.idIncidencia,
@@ -221,7 +242,7 @@ export class AdminRequestsComponent implements OnInit {
       rutEstudiante: row.rutEstudiante,
       nombreEstudiante: solicitud.nombreEstudiante || 'Estudiante',
       rutAdmin: row.rutAdmin,
-      periodo: 'Histórico', // Puedes ajustarlo si tu backend te envía el periodo
+      periodo: 'Histórico', 
       nombreEdificio: row.habitacion?.piso?.edificio?.nombre ?? 'Sin edificio',
     };
   }
@@ -246,7 +267,7 @@ export class AdminRequestsComponent implements OnInit {
     const idSolicitud = this.solicitudSeleccionada.idSolicitud;
 
     if (accion === 'Aprobar') {
-      if (!this.habitacionSeleccionadaId) return;
+      if (!this.habitacionSeleccionadaId || !this.matriculaActiva) return; // 👈 Validación extra de seguridad
 
       this.asignacionesService.crearAsignacion(idSolicitud, this.habitacionSeleccionadaId).subscribe({
         next: (res) => {

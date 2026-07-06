@@ -28,3 +28,8 @@ export interface SolicitudDTO {
 export interface CambiarEstadoSolicitudRequest {
   estado: string;
 }
+
+// RESPONSE
+export interface VerificarMatriculaResponse {
+  esActivo: boolean;
+}
