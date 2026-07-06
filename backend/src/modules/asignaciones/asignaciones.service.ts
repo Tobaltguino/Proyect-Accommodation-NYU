@@ -493,7 +493,7 @@ export class AsignacionesService {
 
       //pago
       fechaPago: asignacion.fechaPago,
-      idPago: asignacion.idPago,
+      referenceId: asignacion.referenceId,
       estadoPago: asignacion.estadoPago,
 
     };

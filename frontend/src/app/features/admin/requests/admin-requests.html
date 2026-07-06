@@ -69,44 +69,38 @@
           <thead>
             <tr>
               <th>Periodo</th>
+              <th>Estudiante (RUT)</th>
               <th>Fecha Solicitud</th>
-              <th>Estudiante</th>
               <th>Estado</th>
-              <th>Gestionado por</th> 
-              <th class="actions-col">Acciones</th>
+              <th class="actions-col text-center">Acciones</th>
             </tr>
           </thead>
           <tbody>
             @for (solicitud of solicitudesPaginadas; track solicitud.idSolicitud) {
               <tr>
-                <td><strong class="text-dark">{{ solicitud.nombrePeriodo }}</strong></td>
-                <td class="date-cell">{{ solicitud.fechaSolicitud }}</td>
                 <td>
-                  <div class="d-flex flex-column">
-                    <span class="user-name fw-semibold text-dark">{{ solicitud.nombreEstudiante }}</span>
-                    <span class="rut text-muted small">{{ solicitud.rutEstudiante }}</span>
-                  </div>
+                  <span class="period-text">{{ solicitud.nombrePeriodo }}</span>
                 </td>
+                
+                <td>
+                  <span class="rut-text">{{ solicitud.rutEstudiante }}</span>
+                </td>
+
+                <td>
+                  <span class="date-text">{{ solicitud.fechaSolicitud }}</span>
+                </td>
+                
                 <td>
                   <span class="badge rounded-pill status" [ngClass]="getClassForEstado(solicitud.estado)">
                     {{ solicitud.estado }}
                   </span>
                 </td>
-                <td>
-                  @if (solicitud.nombreAdmin) {
-                    <div class="d-flex flex-column" style="font-size: 0.85rem;">
-                      <span class="text-dark fw-semibold">{{ solicitud.nombreAdmin }}</span>
-                      <span class="text-muted">{{ solicitud.rutAdmin }}</span>
-                    </div>
-                  } @else {
-                    <span class="text-muted small">Sin asignar</span>
-                  }
-                </td>
-                <td>
+                
+                <td class="text-center">
                   @if (solicitud.estado !== EstadoEnum.APROBADA && solicitud.estado !== EstadoEnum.RECHAZADA) {
                     <button 
                       type="button" 
-                      class="ghost small icon-only primary-btn border-0" 
+                      class="ghost small icon-only primary-btn border-0 mx-auto" 
                       (click)="abrirModal(solicitud)">
                       <i class="pi pi-search"></i>
                     </button>

@@ -25,7 +25,7 @@
 
         <div class="col-12 col-md-3 col-lg-3">
           <label for="periodo" class="form-label mb-1">Periodo</label>
-          <select id="periodo" class="form-select custom-control" [(ngModel)]="filtroPeriodo" (change)="aplicarFiltros()">
+          <select id="periodo" class="form-select custom-control" [(ngModel)]="filtroPeriodo">
             <option value="">Todos</option>
             @for (p of periodos; track p) {
               <option [value]="p">{{ p }}</option>
@@ -35,7 +35,7 @@
 
         <div class="col-12 col-md-3 col-lg-3">
           <label for="estado" class="form-label mb-1">Estado</label>
-          <select id="estado" class="form-select custom-control" [(ngModel)]="filtroEstado" (change)="aplicarFiltros()">
+          <select id="estado" class="form-select custom-control" [(ngModel)]="filtroEstado">
             <option value="">Todos los estados</option>
             <option [value]="EstadoAsignacionEnum.ACTIVA">Activa</option>
             <option [value]="EstadoAsignacionEnum.FINALIZADA">Finalizada</option>
@@ -61,12 +61,11 @@
         <table class="table custom-table align-middle mb-0">
           <thead>
             <tr>
-              <th>Residente (RUT)</th>
-              <th>Ubicación</th>
               <th>Periodo</th>
+              <th>Estudiante (RUT)</th>
+              <th>Ubicación</th>
               <th>Ingreso/Salida</th>
               <th>Estado</th>
-              <th>Última Acción (RUT)</th> 
               <th class="actions-col text-center">Acciones</th>
             </tr>
           </thead>
@@ -74,17 +73,25 @@
             @for (asig of asignacionesPaginadas; track asig.idAsignacion) {
               <tr>
                 <td>
-                  <strong>{{ asig.rutEstudiante }}</strong>
+                  <span class="period-text">{{ asig.nombrePeriodo }}</span>
+                </td>
+
+                <td>
+                  <span class="rut-text">{{ asig.rutEstudiante }}</span>
                 </td>
                 
                 <td>
-                  <div class="d-flex flex-column">
-                    <span class="room">Hab {{ asig.numeroHabitacion }}</span>
-                    <span class="building">{{ asig.nombreEdificio }}</span>
+                  <div class="d-flex flex-column lh-sm gap-1">
+                    <span class="building text-dark" style="font-weight: 500;">{{ asig.nombreEdificio }}</span>
+                    <div class="d-flex align-items-center">
+                      @if (asig.numeroPiso) {
+                        <span class="floor-text">Piso {{ asig.numeroPiso }}</span>
+                        <span class="text-muted opacity-50 mx-2">|</span>
+                      }
+                      <span class="room">Hab {{ asig.numeroHabitacion }}</span>
+                    </div>
                   </div>
                 </td>
-
-                <td><strong>{{ asig.nombrePeriodo }}</strong></td>
 
                 <td>
                   <div class="dates-meta d-flex flex-column gap-1">
@@ -101,20 +108,6 @@
                   <span class="badge rounded-pill" [ngClass]="getClassForEstado(asig.estado)">
                     {{ asig.estado }}
                   </span>
-                </td>
-
-                <td>
-                  @if (asig.rutAdmin) {
-                    <div class="d-flex flex-column" style="font-size: 0.85rem;">
-                      <span class="text-uppercase text-muted fw-bold" style="font-size: 0.7rem;">{{ obtenerAccionAdmin(asig) }}</span>
-                      <span class="text-dark fw-semibold" [title]="asig.rutAdmin">{{ asig.rutAdmin }}</span>
-                    </div>
-                  } @else {
-                    <div class="d-flex flex-column" style="font-size: 0.85rem;">
-                      <span class="text-muted small fw-semibold">Pendiente de ingreso</span>
-                      <span class="text-muted" style="font-size: 0.7rem;">(Sin acciones)</span>
-                    </div>
-                  }
                 </td>
 
                 <td class="text-center">

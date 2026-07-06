@@ -18,6 +18,8 @@ export interface AsignacionDTO {
   fechaCheckIn: string | null;
   fechaCheckOut: string | null;
   estado: EstadoAsignacion;
+  rutEstudiante: string;
+  rutAdmin: string | null;
   
   idPeriodo: number;
   idEdificio?: number;
@@ -27,14 +29,21 @@ export interface AsignacionDTO {
   nombreEdificio?: string;
   numeroHabitacion?: string; 
 
-  rutEstudiante: string;
-  rutAdmin: string | null;
+  capacidadActual?: number;
+  capacidadTotal?: number;
+  disponibilidadHabitacion?: boolean;
+
+  idPiso?: number;
+  numeroPiso?: number;
+  nombrePiso?: string;
+
+  generoEdificio?: string;
 
   nombreEstudiante?: string;
   nombreAdmin?: string;
 
   fechaPago?: string | null;
-  idPago?: string | null;
+  referenceId?: string | null;
   estadoPago?: EstadoPago | string | null;
 }
 
@@ -58,5 +67,4 @@ export interface AsignacionActivaResponse {
 export interface MiAsignacionResponse {
   tieneAsignacion?: boolean;
   asignacion?: AsignacionDTO; 
-  planDieta?: any;
 }
