@@ -18,15 +18,13 @@ export class SolicitudesAdminService {
 async obtenerPorPeriodo(idPeriodo: number) {
   const solicitudes = await this.solicitudRepo
     .createQueryBuilder('solicitud')
-    .leftJoin('usuario', 'usuario', 'usuario.rut = solicitud.rut_estudiante') 
     .leftJoin('periodo', 'periodo', 'periodo.id_periodo = solicitud.id_periodo')
     .select([
       'solicitud.id_solicitud AS "idSolicitud"',
-      'solicitud.fecha_solicitud AS "fechaSolicitud"',
+      'TO_CHAR(solicitud.fecha_solicitud, \'YYYY-MM-DD\') AS "fechaSolicitud"',
       'solicitud.estado AS "estado"',
       'solicitud.id_periodo AS "idPeriodo"',
-      'usuario.rut AS "rutEstudiante"',
-      'usuario.nombre AS "nombreEstudiante"',
+      'solicitud.rut_estudiante AS "rutEstudiante"',
       'periodo.nombre AS "nombrePeriodo"' 
     ])
     .where('solicitud.id_periodo = :idPeriodo', { idPeriodo })
@@ -39,15 +37,13 @@ async obtenerPorPeriodo(idPeriodo: number) {
 async obtenerTodas() {
   const solicitudes = await this.solicitudRepo
     .createQueryBuilder('solicitud')
-    .leftJoin('usuario', 'usuario', 'usuario.rut = solicitud.rut_estudiante') 
     .leftJoin('periodo', 'periodo', 'periodo.id_periodo = solicitud.id_periodo')
     .select([
       'solicitud.id_solicitud AS "idSolicitud"',
-      'solicitud.fecha_solicitud AS "fechaSolicitud"',
+      'TO_CHAR(solicitud.fecha_solicitud, \'YYYY-MM-DD\') AS "fechaSolicitud"',
       'solicitud.estado AS "estado"',
       'solicitud.id_periodo AS "idPeriodo"',
-      'usuario.rut AS "rutEstudiante"',
-      'usuario.nombre AS "nombreEstudiante"',
+      'solicitud.rut_estudiante AS "rutEstudiante"',
       'periodo.nombre AS "nombrePeriodo"' 
     ])
     .orderBy('solicitud.fecha_solicitud', 'DESC')
