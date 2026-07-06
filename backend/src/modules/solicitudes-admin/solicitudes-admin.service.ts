@@ -21,10 +21,10 @@ async obtenerPorPeriodo(idPeriodo: number) {
     .leftJoin('periodo', 'periodo', 'periodo.id_periodo = solicitud.id_periodo')
     .select([
       'solicitud.id_solicitud AS "idSolicitud"',
-      'solicitud.fecha_solicitud AS "fechaSolicitud"',
-      'solicitud.estado AS "estado"',
-      'solicitud.id_periodo AS "idPeriodo"',
       'TO_CHAR(solicitud.fecha_solicitud, \'YYYY-MM-DD\') AS "fechaSolicitud"',
+      'solicitud.estado AS "estado"',
+      'solicitud.rut_estudiante AS "rutEstudiante"',
+      'solicitud.id_periodo AS "idPeriodo"',
       'periodo.nombre AS "nombrePeriodo"' 
     ])
     .where('solicitud.id_periodo = :idPeriodo', { idPeriodo })
@@ -43,7 +43,7 @@ async obtenerTodas() {
       'TO_CHAR(solicitud.fecha_solicitud, \'YYYY-MM-DD\') AS "fechaSolicitud"',
       'solicitud.estado AS "estado"',
       'solicitud.id_periodo AS "idPeriodo"',
-      'TO_CHAR(solicitud.fecha_solicitud, \'YYYY-MM-DD\') AS "fechaSolicitud"',
+      'solicitud.rut_estudiante AS "rutEstudiante"',
       'periodo.nombre AS "nombrePeriodo"' 
     ])
     .orderBy('solicitud.fecha_solicitud', 'DESC')
