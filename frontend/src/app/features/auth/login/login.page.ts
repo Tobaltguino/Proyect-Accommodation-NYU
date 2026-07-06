@@ -12,6 +12,7 @@ import { AuthService } from '../../../core/auth/auth.service';
   templateUrl: './login.page.html',
   styleUrl: './login.page.scss',
 })
+
 export class LoginPageComponent {
   private readonly formBuilder = inject(FormBuilder);
   private readonly rutPattern =
