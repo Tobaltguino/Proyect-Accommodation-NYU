@@ -1,0 +1,204 @@
+/* Variables base de tu tema */
+:host {
+  --primary-deep: #322659;
+  --primary-royal: #553c9a;
+  --accent-soft: #e9d8fd;
+  --text-main: #1e293b;
+  --text-muted: #64748b;
+  --bg-light: #f8fafc;
+}
+
+.landing-wrapper {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(135deg, #f8fafc 0%, #f3ebfc 100%);
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+/* ============================
+   NAVBAR PÚBLICA
+   ============================ */
+.public-navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 5%;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+
+  .brand-container {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+
+    .brand-logo {
+      width: 45px;
+      height: 45px;
+      object-fit: contain;
+      border-radius: 8px;
+    }
+
+    .brand-name {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--primary-deep);
+    }
+  }
+}
+
+/* ============================
+   SECCIÓN HERO (CENTRAL)
+   ============================ */
+.hero-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 1rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.hero-content {
+  max-width: 800px;
+  animation: fadeUp 0.6s ease-out forwards;
+
+  .badge-pill {
+    display: inline-block;
+    background: var(--accent-soft);
+    color: var(--primary-royal);
+    padding: 0.5rem 1rem;
+    border-radius: 50px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .hero-title {
+    font-size: clamp(2.5rem, 5vw, 4rem);
+    font-weight: 800;
+    color: var(--primary-deep);
+    line-height: 1.1;
+    margin-bottom: 1.5rem;
+    letter-spacing: -0.02em;
+  }
+
+  .hero-subtitle {
+    font-size: clamp(1.1rem, 2vw, 1.25rem);
+    color: var(--text-muted);
+    line-height: 1.6;
+    margin: 0 auto;
+    max-width: 650px;
+  }
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ============================
+   TARJETAS DE CARACTERÍSTICAS
+   ============================ */
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2rem;
+  width: 100%;
+  opacity: 0;
+  animation: fadeUp 0.6s ease-out 0.3s forwards;
+
+  .feature-card {
+    background: white;
+    padding: 2rem;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(50, 38, 89, 0.05);
+    text-align: center;
+    border: 1px solid rgba(0,0,0,0.03);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+
+    &:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 20px 40px rgba(50, 38, 89, 0.1);
+    }
+
+    .icon-box {
+      width: 60px;
+      height: 60px;
+      background: #f3ebfc;
+      color: var(--primary-royal);
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      margin: 0 auto 1.5rem;
+    }
+
+    h3 {
+      font-size: 1.2rem;
+      color: var(--primary-deep);
+      font-weight: 700;
+      margin-bottom: 0.8rem;
+    }
+
+    p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      line-height: 1.5;
+      margin: 0;
+    }
+  }
+}
+
+/* ============================
+   BOTONES Y FOOTER
+   ============================ */
+.btn-outline {
+  background: transparent;
+  border: 2px solid var(--primary-royal);
+  color: var(--primary-royal);
+  padding: 0.6rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: var(--primary-royal);
+    color: white;
+  }
+}
+
+.btn-primary-large {
+  background: var(--primary-royal);
+  color: white;
+  border: none;
+  padding: 1rem 2.5rem;
+  border-radius: 12px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  transition: all 0.2s ease;
+  box-shadow: 0 10px 20px rgba(85, 60, 154, 0.2);
+
+  &:hover {
+    background: var(--primary-deep);
+    transform: translateY(-2px);
+    box-shadow: 0 15px 25px rgba(85, 60, 154, 0.3);
+  }
+}
+
+.public-footer {
+  padding: 2rem;
+  border-top: 1px solid rgba(0,0,0,0.05);
+}

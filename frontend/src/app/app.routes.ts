@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 import { roleGuard } from './core/guards/role.guard';
 import { LoginPageComponent } from './features/auth/login/login.page';
+import { HomeComponent } from './features/home/home';
 import { DashboardLayoutComponent } from './layouts/dashboard-layout';
 
 // Admin
@@ -10,7 +11,7 @@ import { AdminRequestsComponent } from './features/admin/requests/admin-requests
 import { AdminAssignmentsComponent } from './features/admin/assignments/admin-assignments';
 import { AdminIncidentsComponent } from './features/admin/incidents/admin-incidents';
 import { AdminInfrastructureComponent } from './features/admin/infrastructure/admin-infrastructure';
-import {AdminStayManagementComponent} from './features/admin/stay-management/admin-stay-management';
+import { AdminStayManagementComponent } from './features/admin/stay-management/admin-stay-management';
 
 // Estudiante 
 import { StudentHomePageComponent } from './features/student/home/student-home.page';
@@ -23,14 +24,15 @@ import { StudentIncidentsComponent } from './features/student/incidents/student-
 export const routes: Routes = [
   {
     path: '',
+    component: HomeComponent,
     pathMatch: 'full',
-    redirectTo: 'login',
   },
+  
   {
     path: 'login',
     component: LoginPageComponent,
   },
-  
+
   // ADMIN
   {
     path: 'admin',
@@ -68,9 +70,9 @@ export const routes: Routes = [
       { path: 'incidents', component: StudentIncidentsComponent },
     ]
   },
-  
+
   {
     path: '**',
-    redirectTo: 'login',
+    redirectTo: '',
   },
 ];
