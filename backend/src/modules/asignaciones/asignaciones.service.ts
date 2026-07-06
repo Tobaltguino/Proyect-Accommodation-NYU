@@ -7,7 +7,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { AsignacionEntity } from './entities/asignacion.entity';
-
+import { MatriculaIntegrationService } from '../matricula-integration/matricula-integration.service';
 import { SolicitudEntity } from '../solicitudes/entities';
 import { HabitacionEntity } from '../residencias/entities';
 import { EdificioEntity } from '../residencias/entities';
@@ -19,6 +19,7 @@ import { PeriodosService } from '../periodos/periodos.service';
 @Injectable()
 export class AsignacionesService {
   constructor(
+    private readonly matriculaService: MatriculaIntegrationService,
     @InjectRepository(AsignacionEntity)
     private readonly asignacionRepo: Repository<AsignacionEntity>,
     @InjectRepository(SolicitudEntity)
@@ -33,9 +34,6 @@ export class AsignacionesService {
     private dataSource: DataSource,
   ) { }
 
-  private async verificarMatriculaActiva(rut: string): Promise<boolean> {
-    return true;
-  }
 
   private async verificarIncidenciasGraves(rut: string): Promise<boolean> {
     return false;
@@ -96,7 +94,7 @@ export class AsignacionesService {
 
       const rutEstudiante = solicitud.rutEstudiante;
 
-      const tieneMatricula = await this.verificarMatriculaActiva(rutEstudiante);
+      const tieneMatricula = await this.matriculaService.verificarMatricula(solicitud.rutEstudiante);
       if (!tieneMatricula)
         throw new ForbiddenException(
           'El estudiante no tiene matrícula activa.',

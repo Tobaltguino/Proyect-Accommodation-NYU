@@ -12,7 +12,7 @@ import { AuthModule } from '../auth/auth.module';
 import { PagosService } from '../pagos/pagos.service';
 import { PagosModule } from '../pagos/pagos.module';
 import { PeriodosModule } from '../periodos/periodos.module';
-
+import { MatriculaIntegrationModule } from '../matricula-integration/matricula-integration.module';
 @Module({
   imports: [
     TypeOrmModule.forFeature([
@@ -25,6 +25,7 @@ import { PeriodosModule } from '../periodos/periodos.module';
     AuthModule,
     PeriodosModule,
     PagosModule,
+    MatriculaIntegrationModule,
   ],
   controllers: [AsignacionesController],
   providers: [AsignacionesService],

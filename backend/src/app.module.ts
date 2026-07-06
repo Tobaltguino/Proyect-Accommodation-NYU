@@ -24,6 +24,9 @@ import { AppService } from './app.service';
 import { AppController } from './app.controller';
 import { PagosModule } from './modules/pagos/pagos.module';
 
+// 1. Importa el nuevo módulo
+import { MatriculaIntegrationModule } from './modules/matricula-integration/matricula-integration.module';
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -53,6 +56,8 @@ import { PagosModule } from './modules/pagos/pagos.module';
     PeriodosModule,
     EdificiosModule,
     PagosModule,
+    // 2. Agrégalo al array de imports
+    MatriculaIntegrationModule,
   ],
   controllers: [AppController],
   providers: [AppService],
