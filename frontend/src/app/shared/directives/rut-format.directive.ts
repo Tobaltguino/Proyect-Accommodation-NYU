@@ -6,39 +6,27 @@ import { NgControl } from '@angular/forms';
   standalone: true
 })
 export class RutFormatDirective {
-
+  // Inyectamos NgControl para poder actualizar el [(ngModel)] automáticamente
   constructor(private control: NgControl) {}
 
-  // 👇 Cambiamos aquí para recibir el evento completo
-  @HostListener('input', ['$event'])
-  onInput(event: Event): void {
-    
-    // 👇 Le aseguramos a TypeScript que esto es un input de HTML
-    const inputElement = event.target as HTMLInputElement;
-    const value = inputElement?.value;
-
+  @HostListener('input', ['$event.target.value'])
+  onInput(value: string) {
     if (!value) return;
 
-    // 1. Limpiamos el texto: quitamos puntos, guiones y letras (dejamos solo números y la K)
-    let rutLimpio = value.replace(/[^0-9kK]/g, '').toUpperCase();
+    // 1. Limpiar todo lo que no sea número o la letra K (y pasarlo a mayúscula)
+    let cleaned = value.replace(/[^0-9kK]/g, '').toUpperCase();
 
-    // 2. Formateamos: agregamos puntos y guion
-    let rutFormateado = '';
-    
-    if (rutLimpio.length > 1) {
-      // Separamos el dígito verificador del resto del cuerpo
-      const cuerpo = rutLimpio.slice(0, -1);
-      const dv = rutLimpio.slice(-1);
-      
-      // Expresión regular para poner un punto cada 3 números de derecha a izquierda
-      const cuerpoConPuntos = cuerpo.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-      
-      rutFormateado = `${cuerpoConPuntos}-${dv}`;
-    } else {
-      rutFormateado = rutLimpio;
+    // 2. Aplicar el formato: separar el último dígito con un guion
+    let formatted = cleaned;
+    if (cleaned.length > 1) {
+      const cuerpo = cleaned.slice(0, -1);
+      const dv = cleaned.slice(-1);
+      formatted = `${cuerpo}-${dv}`;
     }
 
-    // 3. Actualizamos el input visual y el modelo
-    this.control.control?.setValue(rutFormateado, { emitEvent: false });
+    // 3. Actualizar el valor real en el modelo de Angular
+    if (this.control && this.control.control) {
+      this.control.control.setValue(formatted);
+    }
   }
 }

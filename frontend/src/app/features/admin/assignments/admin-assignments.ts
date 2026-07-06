@@ -4,10 +4,12 @@ import { FormsModule } from '@angular/forms';
 import { AsignacionDTO, EstadoAsignacion } from '../../../shared/models';
 import { AsignacionesService } from '../../../core/services/asignaciones.service';
 
+import { RutFormatDirective } from '../../../shared/directives/rut-format.directive';
+
 @Component({
   selector: 'app-admin-assignments',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RutFormatDirective],
   templateUrl: './admin-assignments.html',
   styleUrl: './admin-assignments.scss'
 })

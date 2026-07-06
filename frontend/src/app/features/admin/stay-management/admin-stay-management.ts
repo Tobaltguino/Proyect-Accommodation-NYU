@@ -3,13 +3,15 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { finalize } from 'rxjs';
 import { AsignacionDTO, EstadoAsignacion } from '../../../shared/models';
-
 import { CheckInOutService } from '../../../core/services/checkInOut.service';
+
+import { RutFormatDirective } from '../../../shared/directives/rut-format.directive';
+
 
 @Component({
   selector: 'app-admin-stay-management',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RutFormatDirective],
   templateUrl: './admin-stay-management.html',
   styleUrl: './admin-stay-management.scss'
 })

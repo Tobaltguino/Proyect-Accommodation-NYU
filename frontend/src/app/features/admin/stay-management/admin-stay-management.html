@@ -22,7 +22,9 @@
               class="form-control custom-control w-100 search-input" 
               placeholder="Ej: 21.345.678-9" 
               [(ngModel)]="rutBusqueda" 
-              (keyup.enter)="buscarEstudiante()">
+              (keyup.enter)="buscarEstudiante()"
+              appRutFormat placeholder="Ej: 12345678-9"
+              maxlength="10">
           </div>
         </div>
         <div class="col-12 col-md-4 col-lg-3">

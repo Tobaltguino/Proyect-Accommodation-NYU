@@ -4,8 +4,9 @@ import { FormsModule } from '@angular/forms';
 import { forkJoin } from 'rxjs';
 import { AuthService } from '../../../core/auth/auth.service';
 import { AsignacionesService } from '../../../core/services/asignaciones.service';
-
 import { IncidenciaService } from '../../../core/services/incidencia.service';
+
+import { RutFormatDirective } from '../../../shared/directives/rut-format.directive';
 
 import { 
   AsignacionDTO,
@@ -17,7 +18,7 @@ import {
 @Component({
   selector: 'app-admin-incidents',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RutFormatDirective],
   templateUrl: './admin-incidents.html',
   styleUrl: './admin-incidents.scss'
 })

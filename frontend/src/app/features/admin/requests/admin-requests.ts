@@ -8,6 +8,9 @@ import { AsignacionesService } from '../../../core/services/asignaciones.service
 import { InfraestructuraService } from '../../../core/services/infraestructura.service';
 import { IncidenciaService } from '../../../core/services/incidencia.service';
 
+import { RutFormatDirective } from '../../../shared/directives/rut-format.directive';
+
+
 import { 
   SolicitudDTO, 
   EstadoSolicitud, 
@@ -22,7 +25,7 @@ import {
 @Component({
   selector: 'app-admin-requests',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RutFormatDirective],
   templateUrl: './admin-requests.html',
   styleUrl: './admin-requests.scss'
 })
