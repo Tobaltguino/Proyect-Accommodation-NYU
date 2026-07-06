@@ -5,7 +5,7 @@ export class MatriculaIntegrationService {
   private readonly BASE_URL = 'https://matricula-nyu-backend.onrender.com';
 
   async verificarMatricula(rut: string): Promise<boolean> {
-    const PRIVATE_KEY = process.env.INTEGRATION_API_KEY;
+    const PRIVATE_KEY = process.env.INTEGRATION_MATRICULA_API_KEY;
 
     try {
       const tokenResponse = await fetch(`${this.BASE_URL}/auth/token`, {
