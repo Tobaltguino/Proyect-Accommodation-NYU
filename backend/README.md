@@ -1,106 +1,639 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Backend - Sistema de Alojamiento NYU
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Backend desarrollado con NestJS para gestionar el flujo de alojamiento estudiantil: autenticacion, solicitudes, asignaciones, infraestructura residencial, incidencias, check-in/check-out e integraciones externas de matricula y pagos.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Stack tecnico
 
-## Description
+- NestJS 11
+- TypeScript
+- PostgreSQL
+- TypeORM
+- JWT
+- class-validator / class-transformer
+- Jest
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Estructura principal
 
-## Project setup
-
-```bash
-$ npm install
+```text
+src/
+  app.module.ts
+  main.ts
+  common/
+    decorators/
+    guards/
+    types/
+  config/
+    database.config.ts
+    env.config.ts
+  database/
+    data-source.ts
+    migrations/
+  integrations/
+    estudiantes/
+    pagos/
+  modules/
+    asignaciones/
+    auth/
+    checkin/
+    edificios/
+    habitaciones/
+    historial/
+    incidencias/
+    matricula-integration/
+    pagos/
+    periodos/
+    pisos/
+    residencias/
+    solicitudes/
+    solicitudes-admin/
+    users/
 ```
 
-## Compile and run the project
+## Instalacion
+
+Desde la carpeta `backend/`:
 
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+npm install
 ```
 
-## Run tests
+## Variables de entorno
+
+El backend carga variables desde `.env` usando `ConfigModule`.
+
+```env
+PORT=3000
+JWT_SECRET=change-this-secret
+JWT_EXPIRES_IN_SECONDS=28800
+
+DB_HOST=localhost
+DB_PORT=5432
+DB_USER=postgres
+DB_PASSWORD=password
+DB_NAME=nyu_accommodation
+DB_SSL=false
+
+INTEGRATION_API_KEY=service-token
+INTEGRATION_MATRICULA_API_KEY=matricula-private-key
+
+PAGOS_BASE_URL=https://example.com
+PAGOS_PRIVATE_KEY=pagos-private-key
+```
+
+Notas:
+
+- `DB_SSL` por defecto se interpreta como activo si no se define como `false`.
+- `JWT_SECRET` tiene un valor por defecto de desarrollo, pero debe cambiarse en produccion.
+- `INTEGRATION_API_KEY` se usa para endpoints protegidos con `ApiKeyGuard`.
+- `INTEGRATION_MATRICULA_API_KEY` se usa para consultar la API externa de matriculas.
+- `PAGOS_BASE_URL` y `PAGOS_PRIVATE_KEY` se usan en el servicio de pagos, aunque el controller de pagos aun no expone endpoints.
+
+## Comandos disponibles
 
 ```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+npm run start:dev
+npm run build
+npm run start
+npm run start:prod
+npm run lint
+npm run format
+npm run test
+npm run test:watch
+npm run test:cov
+npm run test:e2e
 ```
 
-## Auth login (demo)
-
-The login endpoint is `POST /auth/login` and expects a JSON body with
-`rut` and `password`.
-
-`GET /auth/login` is not implemented, so opening that URL directly in a browser
-returns `404 Cannot GET /auth/login` by design.
-
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+Migraciones TypeORM:
 
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+npm run migration:generate -- src/database/migrations/NombreMigracion
+npm run migration:run
+npm run migration:revert
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+## Arranque de la aplicacion
 
-## Resources
+El bootstrap se encuentra en `src/main.ts`.
 
-Check out a few resources that may come in handy when working with NestJS:
+- Habilita CORS con `origin: '*'`.
+- Usa `ValidationPipe` global con `whitelist`, `transform` y `forbidNonWhitelisted`.
+- Escucha en `process.env.PORT` o `3000` por defecto.
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+## Base de datos
 
-## Support
+La conexion se configura en `src/config/database.config.ts`.
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+- Motor: PostgreSQL.
+- ORM: TypeORM.
+- `autoLoadEntities: true`.
+- `synchronize: false`.
+- Migraciones desde `src/database/migrations`.
 
-## Stay in touch
+## Autenticacion y autorizacion
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+El sistema usa JWT con header Bearer:
 
-## License
+```http
+Authorization: Bearer <accessToken>
+```
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+Roles soportados:
+
+- `ADMIN`
+- `STUDENT`
+
+Guards principales:
+
+- `JwtAuthGuard`: valida token JWT y carga `request.user`.
+- `RolesGuard`: valida que el usuario tenga uno de los roles requeridos.
+- `ApiKeyGuard`: valida `Authorization: Bearer <INTEGRATION_API_KEY>` para integraciones entre servicios.
+
+## Usuarios semilla
+
+Al iniciar el modulo de autenticacion, si no existen usuarios en la tabla `usuario`, se crean usuarios de demostracion.
+
+| Rol | RUT | Password |
+| --- | --- | --- |
+| ADMIN | `12345678-5` | `Admin123*` |
+| STUDENT | `87654321-K` | `Student123*` |
+| STUDENT | `11222333-4` | `Student456*` |
+| STUDENT | `20567891-7` | `Student789*` |
+
+## Endpoints
+
+Las rutas se listan sin prefijo global porque actualmente la aplicacion no define uno.
+
+### Salud general
+
+| Metodo | Ruta | Descripcion |
+| --- | --- | --- |
+| GET | `/` | Endpoint base de la aplicacion. |
+
+### Auth
+
+| Metodo | Ruta | Auth | Descripcion |
+| --- | --- | --- | --- |
+| POST | `/auth/login` | Publico | Inicia sesion y retorna JWT. |
+| POST | `/auth/register` | Publico | Registra usuario y retorna JWT. |
+| GET | `/auth/me` | JWT | Retorna el usuario autenticado. |
+| GET | `/auth/admin-only` | ADMIN | Endpoint de prueba para admin. |
+| GET | `/auth/student-only` | STUDENT | Endpoint de prueba para estudiante. |
+
+Ejemplo login:
+
+```json
+{
+  "rut": "12345678-5",
+  "password": "Admin123*"
+}
+```
+
+Respuesta esperada:
+
+```json
+{
+  "accessToken": "jwt-token",
+  "user": {
+    "id": 1,
+    "rut": "12345678-5",
+    "fullName": "Administrador NYU",
+    "role": "ADMIN",
+    "genero": "Masculino"
+  }
+}
+```
+
+### Solicitudes de estudiantes
+
+| Metodo | Ruta | Auth | Descripcion |
+| --- | --- | --- | --- |
+| GET | `/solicitudes/status` | Publico | Estado del modulo. |
+| GET | `/solicitudes` | STUDENT | Historial de solicitudes del estudiante autenticado. |
+| GET | `/solicitudes/me` | STUDENT | Solicitud del estudiante para el periodo activo. |
+| POST | `/solicitudes` | STUDENT | Crea una solicitud para el periodo activo. |
+
+Reglas principales:
+
+- Solo se permite una solicitud por estudiante por periodo activo.
+- Si no hay periodo activo, la creacion falla.
+- La solicitud se crea con estado `Pendiente`.
+
+### Solicitudes de administracion
+
+| Metodo | Ruta | Auth | Descripcion |
+| --- | --- | --- | --- |
+| GET | `/solicitudes-admin` | ADMIN | Lista todas las solicitudes. |
+| GET | `/solicitudes-admin/periodos/:idPeriodo` | ADMIN | Lista solicitudes por periodo. |
+| PATCH | `/solicitudes-admin/solicitudes-admin/:idSolicitud` | ADMIN | Cambia estado de una solicitud y registra admin. |
+
+Nota: la ruta PATCH contiene el segmento repetido `solicitudes-admin` porque asi esta implementada actualmente.
+
+### Asignaciones
+
+| Metodo | Ruta | Auth | Descripcion |
+| --- | --- | --- | --- |
+| POST | `/asignaciones` | ADMIN | Crea una asignacion desde una solicitud y habitacion. |
+| GET | `/asignaciones` | ADMIN | Lista todas las asignaciones. |
+| GET | `/asignaciones/historial` | STUDENT | Historial de asignaciones del estudiante autenticado. |
+| GET | `/asignaciones/activa` | STUDENT | Asignacion activa del estudiante autenticado. |
+| GET | `/asignaciones/estudiantes/:rut/activa` | ADMIN | Busca asignacion activa de un estudiante por RUT. |
+| GET | `/asignaciones/periodos/:idPeriodo` | ADMIN | Lista asignaciones por periodo. |
+| GET | `/asignaciones/periodos/:idPeriodo/residentes/activos` | ADMIN | Total de residentes activos en un periodo. |
+| PATCH | `/asignaciones/:idAsignacion/habitacion` | ADMIN | Reasigna habitacion. |
+| DELETE | `/asignaciones/:idAsignacion` | ADMIN | Registra renuncia y libera cupo. |
+| GET | `/asignaciones/residentes/:rut` | ADMIN | Busca residente por RUT para control de estancia. |
+| PATCH | `/asignaciones/:idAsignacion/ingresos` | ADMIN | Registra check-in. |
+| PATCH | `/asignaciones/:idAsignacion/salidas` | ADMIN | Registra check-out. |
+| GET | `/asignaciones/estudiantes/:rut/estado` | API Key | Indica si el estudiante tiene residencia activa en el periodo actual. |
+
+Crear asignacion:
+
+```json
+{
+  "idSolicitud": 10,
+  "idHabitacion": 4
+}
+```
+
+Reglas principales al crear asignacion:
+
+- La solicitud debe existir.
+- La solicitud debe estar `Pendiente` o `En Revision`.
+- La habitacion, piso y edificio asociados deben existir.
+- El estudiante debe tener matricula activa en la integracion externa.
+- El genero del estudiante debe coincidir con el edificio, excepto edificios `Mixto`.
+- La habitacion debe tener cupos disponibles.
+- Al asignar, disminuye `capacidadActual` de la habitacion.
+- Si la habitacion queda sin cupos, se marca como no disponible.
+- La solicitud queda `Aprobada` y enlazada con la asignacion.
+
+Reglas principales de check-out:
+
+- La asignacion debe existir.
+- La asignacion debe estar `Activa`.
+- Debe existir `fechaCheckIn` antes de permitir check-out.
+- Se libera cupo de habitacion.
+- La asignacion queda `Finalizada`.
+
+### Residencias
+
+| Metodo | Ruta | Auth | Descripcion |
+| --- | --- | --- | --- |
+| GET | `/residencias/status` | Publico | Estado del modulo. |
+| GET | `/residencias/disponibilidad` | STUDENT | Consulta disponibilidad por genero y semestre. |
+
+Query params esperados:
+
+- `gender`
+- `semester`
+
+### Edificios
+
+| Metodo | Ruta | Auth | Descripcion |
+| --- | --- | --- | --- |
+| GET | `/edificios` | ADMIN | Lista edificios. |
+| GET | `/edificios/infraestructura` | JWT | Retorna infraestructura completa. |
+| GET | `/edificios/infraestructura/:generoEdificio` | JWT | Retorna infraestructura filtrada por genero. |
+| GET | `/edificios/genero/:generoEdificio` | JWT | Retorna edificios por genero, validando acceso de estudiante. |
+| PATCH | `/edificios/:id` | ADMIN | Modifica un edificio. |
+
+### Pisos
+
+| Metodo | Ruta | Auth | Descripcion |
+| --- | --- | --- | --- |
+| GET | `/pisos` | ADMIN | Lista pisos. |
+| POST | `/pisos` | ADMIN | Crea piso. |
+| GET | `/pisos/edificio/:idEdificio` | ADMIN | Lista pisos de un edificio. |
+| PATCH | `/pisos/:id` | ADMIN | Modifica piso. |
+| DELETE | `/pisos/:id` | ADMIN | Elimina piso. |
+
+Crear piso:
+
+```json
+{
+  "nroPiso": 1,
+  "nombre": "Piso 1",
+  "idEdificio": 2
+}
+```
+
+### Habitaciones
+
+| Metodo | Ruta | Auth | Descripcion |
+| --- | --- | --- | --- |
+| POST | `/habitaciones` | ADMIN | Crea habitacion. |
+| GET | `/habitaciones` | ADMIN | Lista habitaciones. |
+| GET | `/habitaciones/detalles` | ADMIN | Lista habitaciones con informacion de piso. |
+| GET | `/habitaciones/disponibles/total` | JWT | Total de habitaciones disponibles. |
+| GET | `/habitaciones/edificio/:idEdificio` | ADMIN | Lista habitaciones por edificio. |
+| PATCH | `/habitaciones/:id` | ADMIN | Modifica habitacion. |
+| DELETE | `/habitaciones/:id` | ADMIN | Elimina habitacion. |
+
+Crear habitacion:
+
+```json
+{
+  "nroHabitacion": 101,
+  "capacidadActual": 2,
+  "disponibilidad": true,
+  "idPiso": 1
+}
+```
+
+### Incidencias
+
+| Metodo | Ruta | Auth | Descripcion |
+| --- | --- | --- | --- |
+| GET | `/incidencias/status` | Publico | Estado del modulo. |
+| POST | `/incidencias` | ADMIN | Crea incidencia. |
+| GET | `/incidencias` | Publico | Lista incidencias, opcionalmente filtradas. |
+
+Crear incidencia:
+
+```json
+{
+  "descripcion": "Falla en calefaccion",
+  "gravedad": "Moderado",
+  "idHabitacion": 10,
+  "rutEstudiante": "87654321-K",
+  "rutAdmin": "12345678-5"
+}
+```
+
+Filtros soportados por query segun DTO:
+
+- `rut`
+- Otros campos definidos en `IncidenciaQueryDto`.
+
+### Periodos
+
+| Metodo | Ruta | Auth | Descripcion |
+| --- | --- | --- | --- |
+| GET | `/periodos/actual` | Publico | Retorna periodo academico actual. |
+| GET | `/periodos` | Publico | Lista periodos. |
+
+### Matricula
+
+| Metodo | Ruta | Auth | Descripcion |
+| --- | --- | --- | --- |
+| GET | `/matricula/:rut/estado` | ADMIN | Verifica si el estudiante tiene matricula activa. |
+
+La verificacion consulta la API externa `https://matricula-nyu-backend.onrender.com`.
+
+Flujo interno:
+
+- Solicita token con `INTEGRATION_MATRICULA_API_KEY`.
+- Consulta estado de matricula enviando el RUT.
+- Retorna `{ "esActivo": true }` o `{ "esActivo": false }`.
+
+### Users
+
+| Metodo | Ruta | Auth | Descripcion |
+| --- | --- | --- | --- |
+| GET | `/users/status` | Publico | Estado del modulo. |
+
+### Historial
+
+| Metodo | Ruta | Auth | Descripcion |
+| --- | --- | --- | --- |
+| GET | `/historial/status` | Publico | Estado del modulo. |
+
+Nota: el modulo `historial` existe, pero el historial funcional actualmente se obtiene desde `/solicitudes` y `/asignaciones/historial`.
+
+### Checkin legacy
+
+| Metodo | Ruta | Auth | Descripcion |
+| --- | --- | --- | --- |
+| PATCH | `/checkin/:idAsignacion` | Segun controller | Modulo separado de check-in. |
+
+Nota: el flujo principal de check-in/check-out usado por asignaciones esta en `/asignaciones/:idAsignacion/ingresos` y `/asignaciones/:idAsignacion/salidas`.
+
+### Pagos
+
+El modulo `pagos` esta registrado, pero `PagosController` no expone endpoints actualmente.
+
+El servicio `PagosService` contiene metodos para:
+
+- Solicitar token temporal a la API externa de pagos.
+- Crear orden de pago con `referenceId`, `amount` y `description`.
+- Consultar estado de pago por `referenceId`.
+
+Estados esperados por la API externa:
+
+- `PENDING`
+- `APPROVED`
+- `REJECTED`
+- `CANCELLED`
+
+## Entidades principales
+
+### UsuarioEntity
+
+Tabla: `usuario`
+
+Campos principales:
+
+- `idUsuario`
+- `nombre`
+- `rut`
+- `contrasena`
+- `tipoUsuario`
+- `genero`
+
+### SolicitudEntity
+
+Tabla: `solicitudes`
+
+Campos principales:
+
+- `idSolicitud`
+- `estado`
+- `fechaSolicitud`
+- `idPeriodo`
+- `idAsignacion`
+- `rutEstudiante`
+- `rutAdmin`
+
+### AsignacionEntity
+
+Tabla: `asignacion_estancia`
+
+Campos principales:
+
+- `idAsignacion`
+- `fechaAsignacion`
+- `fechaCheckIn`
+- `fechaCheckOut`
+- `estado`
+- `idHabitacion`
+- `idPeriodo`
+- `rutEstudiante`
+- `rutAdmin`
+- `fechaPago`
+- `referenceId`
+- `estadoPago`
+
+### EdificioEntity
+
+Tabla: `edificio`
+
+Campos principales:
+
+- `idEdificio`
+- `nombre`
+- `ubicacion`
+- `capacidadHabitaciones`
+- `genero`
+
+### PisoEntity
+
+Tabla: `piso`
+
+Campos principales:
+
+- `idPiso`
+- `nroPiso`
+- `nombre`
+- `idEdificio`
+
+### HabitacionEntity
+
+Tabla: `habitacion`
+
+Campos principales:
+
+- `idHabitacion`
+- `disponibilidad`
+- `capacidadActual`
+- `nroHabitacion`
+- `idPiso`
+- `capacidadTotal`
+
+### IncidenciaEstanciaEntity
+
+Tabla: `incidencia_estancia`
+
+Campos principales:
+
+- `idIncidencia`
+- `descripcion`
+- `fecha`
+- `gravedad`
+- `idHabitacion`
+- `rutEstudiante`
+- `rutAdmin`
+
+### PeriodoEntity
+
+Tabla: `periodo`
+
+Campos principales:
+
+- `idPeriodo`
+- `nombre`
+- `fechaInicio`
+- `fechaTermino`
+
+## Flujos principales
+
+### Login
+
+1. El cliente envia RUT y password a `/auth/login`.
+2. El backend normaliza el RUT removiendo puntos y pasando a mayusculas.
+3. Busca usuario por RUT original o normalizado.
+4. Compara password.
+5. Firma JWT con datos del usuario.
+6. Retorna `accessToken` y `user`.
+
+### Postulacion de estudiante
+
+1. Estudiante autenticado llama `POST /solicitudes`.
+2. Backend obtiene periodo activo.
+3. Valida que no exista otra solicitud para ese estudiante en el periodo.
+4. Crea solicitud `Pendiente`.
+
+### Revision y asignacion por admin
+
+1. Admin lista solicitudes desde `/solicitudes-admin`.
+2. Admin puede cambiar estado a revision.
+3. Admin selecciona habitacion.
+4. Backend verifica matricula activa.
+5. Backend valida genero, cupo y disponibilidad.
+6. Backend crea asignacion y aprueba solicitud.
+
+### Check-in
+
+1. Admin busca residente por RUT.
+2. Admin llama `PATCH /asignaciones/:idAsignacion/ingresos`.
+3. Backend valida que la asignacion exista y este activa.
+4. Backend registra `fechaCheckIn` y `rutAdmin`.
+
+### Check-out
+
+1. Admin llama `PATCH /asignaciones/:idAsignacion/salidas`.
+2. Backend valida que la asignacion exista, este activa y tenga check-in.
+3. Backend libera cupo de habitacion.
+4. Backend marca asignacion como `Finalizada`.
+5. Backend registra `fechaCheckOut` y `rutAdmin`.
+
+### Renuncia
+
+1. Admin llama `DELETE /asignaciones/:idAsignacion`.
+2. Backend valida que la asignacion exista y este activa.
+3. Backend libera cupo de habitacion.
+4. Backend marca asignacion como `Renunciada`.
+5. Backend registra fecha de salida y admin responsable.
+
+## Estados usados
+
+Solicitudes:
+
+- `Pendiente`
+- `En Revision`
+- `Aprobada`
+- `Rechazada`
+
+Asignaciones:
+
+- `Activa`
+- `Finalizada`
+- `Renunciada`
+
+Pagos:
+
+- `Pendiente`
+- `Pagado`
+- `Vencido`
+
+## Seguridad y consideraciones
+
+- El backend usa JWT para usuarios autenticados.
+- El control por rol se aplica con `RolesGuard` y decorador `@Roles`.
+- Algunas rutas de lectura siguen publicas, como `GET /incidencias`, `GET /periodos` y endpoints de status.
+- CORS esta abierto para cualquier origen.
+- Las contrasenas se almacenan y comparan como texto plano actualmente; para produccion se debe usar hashing.
+- El secreto JWT por defecto es solo para desarrollo.
+
+## Notas de estado actual
+
+- El modulo de pagos tiene logica de service, pero no expone endpoints en el controller.
+- El modulo `historial` solo expone status; el historial real se consulta desde solicitudes y asignaciones.
+- Existe un modulo `checkin`, pero el flujo principal de check-in/check-out esta implementado dentro de asignaciones.
+- Hay rutas del frontend que deben mantenerse alineadas con las rutas reales del backend, especialmente en asignaciones y check-in/out.
+- Existen entidades duplicadas o variantes en algunos modulos (`solicitudes`, `periodos`, `residencias`), por lo que conviene revisar imports antes de refactorizar.
+
+## Verificacion recomendada
+
+Antes de entregar cambios de backend:
+
+```bash
+npm run build
+npm run test
+npm run lint
+```
+
+Para pruebas e2e:
+
+```bash
+npm run test:e2e
+```
