@@ -1,50 +1,60 @@
-<main class="container-fluid overflow-hidden vh-100 p-0">
-  <div class="row h-100 m-0">
+<main class="d-flex overflow-hidden vh-100 p-0">
+  
+  @if (!isCollapsed) {
+    <div class="mobile-overlay d-md-none" (click)="toggleSidebar()"></div>
+  }
+
+  <aside class="dashboard-sidebar d-flex flex-column h-100 p-3 transition-sidebar" [class.collapsed]="isCollapsed">
     
-    <!-- SIDEBAR COLUMNA IZQUIERDA (Grilla de Bootstrap + Tu clase de fondo) -->
-    <aside class="col-12 col-md-3 col-lg-2 p-3 d-flex flex-column h-100 dashboard-sidebar">
-      
-      <!-- Marca / Logo Original -->
-      <section class="sidebar-brand mb-4">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+      <section class="sidebar-brand m-0" [class.d-none]="isCollapsed">
         <img src="/assets/NYU-Logo.png" alt="Logo Universidad de New York" />
         <div>
-          <strong>Housing Portal</strong>
+          <strong>Residence Portal</strong>
           <span>{{ currentUser?.role === 'ADMIN' ? 'Admin Management' : 'Student Portal' }}</span>
         </div>
       </section>
 
-      <!-- Perfil Original (Aquí vuelve tu color morado) -->
-      <section class="sidebar-profile mb-4">
-        <strong>{{ currentUser?.fullName ?? 'Usuario' }}</strong>
-        <span>RUT {{ currentUser?.rut ?? 'Sin RUT' }}</span>
-        <small>{{ currentUser?.role === 'ADMIN' ? 'Panel de Control' : 'Panel de Estudiante' }}</small>
-      </section>
+      <button class="hamburger-btn" (click)="toggleSidebar()" title="Alternar menú">
+        <i class="pi pi-bars"></i>
+      </button>
+    </div>
 
-      <!-- Menú de Navegación Original -->
-      <nav class="sidebar-nav mb-auto" aria-label="Navegacion principal">
-        <a *ngFor="let item of menuItems" 
-           [routerLink]="item.route" 
-           routerLinkActive="active" 
-           class="nav-item text-decoration-none">
-          <i [class]="item.icon"></i>
-          <span>{{ item.label }}</span>
-        </a>
-      </nav>
-
-      <!-- Botón Logout Original -->
-      <div class="sidebar-footer mt-auto">
-        <button type="button" class="logout-btn" (click)="logout()">
-          <i class="pi pi-sign-out"></i>
-          <span>Cerrar sesión</span>
-        </button>
-      </div>
-
-    </aside>
-
-    <!-- CONTENEDOR PRINCIPAL DERECHA -->
-    <section class="col-12 col-md-9 col-lg-10 h-100 p-0 overflow-auto dashboard-main-container">
-      <router-outlet></router-outlet>
+    <section class="sidebar-profile mb-4" [class.d-none]="isCollapsed">
+      <strong>{{ currentUser?.fullName ?? 'Usuario' }}</strong>
+      <span>RUT {{ currentUser?.rut ?? 'Sin RUT' }}</span>
+      <small>{{ currentUser?.role === 'ADMIN' ? 'Panel de Control' : 'Panel de Estudiante' }}</small>
     </section>
 
-  </div>
+    <nav class="sidebar-nav mb-auto" aria-label="Navegacion principal">
+      <a *ngFor="let item of menuItems" 
+         [routerLink]="item.route" 
+         routerLinkActive="active" 
+         class="nav-item text-decoration-none"
+         [title]="isCollapsed ? item.label : ''">
+        <i [class]="item.icon"></i>
+        <span class="nav-label" [class.d-none]="isCollapsed">{{ item.label }}</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer mt-auto">
+      <button type="button" class="logout-btn" (click)="logout()" [title]="isCollapsed ? 'Cerrar sesión' : ''">
+        <i class="pi pi-sign-out"></i>
+        <span class="nav-label" [class.d-none]="isCollapsed">Cerrar sesión</span>
+      </button>
+    </div>
+
+  </aside>
+
+  <section class="dashboard-main-container flex-grow-1 h-100 p-0 overflow-auto">
+    <div class="mobile-header d-md-none p-3 bg-white border-bottom d-flex align-items-center">
+      <button class="hamburger-btn mobile text-dark" (click)="toggleSidebar()">
+        <i class="pi pi-bars"></i>
+      </button>
+      <strong class="ms-3 text-dark">Housing Portal</strong>
+    </div>
+
+    <router-outlet></router-outlet>
+  </section>
+
 </main>

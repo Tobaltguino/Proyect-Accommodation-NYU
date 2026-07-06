@@ -23,6 +23,8 @@ export class DashboardLayoutComponent implements OnInit {
   readonly currentUser: SessionUser | null;
   
   menuItems: MenuItem[] = [];
+  
+  isCollapsed: boolean = false;
 
   private readonly allMenuItems: MenuItem[] = [
     // Admin
@@ -51,6 +53,19 @@ export class DashboardLayoutComponent implements OnInit {
 
   ngOnInit(): void {
     this.buildMenu();
+    // Colapsar automáticamente en pantallas móviles al iniciar
+    this.checkScreenSize();
+    window.addEventListener('resize', this.checkScreenSize.bind(this));
+  }
+
+  private checkScreenSize(): void {
+    if (window.innerWidth < 768) {
+      this.isCollapsed = true;
+    }
+  }
+
+  toggleSidebar(): void {
+    this.isCollapsed = !this.isCollapsed;
   }
 
   private buildMenu(): void {

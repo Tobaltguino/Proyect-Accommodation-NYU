@@ -8,9 +8,58 @@
   --text-muted: #4a5568;
 }
 
+/* ============================
+   SIDEBAR & TRANSICIONES
+   ============================ */
+.transition-sidebar {
+  transition: width 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), transform 0.3s ease;
+}
+
 .dashboard-sidebar {
   background: var(--primary-deep);
   color: #ffffff;
+  width: 280px; /* Ancho por defecto (expandido) */
+  flex-shrink: 0;
+  z-index: 1040;
+
+  /* Estado colapsado para pantallas grandes */
+  &.collapsed {
+    width: 80px; /* Ancho reducido (solo íconos) */
+    
+    .nav-item, .logout-btn {
+      justify-content: center; /* Centrar íconos */
+      padding: 0.8rem 0; /* Ajustar padding */
+    }
+    
+    .hamburger-btn {
+      margin: 0 auto; /* Centrar botón */
+    }
+  }
+}
+
+/* Botón Hamburguesa */
+.hamburger-btn {
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 1.25rem;
+  padding: 0.5rem;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  &.mobile {
+    color: var(--primary-deep);
+    padding: 0;
+    &:hover { background: transparent; opacity: 0.7; }
+  }
 }
 
 .sidebar-brand {
@@ -27,20 +76,9 @@
     padding: 0.2rem;
   }
 
-  div {
-    display: grid;
-    gap: 0.1rem;
-  }
-
-  strong {
-    font-size: 0.98rem;
-    letter-spacing: 0.01em;
-  }
-
-  span {
-    font-size: 0.76rem;
-    color: #ddd6f5; 
-  }
+  div { display: grid; gap: 0.1rem; }
+  strong { font-size: 0.98rem; letter-spacing: 0.01em; white-space: nowrap; }
+  span { font-size: 0.76rem; color: #ddd6f5; white-space: nowrap; }
 }
 
 .sidebar-profile {
@@ -50,23 +88,13 @@
   padding: 0.8rem;
   display: grid;
   gap: 0.25rem;
+  overflow: hidden; /* Evitar desborde si el texto es largo */
 
-  strong {
-    font-size: 0.94rem;
-  }
-
-  /* ¡Aquí regresan tus textos y RUT en morado! */
-  span,
-  small {
-    color: var(--accent-soft);
-    font-size: 0.78rem;
-  }
+  strong { font-size: 0.94rem; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
+  span, small { color: var(--accent-soft); font-size: 0.78rem; white-space: nowrap; }
 }
 
-.sidebar-nav {
-  display: grid;
-  gap: 0.3rem;
-}
+.sidebar-nav { display: grid; gap: 0.3rem; }
 
 .nav-item {
   border: 1px solid transparent;
@@ -80,7 +108,8 @@
   display: flex;
   align-items: center;
   gap: 0.6rem;
-  transition: background-color 0.2s ease;
+  transition: background-color 0.2s ease, padding 0.2s;
+  white-space: nowrap;
 
   &:hover {
     background: rgba(233, 216, 253, 0.15);
@@ -93,14 +122,10 @@
     color: #ffffff;
   }
 
-  i {
-    font-size: 1.1rem;
-  }
+  i { font-size: 1.15rem; min-width: 20px; text-align: center; }
 }
 
-.sidebar-footer {
-  margin-top: auto;
-}
+.sidebar-footer { margin-top: auto; }
 
 .logout-btn {
   width: 100%;
@@ -113,19 +138,45 @@
   cursor: pointer;
   display: flex;
   align-items: center;
-  justify-content: center;
   gap: 0.5rem;
   transition: background-color 0.2s;
+  white-space: nowrap;
 
-  &:hover {
-    background: rgba(233, 216, 253, 0.15);
-  }
-
-  i {
-    font-size: 1.1rem;
-  }
+  &:hover { background: rgba(233, 216, 253, 0.15); }
+  i { font-size: 1.15rem; min-width: 20px; text-align: center; }
 }
 
-.dashboard-main-container {
-  background: var(--app-bg);
+.dashboard-main-container { background: var(--app-bg); }
+
+/* ============================
+   MEDIA QUERIES (CELULARES)
+   ============================ */
+@media (max-width: 767.98px) {
+  
+  .dashboard-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    transform: translateX(0); /* Menú visible */
+    width: 260px; /* Ancho en móvil */
+    
+    /* Si está "colapsado" en móvil, se esconde fuera de la pantalla */
+    &.collapsed {
+      transform: translateX(-100%);
+      width: 260px; /* Evita que se haga chiquito antes de desaparecer */
+    }
+  }
+
+  /* Overlay oscuro detrás del menú en celulares */
+  .mobile-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0,0,0,0.5);
+    z-index: 1030;
+    backdrop-filter: blur(2px);
+  }
 }
