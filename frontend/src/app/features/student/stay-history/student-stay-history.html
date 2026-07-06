@@ -14,10 +14,10 @@
         <button type="button" class="text-btn border-0 bg-transparent" (click)="limpiarFiltros()">Limpiar filtros</button>
       </div>
       
-      <div class="row g-3">
-        <div class="col-12 col-md-6">
+      <div class="row g-3 align-items-end">
+        <div class="col-12 col-md-5">
           <label for="periodo" class="form-label mb-1">Periodo Académico</label>
-          <select id="periodo" class="form-select custom-control" [(ngModel)]="filtroPeriodo" (change)="aplicarFiltros()">
+          <select id="periodo" class="form-select custom-control" [(ngModel)]="filtroPeriodo">
             <option value="">Todos los periodos</option>
             @for (p of periodos; track p) {
               <option [value]="p">{{ p }}</option>
@@ -25,14 +25,20 @@
           </select>
         </div>
 
-        <div class="col-12 col-md-6">
+        <div class="col-12 col-md-5">
           <label for="estado" class="form-label mb-1">Estado de Asignación</label>
-          <select id="estado" class="form-select custom-control" [(ngModel)]="filtroEstado" (change)="aplicarFiltros()">
+          <select id="estado" class="form-select custom-control" [(ngModel)]="filtroEstado">
             <option value="">Todos los estados</option>
             <option [value]="EstadoAsignacionEnum.ACTIVA">Activa</option>
             <option [value]="EstadoAsignacionEnum.FINALIZADA">Finalizada</option>
             <option [value]="EstadoAsignacionEnum.RENUNCIADA">Renunciada</option>
           </select>
+        </div>
+
+        <div class="col-12 col-md-2">
+          <button type="button" class="primary border-0 w-100 d-flex justify-content-center align-items-center gap-2" style="height: 42px; border-radius: 8px;" (click)="aplicarFiltros()">
+            <i class="pi pi-search"></i> Buscar
+          </button>
         </div>
       </div>
     </section>
@@ -58,27 +64,33 @@
             @for (asig of historialPaginado; track asig.idAsignacion) {
               <tr [class.bg-light]="asig.estado === EstadoAsignacionEnum.ACTIVA">
                 <td>
-                  <strong class="text-dark">{{ asig.nombrePeriodo }}</strong>
+                  <span class="period-text">{{ asig.nombrePeriodo }}</span>
                 </td>
                 
                 <td>
-                  <div class="d-flex flex-column">
-                    <span class="room fw-semibold text-dark">Hab. {{ asig.numeroHabitacion }}</span>
-                    <span class="building text-muted small"><i class="pi pi-building me-1" style="font-size: 0.8rem;"></i>{{ asig.nombreEdificio }}</span>
+                  <div class="d-flex flex-column lh-sm gap-1">
+                    <span class="building text-dark" style="font-weight: 500;">{{ asig.nombreEdificio }}</span>
+                    <div class="d-flex align-items-center">
+                      @if (asig.numeroPiso) {
+                        <span class="floor-text">Piso {{ asig.numeroPiso }}</span>
+                        <span class="text-muted opacity-50 mx-2">|</span>
+                      }
+                      <span class="room">Hab {{ asig.numeroHabitacion }}</span>
+                    </div>
                   </div>
                 </td>
 
                 <td>
-                  <span class="user-sub text-muted small">{{ asig.fechaAsignacion }}</span>
+                  <span class="date-text">{{ asig.fechaAsignacion }}</span>
                 </td>
 
                 <td>
                   <div class="dates-meta d-flex flex-column gap-1 text-sm">
-                    <span [class.text-400]="!asig.fechaCheckIn" [title]="!asig.fechaCheckIn ? 'Aún no realizas tu ingreso' : 'Fecha de Ingreso'">
-                      <i class="pi pi-sign-in text-secondary"></i> {{ asig.fechaCheckIn || 'Ingreso Pendiente' }}
+                    <span [class.missing]="!asig.fechaCheckIn" [title]="!asig.fechaCheckIn ? 'Aún no realizas tu ingreso' : 'Fecha de Ingreso'">
+                      <i class="pi pi-sign-in"></i> {{ asig.fechaCheckIn || 'Ingreso Pendiente' }}
                     </span>
-                    <span [class.text-400]="!asig.fechaCheckOut && asig.estado !== EstadoAsignacionEnum.ACTIVA" [title]="!asig.fechaCheckOut ? 'No registra fecha de salida' : 'Fecha de Salida'">
-                      <i class="pi pi-sign-out text-secondary"></i> {{ asig.fechaCheckOut || '--/--/----' }}
+                    <span [class.missing]="!asig.fechaCheckOut && asig.estado !== EstadoAsignacionEnum.ACTIVA" [title]="!asig.fechaCheckOut ? 'No registra fecha de salida' : 'Fecha de Salida'">
+                      <i class="pi pi-sign-out"></i> {{ asig.fechaCheckOut || '--/--/----' }}
                     </span>
                   </div>
                 </td>
