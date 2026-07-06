@@ -42,8 +42,8 @@ export class AsignacionEntity {
   @Column({ name: 'fecha_pago', type: 'date', nullable: true })
   fechaPago!: Date | null;
 
-  @Column({ name: 'id_pago', type: 'varchar', length: 20, nullable: true })
-  idPago!: string | null;
+  @Column({ name: 'referenceId', type: 'varchar', length: 20, nullable: true })
+  referenceId!: string | null;
 
   @Column({ name: 'estado_pago', type: 'enum', enum: estadoPago, nullable: true })
   estadoPago!: estadoPago | null;

@@ -15,6 +15,7 @@ import { PisoEntity } from '../residencias/entities';
 import { DataSource } from 'typeorm';
 import { AsignacionDTO, RespuestaMiAsignacion } from './dto/asignacion.dto';
 import { PeriodosService } from '../periodos/periodos.service';
+import { PagosService } from '../pagos/pagos.service';
 
 @Injectable()
 export class AsignacionesService {
@@ -31,6 +32,7 @@ export class AsignacionesService {
     private readonly pisoRepo: Repository<PisoEntity>,
     private readonly periodosService: PeriodosService,
     private dataSource: DataSource,
+    private readonly pagosService: PagosService,
   ) { }
 
   private async verificarMatriculaActiva(rut: string): Promise<boolean> {
@@ -495,7 +497,7 @@ export class AsignacionesService {
 
       //pago
       fechaPago: asignacion.fechaPago,
-      idPago: asignacion.idPago,
+      referenceId: asignacion.referenceId,
       estadoPago: asignacion.estadoPago,
 
     };

@@ -9,7 +9,6 @@ import { SolicitudEntity } from '../solicitudes/entities';
 import { EdificioEntity } from '../residencias/entities';
 import { PisoEntity } from '../residencias/entities';
 import { AuthModule } from '../auth/auth.module';
-import { PagosService } from '../pagos/pagos.service';
 import { PagosModule } from '../pagos/pagos.module';
 import { PeriodosModule } from '../periodos/periodos.module';
 
