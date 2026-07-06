@@ -47,9 +47,9 @@
 }
 
 .custom-table {
-  min-width: 800px;
-  --bs-table-border-color: #f1f5f9;
-  --bs-table-hover-bg: #f8fafc;
+  width: 100%;
+  table-layout: fixed; /* 👈 Esto obliga a la tabla a no salirse de su contenedor */
+
 
   th {
     background-color: #f8fafc;

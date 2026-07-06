@@ -1,0 +1,23 @@
+<div class="toast-container position-fixed top-0 end-0 p-4" style="z-index: 9999;">
+  
+  @if (toastService.toast$ | async; as toast) {
+    <div class="toast show custom-toast" 
+         [ngClass]="toast.tipo"
+         role="alert" aria-live="assertive" aria-atomic="true">
+      
+      <div class="d-flex align-items-center p-2">
+        <div class="toast-icon ms-2 me-3">
+          <i class="pi" [ngClass]="toast.tipo === 'success' ? 'pi-check-circle' : 'pi-exclamation-triangle'"></i>
+        </div>
+        
+        <div class="toast-body p-0 fw-medium text-dark" style="font-size: 0.95rem;">
+          {{ toast.mensaje }}
+        </div>
+        
+        <button type="button" class="btn-close ms-auto me-2" (click)="toastService.ocultarToast()" aria-label="Close"></button>
+      </div>
+
+    </div>
+  }
+
+</div>

@@ -43,7 +43,7 @@ async obtenerTodas() {
     .leftJoin('periodo', 'periodo', 'periodo.id_periodo = solicitud.id_periodo')
     .select([
       'solicitud.id_solicitud AS "idSolicitud"',
-      'solicitud.fecha_solicitud AS "fechaSolicitud"',
+      'TO_CHAR(solicitud.fecha_solicitud, \'YYYY-MM-DD\') AS "fechaSolicitud"',
       'solicitud.estado AS "estado"',
       'solicitud.id_periodo AS "idPeriodo"',
       'usuario.rut AS "rutEstudiante"',
@@ -55,6 +55,7 @@ async obtenerTodas() {
 
   return solicitudes.length > 0 ? solicitudes : null;
 }
+
   async cambioEstadoYAdminSolicitud(idSolicitud: number, cambios: UpdateSolicitudesAdminDto, rutAdmin: string){
     const solicitud = await this.solicitudRepo.findOne({
       where: { idSolicitud: idSolicitud },

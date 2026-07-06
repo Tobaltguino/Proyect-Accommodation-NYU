@@ -113,9 +113,4 @@ export class AdminStayManagementComponent {
     this.isConfirmModalOpen = false;
     this.accionPendiente = null;
   }
-
-  obtenerAccionAdminTexto(asig: AsignacionDTO): string {
-    if (asig.fechaCheckIn) return 'Check-in por:';
-    return 'Asignado por:';
-  }
 }

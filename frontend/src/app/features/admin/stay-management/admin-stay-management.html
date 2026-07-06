@@ -78,17 +78,6 @@
                 }
               </div>
 
-              <div class="col-12 mt-2 pt-3 border-top">
-                @if (resultadoBusqueda.rutAdmin) {
-                  <span class="d-block text-secondary small fw-semibold text-uppercase mb-1">{{ obtenerAccionAdminTexto(resultadoBusqueda) }}</span>
-                  <div class="d-flex align-items-center gap-2">
-                    <strong class="text-dark">{{ resultadoBusqueda.nombreAdmin }}</strong>
-                    <span class="text-muted small">({{ resultadoBusqueda.rutAdmin }})</span>
-                  </div>
-                } @else {
-                  <span class="text-muted small fst-italic">Pendiente de gestión física en campus.</span>
-                }
-              </div>
             </div>
           </div>
 

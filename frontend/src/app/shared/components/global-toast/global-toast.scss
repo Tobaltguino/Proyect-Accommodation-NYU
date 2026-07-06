@@ -1,0 +1,78 @@
+/* =========================================
+   DISEÑO MODERNO DEL TOAST
+========================================= */
+.custom-toast {
+  background-color: #ffffff;
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(50, 38, 89, 0.12);
+  width: auto;
+  min-width: 300px;
+  max-width: 400px;
+  position: relative;
+  overflow: hidden;
+  
+  /* Animación de entrada */
+  animation: slideInRight 0.4s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
+
+  /* Línea de color a la izquierda */
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 6px;
+  }
+
+  /* --- VARIANTES DE COLOR --- */
+  
+  &.success {
+    &::before {
+      background-color: #10b981; 
+    }
+    .toast-icon {
+      color: #10b981;
+    }
+  }
+
+  &.danger {
+    &::before {
+      background-color: #ef4444; 
+    }
+    .toast-icon {
+      color: #ef4444;
+    }
+  }
+
+  /* --- DETALLES INTERNOS --- */
+
+  .toast-icon i {
+    font-size: 1.6rem;
+  }
+
+  .btn-close {
+    font-size: 0.75rem;
+    opacity: 0.4;
+    transition: opacity 0.2s;
+
+    &:hover {
+      opacity: 1;
+    }
+    &:focus {
+      box-shadow: none;
+    }
+  }
+}
+
+/* Animación fluida desde fuera de la pantalla */
+@keyframes slideInRight {
+  from {
+    transform: translateX(120%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}

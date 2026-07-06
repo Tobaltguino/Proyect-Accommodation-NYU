@@ -3,6 +3,7 @@ import { Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common'; 
 import { AuthService } from '../core/auth/auth.service';
 import { SessionUser } from '../core/auth/auth.models';
+import { GlobalToastComponent } from '../shared/components/global-toast/global-toast';
 
 // Formato menu
 interface MenuItem {
@@ -17,7 +18,7 @@ interface MenuItem {
   templateUrl: './dashboard-layout.html',
   styleUrl: './dashboard-layout.scss',
   standalone: true,
-  imports: [RouterModule, CommonModule]
+  imports: [RouterModule, CommonModule, GlobalToastComponent]
 })
 export class DashboardLayoutComponent implements OnInit {
   readonly currentUser: SessionUser | null;

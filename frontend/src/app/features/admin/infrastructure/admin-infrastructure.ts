@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 
 import { EdificioDTO, PisoDTO, HabitacionDTO, Genero } from '../../../shared/models';
 import { InfraestructuraService } from '../../../core/services/infraestructura.service';
+import { ToastService } from '../../../core/toast/toast.service';
 
 type ModalType = 'EDIFICIO' | 'PISO' | 'HABITACION' | 'DELETE' | null;
 type ModalMode = 'CREATE' | 'EDIT';
@@ -17,6 +18,7 @@ type ModalMode = 'CREATE' | 'EDIT';
 })
 export class AdminInfrastructureComponent implements OnInit {
   private infraestructuraService = inject(InfraestructuraService);
+  private toastService = inject(ToastService);
   private cdr = inject(ChangeDetectorRef);
 
   edificios: EdificioDTO[] = [];
@@ -41,33 +43,42 @@ export class AdminInfrastructureComponent implements OnInit {
     this.infraestructuraService.obtenerInfraestructuraCompleta().subscribe({
       next: (data) => {
         this.edificios = data;
-        this.cdr.detectChanges(); 
 
         if (this.edificios.length > 0) {
-          // 1. Si ya estábamos viendo un edificio
+          let seleccionado = false; 
+
+          // Si ya estábamos viendo un edificio
           if (this.edificioSeleccionado) {
             const actualizado = this.edificios.find(e => e.idEdificio === this.edificioSeleccionado!.idEdificio);
             if (actualizado) {
               this.seleccionarEdificio(actualizado);
-              return;
+              seleccionado = true;
             }
           }
           
-          // 2. Si venimos de otra pestaña o se recargó la página 
-          const idGuardado = localStorage.getItem('id_edificio_actual');
-          if (idGuardado) {
-            const guardado = this.edificios.find(e => e.idEdificio === Number(idGuardado));
-            if (guardado) {
-              this.seleccionarEdificio(guardado);
-              return;
+          // Si venimos de otra pestaña o se recargó la página 
+          if (!seleccionado) {
+            const idGuardado = localStorage.getItem('id_edificio_actual');
+            if (idGuardado) {
+              const guardado = this.edificios.find(e => e.idEdificio === Number(idGuardado));
+              if (guardado) {
+                this.seleccionarEdificio(guardado);
+                seleccionado = true;
+              }
             }
           }
 
-          // 3. Por defecto, seleccionamos el primero si no hay historial
-          this.seleccionarEdificio(this.edificios[0]);
+          // Por defecto, seleccionamos el primero si no hay historial
+          if (!seleccionado) {
+            this.seleccionarEdificio(this.edificios[0]);
+          }
         }
+        this.cdr.detectChanges();
       },
-      error: (err) => console.error('Error al cargar la infraestructura completa:', err)
+      error: (err) => {
+        console.error(err);
+        this.toastService.mostrarToast('Error al cargar la infraestructura', 'danger'); 
+      }
     });
   }
 
@@ -87,14 +98,29 @@ export class AdminInfrastructureComponent implements OnInit {
     this.edificioForm = { ...edificio };
   }
 
+  // --- GUARDAR EDIFICIO ---
   guardarEdificio(): void {
     const { idEdificio, nombre, ubicacion, genero } = this.edificioForm;
+
+    if (!nombre || nombre.trim() === '') {
+      this.toastService.mostrarToast('El nombre del edificio es obligatorio.', 'danger');
+      return;
+    }
+    if (!ubicacion || ubicacion.trim() === '') {
+      this.toastService.mostrarToast('La ubicación es obligatoria.', 'danger');
+      return;
+    }
+
     this.infraestructuraService.modificarEdificio(idEdificio, { nombre, ubicacion, genero }).subscribe({
       next: () => {
+        this.toastService.mostrarToast('Edificio modificado correctamente', 'success');
         this.cargarEdificios(); 
         this.cerrarModal();
       },
-      error: (err) => console.error('Error al modificar edificio', err)
+      error: (err) => {
+        console.error(err);
+        this.toastService.mostrarToast('Error al modificar el edificio', 'danger');
+      }
     });
   }
 
@@ -116,21 +142,38 @@ export class AdminInfrastructureComponent implements OnInit {
   guardarPiso(): void {
     if (!this.edificioSeleccionado) return;
 
+    if (this.pisoForm.nroPiso === null || this.pisoForm.nroPiso <= 0) {
+      this.toastService.mostrarToast('El número de piso debe ser mayor a 0.', 'danger');
+      return;
+    }
+    if (!this.pisoForm.nombre || this.pisoForm.nombre.trim() === '') {
+      this.toastService.mostrarToast('El nombre identificador es obligatorio.', 'danger');
+      return;
+    }
+
     if (this.modalMode === 'CREATE') {
       this.infraestructuraService.crearPiso(this.pisoForm.nroPiso, this.pisoForm.nombre, this.edificioSeleccionado.idEdificio).subscribe({
         next: () => {
+          this.toastService.mostrarToast('Piso agregado correctamente', 'success');
           this.cargarEdificios();
           this.cerrarModal();
         },
-        error: (err) => console.error('Error al crear piso', err)
+        error: (err) => {
+          console.error(err);
+          this.toastService.mostrarToast('Error al crear el piso', 'danger');
+        }
       });
     } else {
       this.infraestructuraService.modificarPiso(this.targetIdPiso!, { nroPiso: this.pisoForm.nroPiso, nombre: this.pisoForm.nombre }).subscribe({
         next: () => {
+          this.toastService.mostrarToast('Piso modificado correctamente', 'success');
           this.cargarEdificios();
           this.cerrarModal();
         },
-        error: (err) => console.error('Error al modificar piso', err)
+        error: (err) => {
+          console.error(err);
+          this.toastService.mostrarToast('Error al modificar el piso', 'danger');
+        }
       });
     }
   }
@@ -155,13 +198,34 @@ export class AdminInfrastructureComponent implements OnInit {
   }
 
   guardarHabitacion(): void {
+    if (this.habitacionForm.nroHabitacion === null || this.habitacionForm.nroHabitacion <= 0) {
+      this.toastService.mostrarToast('El número de habitación es inválido.', 'danger');
+      return;
+    }
+    if (this.habitacionForm.capacidadTotal < 1) {
+      this.toastService.mostrarToast('La capacidad máxima debe ser al menos de 1 cama.', 'danger');
+      return;
+    }
+    if (this.habitacionForm.capacidadActual < 0) {
+      this.toastService.mostrarToast('Las camas ocupadas no pueden ser negativas.', 'danger');
+      return;
+    }
+    if (this.habitacionForm.capacidadActual > this.habitacionForm.capacidadTotal) {
+      this.toastService.mostrarToast('Las camas ocupadas superan la capacidad máxima.', 'danger');
+      return;
+    }
+
     if (this.modalMode === 'CREATE') {
       this.infraestructuraService.crearHabitacion(this.habitacionForm.nroHabitacion, this.habitacionForm.capacidadActual, true, this.targetIdPiso!).subscribe({
         next: () => {
+          this.toastService.mostrarToast('Habitación añadida correctamente', 'success');
           this.cargarEdificios();
           this.cerrarModal();
         },
-        error: (err) => console.error('Error al crear habitación', err)
+        error: (err) => {
+          console.error(err);
+          this.toastService.mostrarToast('Error al crear la habitación', 'danger');
+        }
       });
     } else {
       this.infraestructuraService.modificarHabitacion(this.targetIdHabitacion!, {
@@ -169,10 +233,14 @@ export class AdminInfrastructureComponent implements OnInit {
         capacidadActual: this.habitacionForm.capacidadActual
       }).subscribe({
         next: () => {
+          this.toastService.mostrarToast('Habitación modificada correctamente', 'success');
           this.cargarEdificios();
           this.cerrarModal();
         },
-        error: (err) => console.error('Error al modificar habitación', err)
+        error: (err) => {
+          console.error(err);
+          this.toastService.mostrarToast('Error al modificar la habitación', 'danger');
+        }
       });
     }
   }
@@ -182,9 +250,13 @@ export class AdminInfrastructureComponent implements OnInit {
     this.infraestructuraService.modificarHabitacion(habitacion.idHabitacion, { disponibilidad: nuevoEstado }).subscribe({
       next: () => {
         habitacion.disponibilidad = nuevoEstado;
+        this.toastService.mostrarToast(nuevoEstado ? 'Habitación habilitada' : 'Habitación bloqueada', 'success');
         this.cdr.detectChanges(); 
       },
-      error: (err) => console.error('Error al cambiar disponibilidad', err)
+      error: (err) => {
+        console.error(err);
+        this.toastService.mostrarToast('Error al cambiar la disponibilidad', 'danger');
+      }
     });
   }
 
@@ -201,18 +273,26 @@ export class AdminInfrastructureComponent implements OnInit {
     if (type === 'PISO') {
       this.infraestructuraService.eliminarPiso(data.idPiso).subscribe({
         next: () => {
+          this.toastService.mostrarToast('Piso eliminado correctamente', 'success');
           this.cargarEdificios();
           this.cerrarModal();
         },
-        error: (err) => console.error('Error al eliminar piso', err)
+        error: (err) => {
+          console.error(err);
+          this.toastService.mostrarToast('Error al eliminar el piso', 'danger');
+        }
       });
     } else if (type === 'HABITACION') {
       this.infraestructuraService.eliminarHabitacion(data.idHabitacion).subscribe({
         next: () => {
+          this.toastService.mostrarToast('Habitación eliminada correctamente', 'success');
           this.cargarEdificios();
           this.cerrarModal();
         },
-        error: (err) => console.error('Error al eliminar habitación', err)
+        error: (err) => {
+          console.error(err);
+          this.toastService.mostrarToast('Error al eliminar la habitación', 'danger');
+        }
       });
     }
   }

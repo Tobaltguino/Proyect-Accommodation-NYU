@@ -6,17 +6,26 @@ import { NgControl } from '@angular/forms';
   standalone: true
 })
 export class RutFormatDirective {
-  // Inyectamos NgControl para poder actualizar el [(ngModel)] automáticamente
+  
   constructor(private control: NgControl) {}
 
-  @HostListener('input', ['$event.target.value'])
-  onInput(value: string) {
+  // Ahora solo pasamos el $event completo
+  @HostListener('input', ['$event'])
+  onInput(event: Event) {
+    
+    // Le decimos a TypeScript que esto es un input de HTML
+    const inputElement = event.target as HTMLInputElement;
+    
+    // Validamos que exista
+    if (!inputElement) return;
+
+    const value = inputElement.value;
     if (!value) return;
 
-    // 1. Limpiar todo lo que no sea número o la letra K (y pasarlo a mayúscula)
+    // Limpiar todo lo que no sea número o la letra K (y pasarlo a mayúscula)
     let cleaned = value.replace(/[^0-9kK]/g, '').toUpperCase();
 
-    // 2. Aplicar el formato: separar el último dígito con un guion
+    // Aplicar el formato: separar el último dígito con un guion
     let formatted = cleaned;
     if (cleaned.length > 1) {
       const cuerpo = cleaned.slice(0, -1);
@@ -24,7 +33,7 @@ export class RutFormatDirective {
       formatted = `${cuerpo}-${dv}`;
     }
 
-    // 3. Actualizar el valor real en el modelo de Angular
+    // Actualizar el valor real en el modelo de Angular
     if (this.control && this.control.control) {
       this.control.control.setValue(formatted);
     }

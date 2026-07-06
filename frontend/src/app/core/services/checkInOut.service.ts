@@ -23,21 +23,21 @@ export class CheckInOutService {
 
   // Buscar al estudiante
   buscarResidentePorRut(rut: string): Observable<AsignacionActivaResponse> {
-    return this.http.get<AsignacionActivaResponse>(`${this.apiUrl}/buscar-residente/${rut}`, { 
+    return this.http.get<AsignacionActivaResponse>(`${this.apiUrl}/estudiantes/${rut}/activa`, { 
       headers: this.getAuthHeaders() 
     });
   }
 
   // Marcar Check-In
   registrarCheckIn(idAsignacion: number): Observable<AsignacionDTO> {
-    return this.http.patch<AsignacionDTO>(`${this.apiUrl}/${idAsignacion}/check-in`, {}, { 
+    return this.http.patch<AsignacionDTO>(`${this.apiUrl}/${idAsignacion}/ingresos`, {}, { 
       headers: this.getAuthHeaders() 
     });
   }
 
   // Marcar Check-Out (Salida exitosa)
   registrarCheckOut(idAsignacion: number): Observable<AsignacionDTO> {
-    return this.http.patch<AsignacionDTO>(`${this.apiUrl}/${idAsignacion}/check-out`, {}, { 
+    return this.http.patch<AsignacionDTO>(`${this.apiUrl}/${idAsignacion}/salidas`, {}, { 
       headers: this.getAuthHeaders() 
     });
   }
