@@ -66,6 +66,6 @@ export class AsignacionesService {
   }
 
   obtenerMiHistorial(): Observable<AsignacionDTO[]> {
-    return this.http.get<AsignacionDTO[]>(`${this.apiUrl}/mi-historial`, { headers: this.getHeaders() });
+    return this.http.get<AsignacionDTO[]>(`${this.apiUrl}/historial`, { headers: this.getHeaders() });
   }
 }
