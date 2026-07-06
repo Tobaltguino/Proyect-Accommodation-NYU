@@ -26,7 +26,7 @@ export interface AsignacionDTO {
   //pago
   fechaPago?: Date | null;
   referenceId?: string | null;
-  estadoPago?: string | null;
+  estadoPago?: 'Pagado' | 'Rechazado' | 'Expirado';
 
 }
 

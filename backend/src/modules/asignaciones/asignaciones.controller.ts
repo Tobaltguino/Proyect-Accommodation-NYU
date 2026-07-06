@@ -18,6 +18,8 @@ import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { Role } from '../auth/enums/role.enum';
 import type { AuthenticatedRequest } from '../../common/types/authenticated-request.type';
+import { PagosService } from '../pagos/pagos.service';
+import { ConfirmarPagoDTO } from '../pagos/dto/pagos.dto';
 
 //api
 import { ApiKeyGuard } from '../../common/guards/api-key.guard';
@@ -26,7 +28,10 @@ import { CrearAsignacionDTO } from './dto/crearAsignacion.dto';
 
 @Controller('asignaciones')
 export class AsignacionesController {
-  constructor(private readonly asignacionesService: AsignacionesService) { }
+  constructor(
+    private readonly asignacionesService: AsignacionesService,
+    private readonly pagosService: PagosService,
+  ) { }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN) // Solo el admin ejecuta esta acción
@@ -146,6 +151,27 @@ export class AsignacionesController {
       idNuevaHabitacion,
       rutAdmin,
     );
+  }
+
+  // POST /asignaciones/1/pagos (Angular llama aquí para INICIAR el pago)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.STUDENT)
+  @Post(':idAsignacion/pagos')
+  iniciarProcesoPago(@Param('idAsignacion', ParseIntPipe) idAsignacion: number) {
+    return this.pagosService.crearOrdenDePago(
+      idAsignacion,
+      500,
+      `Pago matrícula semestre 1 2026 - Asignación ${idAsignacion}`
+    );
+  }
+
+  // PATCH /asignaciones/1/pagos/estado (Angular llama aquí para SIMULAR/CONFIRMAR)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.STUDENT)
+  @Patch(':idAsignacion/pagos/estado')
+  sincronizarEstadoPago(@Param('idAsignacion', ParseIntPipe) idAsignacion: number) {
+    // Fíjate que eliminamos por completo el @Body()
+    return this.pagosService.sincronizarPago(idAsignacion);
   }
 
   // PATCH http://localhost:3000/asignaciones/:idAsignacion
