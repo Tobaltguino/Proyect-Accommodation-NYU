@@ -11,8 +11,7 @@ export type MealPlan = 'Sin preferencia' | 'Vegetariano' | 'Vegano';
 
 @Injectable({ providedIn: 'root' })
 export class SolicitudesService {
-  private apiUrl = "http://localhost:3000";
-  // private apiUrl = environment.apiUrl
+  private apiUrl = environment.apiUrl
 
 
   private readonly http = inject(HttpClient);
