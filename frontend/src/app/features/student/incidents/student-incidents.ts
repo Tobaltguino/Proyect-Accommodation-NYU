@@ -33,6 +33,7 @@ export class StudentIncidentsComponent implements OnInit {
   filtroGravedad: GravedadIncidencia | '' = '';
   periodos: string[] = ['2026-1', '2025-2'];
 
+  
   // Variables de Paginación
   paginaActual: number = 1;
   itemsPorPagina: number = 20;
@@ -135,6 +136,7 @@ export class StudentIncidentsComponent implements OnInit {
       rutAdmin: row.rutAdmin,
       periodo: this.filtroPeriodo || 'Sin periodo',
       nombreEdificio: row.habitacion?.piso?.edificio?.nombre ?? 'Sin edificio',
+      numeroPiso: row.habitacion?.piso?.nroPiso
     };
   }
 
