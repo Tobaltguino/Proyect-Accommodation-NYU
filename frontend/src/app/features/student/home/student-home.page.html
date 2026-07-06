@@ -23,12 +23,17 @@
 
         <div class="d-flex flex-column flex-lg-row gap-4">
           
-          <div class="info-grid flex-grow-1" style="margin: 0;">
+          <<div class="info-grid flex-grow-1" style="margin: 0;">
             <div class="info-item">
               <span class="label">Edificio</span>
               <strong class="value">{{ miAsignacion?.nombreEdificio }}</strong>
             </div>
             
+            <div class="info-item">
+              <span class="label">Piso</span>
+              <strong class="value text-muted">{{ miAsignacion?.numeroPiso || '-' }}</strong>
+            </div>
+
             <div class="info-item">
               <span class="label">Habitación</span>
               <strong class="value highlight">Nº {{ miAsignacion?.numeroHabitacion }}</strong>
@@ -72,15 +77,6 @@
           </button>
         </div>
       </section>
-
-      <section class="card module-box p-3 text-center" style="width: 100%; max-width: 900px;">
-        <h3 class="mb-2 fs-6">Normativa de Convivencia</h3>
-        <ul class="list-unstyled mb-0 d-flex justify-content-center gap-4 flex-wrap text-muted" style="font-size: 0.9rem;">
-          <li><i class="pi pi-moon"></i> Horario de silencio: 23:00 hrs.</li>
-          <li><i class="pi pi-users"></i> Visitas hasta las 20:00 hrs.</li>
-        </ul>
-      </section>
-
     </div>
 
   } @else {
